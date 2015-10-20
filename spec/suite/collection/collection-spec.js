@@ -1,0 +1,450 @@
+import Collection from '../../../src/collection/collection';
+import Model from '../../../src/model';
+
+class MyModel extends Model {};
+
+describe("Collection", function() {
+
+  describe(".__construct()", function() {
+
+    it("loads the data", function() {
+
+      var collection = new Collection({ data: ['foo'] });
+      expect(collection.get(0)).toBe('foo');
+      expect(collection.count()).toBe(1);
+      expect(collection.length).toBe(1);
+
+    });
+
+  });
+
+  describe(".parent()", function() {
+
+    it("gets the parent", function() {
+
+      var parent = {};
+      var collection = new Collection({ parent: parent });
+      expect(collection.parent()).toBe(parent);
+
+    });
+
+    it("sets a parent", function() {
+
+      var parent = {};
+      var collection = new Collection();
+      collection.parent(parent);
+      expect(collection.parent()).toBe(parent);
+
+    });
+
+  });
+
+  describe(".rootPath()", function() {
+
+    it("returns the root path", function() {
+
+      var collection = new Collection({ rootPath: 'items' });
+      expect(collection.rootPath()).toBe('items');
+
+    });
+
+  });
+
+  describe(".model()", function() {
+
+    it("returns the model", function() {
+
+      var model = new Function();
+      var collection = new Collection({ model: model });
+      expect(collection.model()).toBe(model);
+
+    });
+
+  });
+
+  describe(".meta()", function() {
+
+    it("returns the meta attributes", function() {
+
+      var meta ={ page: 5, limit: 10 };
+      var collection = new Collection({ meta: meta });
+      expect(collection.meta()).toBe(meta);
+
+    });
+
+  });
+
+  describe(".invoke()", function() {
+
+    beforeEach(function() {
+      this.collection = new Collection();
+
+      for (var i = 0; i < 5; i++) {
+        var object = { hello: function() { return 'world'; }};
+        this.collection.push(object);
+      }
+    });
+
+    it("dispatches a method against all items in the collection", function() {
+
+      var result = this.collection.invoke('hello');
+      expect(result).toEqual(['world', 'world', 'world', 'world', 'world']);
+
+    });
+
+  });
+
+  describe(".apply()", function() {
+
+    it("applies a filter on a collection", function() {
+
+      var collection = new Collection({ data: [1, 2, 3, 4, 5] });
+      var filter = function(item) { return ++item; };
+      var result = collection.apply(filter);
+
+      expect(result).toBe(collection);
+      expect(result.data()).toEqual([2, 3, 4, 5, 6]);
+
+    });
+
+  });
+
+  describe(".find()", function() {
+
+    it("extracts items from a collection according a filter", function() {
+
+      var collection = new Collection({
+        data: Array(10).fill(1, 0, 10).concat(Array(10).fill(2, 0, 10))
+      });
+
+      var filter = function(item) { return item === 1; };
+
+      var result = collection.find(filter);
+      expect(result instanceof Collection).toBe(true);
+      expect(result.data()).toEqual(Array(10).fill(1, 0, 10));
+
+    });
+
+  });
+
+  describe(".map()", function() {
+
+    it("applies a Closure to a copy of all data in the collection", function() {
+
+      var collection = new Collection({ data: [1, 2, 3, 4, 5] });
+      var filter = function(item) { return ++item; };
+      var result = collection.map(filter);
+
+      expect(result).not.toBe(collection);
+      expect(result.data()).toEqual([2, 3, 4, 5, 6]);
+
+    });
+
+  });
+
+  describe(".reduce()", function() {
+
+    it("reduces a collection down to a single value", function() {
+
+      var collection = new Collection({ data: [1, 2, 3] });
+      var filter = function(memo, item) { return memo + item; };
+
+      expect(collection.reduce(filter, 0)).toBe(6);
+      expect(collection.reduce(filter, 1)).toBe(7);
+
+    });
+
+  });
+
+  describe(".slice()", function() {
+
+    it("extracts a slice of items", function() {
+
+      var collection = new Collection({ data: [1, 2, 3, 4, 5] });
+      var result = collection.slice(2, 2);
+
+      expect(result).not.toBe(collection);
+      expect(result.data()).toEqual([3, 4]);
+
+    });
+
+  });
+
+  describe(".sort()", function() {
+
+    it("sorts a collection", function() {
+
+      var collection = new Collection({ data: [5, 3, 4, 1, 2] });
+      var result = collection.sort();
+      expect(result.data()).toEqual([1, 2, 3, 4, 5]);
+
+    });
+
+    it("sorts a collection using a compare function", function() {
+
+      var collection = new Collection({ data: ['Alan', 'Dave', 'betsy', 'carl'] });
+      var result = collection.sort(function(a, b) {
+        return a < b;
+      });
+      expect(result.data()).toEqual(['carl', 'betsy', 'Dave', 'Alan']);
+
+    });
+
+  });
+
+  describe(".isset()", function() {
+
+    it("returns true if a element exist", function() {
+
+      var collection = new Collection();
+      collection.push('foo');
+      collection.push(null);
+
+      expect(collection.isset(0)).toBe(true);
+      expect(collection.isset(1)).toBe(true);
+
+    });
+
+    it("returns false if a element doesn't exist", function() {
+
+      var collection = new Collection();
+      expect(collection.isset(0)).toBe(false);
+
+    });
+
+  });
+
+  describe(".push()", function() {
+
+    it("pushes elements", function() {
+
+      var collection = new Collection();
+      collection.push('foo');
+      expect(collection.get(0)).toBe('foo');
+      expect(collection.count()).toBe(1);
+
+    });
+
+  });
+
+  describe(".get()", function() {
+
+    it("returns the plain data array", function() {
+
+      var data = ['one', 'two', 'three'];
+      var collection = new Collection({ data: data });
+      expect(collection.get()).toEqual(data);
+
+    });
+
+  });
+
+  describe(".set/get()", function() {
+
+    it("updates at a specific key", function() {
+
+      var collection = new Collection();
+      collection.push('foo');
+      expect(collection.get(0)).toBe('foo');
+
+      collection.set(0, 'foo updated');
+      expect(collection.get(0)).toBe('foo updated');
+
+    });
+
+    context("when a model is defined", function() {
+
+      it("autoboxes setted data", function() {
+
+        var collection = new Collection({
+          model: MyModel
+        });
+
+        collection.push({
+          id: 1,
+          title: 'first record',
+          enabled: 1,
+          created: new Date()
+        });
+
+        var entity = collection.get(0);
+        expect(entity instanceof MyModel).toBe(true);
+        expect(entity.parent()).toBe(collection);
+        expect(entity.rootPath()).toBe(undefined);
+
+      });
+
+    });
+
+  });
+
+  describe(".unset()", function() {
+
+    it("unsets items", function() {
+
+      var collection = new Collection({ data: [5, 3, 4, 1, 2] });
+      collection.unset(1);
+      collection.unset(1);
+
+      expect(collection.count()).toBe(3);
+      expect(collection.data()).toEqual([5, 1, 2]);
+
+    });
+
+    it("unsets items rebuild indexes", function() {
+
+      var collection = new Collection({ data: [5, 3, 4, 1, 2] });
+      collection.unset(1);
+      collection.unset(1);
+
+      expect(collection.count()).toBe(3);
+      expect(collection.data()).toEqual([5, 1, 2]);
+      expect(collection.keys()).toEqual([0, 1, 2]);
+
+    });
+
+  });
+
+  describe(".keys()", function() {
+
+    it("returns the item keys", function() {
+
+      var collection = new Collection({ data: ['one', 'two', 'three' ] });
+      expect(collection.keys()).toEqual([0, 1, 2]);
+
+    });
+
+  });
+
+  describe(".count()", function() {
+
+      it("returns 0 on empty", function() {
+
+          var collection = new Collection();
+          expect(collection.count()).toBe(0);
+          expect(collection.length).toBe(0);
+
+      });
+
+      it("returns the number of items in the collection", function() {
+
+          var collection = new Collection({ data: [5 ,null, 4, true, false, 'bob'] });
+          expect(collection.count()).toBe(6);
+          expect(collection.length).toBe(6);
+
+      });
+
+  });
+
+  describe(".merge()", function() {
+
+    it("merges two collection", function() {
+
+      var collection = new Collection({ data: [1, 2, 3] });
+      var collection2 = new Collection({ data: [4, 5, 6, 7] });
+      collection.merge(collection2);
+
+      expect(collection.data()).toEqual([1, 2, 3, 4, 5, 6, 7]);
+
+    });
+
+  });
+
+  describe(".embed()", function() {
+
+    it("deletages the call up to the schema instance", function() {
+
+      var schema = {embed: function() {}};
+      spyOn(schema, 'embed');
+
+      MyModel.config({ schema: schema });
+
+      var galleries = MyModel.create({}, { type: 'set' });
+
+      galleries.embed(['relation1.relation2']);
+      expect(schema.embed).toHaveBeenCalledWith(galleries, ['relation1.relation2']);
+
+      MyModel.config();
+
+    });
+
+  });
+
+  describe(".data()", function() {
+
+    it("calls `toArray()`", function() {
+
+      var collection = new Collection({ data: [1] });
+      spyOn(Collection, 'toArray').and.callThrough();
+
+      var options = {};
+      expect(collection.data(options)).toEqual([1]);
+      expect(Collection.toArray).toHaveBeenCalledWith(collection, options);
+
+    });
+
+  });
+
+  describe("::toArray()", function() {
+
+    it("converts a collection to an array", function() {
+
+      var collection = new Collection({ data: [1, 2, 3, 4, 5] });
+      expect(Collection.toArray(collection)).toEqual([1, 2, 3, 4, 5]);
+
+    });
+
+    it("converts objects which support toString", function() {
+
+      var collection = new Collection({ data: [{}] });
+      expect(Collection.toArray(collection)).toEqual(['[object Object]']);
+
+    });
+
+    it("converts objects using handlers", function() {
+
+      var handlers = {
+        Date: function(value) { return 'world'; }
+      };
+      var collection = new Collection({ data: [new Date()] });
+      var d = new Date();
+
+      expect(Collection.toArray(collection, { handlers: handlers })).toEqual(['world']);
+
+    });
+
+    it("doesn't convert unsupported objects", function() {
+
+      var object = Object.create(null);
+      var collection = new Collection({ data: [object] });
+      expect(Collection.toArray(collection)).toEqual([object]);
+
+    });
+
+    it("converts nested collections", function() {
+
+      var collection = new Collection({
+        data: [
+          1, 2, 3, new Collection({ data: [4, 5, 6] })
+        ]
+      });
+      expect(Collection.toArray(collection)).toEqual([1, 2, 3, [4, 5, 6]]);
+
+    });
+
+    it("converts mixed nested collections & arrays", function() {
+
+      var collection = new Collection({
+        data: [
+          1, 2, 3, [
+            new Collection({ data: [4, 5, 6] })
+          ]
+        ]
+      });
+      expect(Collection.toArray(collection)).toEqual([1, 2, 3, [[4, 5, 6]]]);
+
+    });
+
+  });
+
+});
