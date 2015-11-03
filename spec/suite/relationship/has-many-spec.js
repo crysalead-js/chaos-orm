@@ -79,14 +79,14 @@ describe("HasMany", function() {
           type: 'set', exists: true, collector: fetchOptions.collector
         });
         if (fetchOptions['return'] && fetchOptions['return'] === 'object') {
-          return images.data();
+          return Promise.resolve(images.data());
         }
-        return images;
+        return Promise.resolve(images);
       });
 
     });
 
-    it("embeds a hasMany relationship", function() {
+    it("embeds a hasMany relationship", function(done) {
 
       var hasMany = Gallery.relation('images');
 
@@ -95,25 +95,26 @@ describe("HasMany", function() {
         { id: 2, name: 'Bar Gallery' }
       ], { type: 'set', exists: true });
 
-      galleries.embed(['images']);
-
-      expect(Image.all).toHaveBeenCalledWith({
-        conditions: { gallery_id: ['1', '2'] }
-      }, {
-        collector: galleries.collector()
-      });
-
-      galleries.forEach(function(gallery) {
-        gallery.get('images').forEach(function(image) {
-          expect(image.get('gallery_id')).toBe(gallery.get('id'));
-          expect(gallery.collector()).toBe(galleries.collector());
-          expect(image.collector()).toBe(galleries.collector());
+      galleries.embed(['images']).then(function() {
+        expect(Image.all).toHaveBeenCalledWith({
+          conditions: { gallery_id: ['1', '2'] }
+        }, {
+          collector: galleries.collector()
         });
+
+        galleries.forEach(function(gallery) {
+          gallery.get('images').forEach(function(image) {
+            expect(image.get('gallery_id')).toBe(gallery.get('id'));
+            expect(gallery.collector()).toBe(galleries.collector());
+            expect(image.collector()).toBe(galleries.collector());
+          });
+        });
+        done();
       });
 
     });
 
-    it("embeds a hasMany relationship using object hydration", function() {
+    it("embeds a hasMany relationship using object hydration", function(done) {
 
       var hasMany = Gallery.relation('images');
 
@@ -124,88 +125,43 @@ describe("HasMany", function() {
 
       galleries = galleries.data();
 
-      hasMany.embed(galleries, { fetchOptions: { 'return': 'object' } });
-
-      expect(Image.all).toHaveBeenCalledWith({
-        conditions: { gallery_id: ['1', '2'] }
-      }, {
-        'return': 'object'
-      });
-
-      galleries.forEach(function(gallery) {
-        gallery.images.forEach(function(image) {
-          expect(gallery.id).toBe(image.gallery_id);
-          expect(image instanceof Model).toBe(false);
+      hasMany.embed(galleries, { fetchOptions: { 'return': 'object' } }).then(function() {
+        expect(Image.all).toHaveBeenCalledWith({
+          conditions: { gallery_id: ['1', '2'] }
+        }, {
+          'return': 'object'
         });
-      });
 
-    });
-
-  });
-
-  describe(".get()", function() {
-
-    it("returns an empty collection when no hasMany relation exists", function() {
-
-      spyOn(Image, 'all').and.callFake(function(options, fetchOptions) {
-        fetchOptions = fetchOptions || {};
-        return Image.create([], {
-          type: 'set', exists: true, collector: fetchOptions.collector
+        galleries.forEach(function(gallery) {
+          gallery.images.forEach(function(image) {
+            expect(gallery.id).toBe(image.gallery_id);
+            expect(image instanceof Model).toBe(false);
+          });
         });
+        done();
       });
 
-      var gallery = Gallery.create({ id: 1, name: 'Foo Gallery'},  { exists: true });
-
-      expect(gallery.get('images').count()).toBe(0);
-      expect(gallery.get('images').collector()).toBe(gallery.collector());
-
-      expect(Image.all).toHaveBeenCalledWith({
-        conditions: { gallery_id: 1 }
-      }, { collector: gallery.collector() });
-
-    });
-
-    it("lazy loads a hasMany relation", function() {
-
-      spyOn(Image, 'all').and.callFake(function(options, fetchOptions) {
-        fetchOptions = fetchOptions || {};
-        return Image.create([
-          { id: 1, gallery_id: 1, title: 'Amiga 1200' },
-          { id: 2, gallery_id: 1, title: 'Srinivasa Ramanujan' },
-          { id: 3, gallery_id: 1, title: 'Las Vegas' }
-        ], { type: 'set', exists: true, collector: fetchOptions.collector });
-      });
-
-      var gallery = Gallery.create({ id: 1, name: 'Foo Gallery' }, { exists: true });
-
-      gallery.get('images').forEach(function(image) {
-        expect(image.get('gallery_id')).toBe(gallery.get('id'));
-        expect(image.collector()).toBe(gallery.collector());
-      });
-
-      expect(Image.all).toHaveBeenCalledWith({
-        conditions: { gallery_id: 1 }
-      }, {
-        collector: gallery.collector()
-      });
     });
 
   });
 
   describe(".save()", function() {
 
-    it("bails out if no relation data hasn't been setted", function() {
+    it("bails out if no relation data hasn't been setted", function(done) {
 
       var hasMany = Gallery.relation('images');
       var gallery = Gallery.create({ id: 1, name: 'Foo Gallery' },  { exists: true });
-      expect(hasMany.save(gallery)).toBe(true);
+      hasMany.save(gallery).then(function() {
+        expect(gallery.isset('images')).toBe(false);
+        done();
+      });
 
     });
 
-    it("saves a hasMany relationship", function() {
+    it("saves a hasMany relationship", function(done) {
 
       spyOn(Image, 'all').and.callFake(function() {
-        return Image.create([], { type: 'set' });
+        return Promise.resolve(Image.create([], { type: 'set' }));
       });
 
       var hasMany = Gallery.relation('images');
@@ -215,22 +171,24 @@ describe("HasMany", function() {
 
       spyOn(gallery.get('images').get(0), 'save').and.callFake(function() {
         gallery.get('images').get(0).set('id', 1);
-        return true;
+        return Promise.resolve(gallery);
       });
 
-      expect(hasMany.save(gallery)).toBe(true);
-      expect(gallery.get('images').get(0).save).toHaveBeenCalled();
-      expect(gallery.get('images').get(0).get('gallery_id')).toBe(gallery.get('id'));
+      hasMany.save(gallery).then(function() {
+        expect(gallery.get('images').get(0).save).toHaveBeenCalled();
+        expect(gallery.get('images').get(0).get('gallery_id')).toBe(gallery.get('id'));
+        done();
+      });
 
     });
 
-    it("assures removed association to be unsetted", function() {
+    it("assures removed association to be unsetted", function(done) {
 
       var toUnset = Image.create({ id: 2, gallery_id: 1, title: 'Srinivasa Ramanujan' }, { exists: true });
       var toKeep = Image.create({ id: 3, gallery_id: 1, title: 'Las Vegas' }, { exists: true });
 
       spyOn(Image, 'all').and.callFake(function(options, fetchOptions) {
-        return Image.create([toUnset, toKeep], { type: 'set' });
+        return Promise.resolve(Image.create([toUnset, toKeep], { type: 'set' }));
       });
 
       var hasMany = Gallery.relation('images');
@@ -240,30 +198,32 @@ describe("HasMany", function() {
 
       spyOn(gallery.get('images').get(0), 'save').and.callFake(function() {
         gallery.get('images').get(0).set('id', 1);
-        return true;
+        return Promise.resolve(gallery);
       });
 
-      spyOn(toKeep, 'save').and.returnValue(true);
-      spyOn(toUnset, 'save').and.returnValue(true);
+      spyOn(toKeep, 'save').and.returnValue(Promise.resolve(toKeep));
+      spyOn(toUnset, 'save').and.returnValue(Promise.resolve(toUnset));
 
-      expect(hasMany.save(gallery)).toBe(true);
-      expect(toUnset.exists()).toBe(true);
-      expect(toUnset.get('gallery_id')).toBe(undefined);
-      expect(gallery.get('images').get(0).get('gallery_id')).toBe(gallery.get('id'));
+      hasMany.save(gallery).then(function() {
+        expect(toUnset.exists()).toBe(true);
+        expect(toUnset.get('gallery_id')).toBe(undefined);
+        expect(gallery.get('images').get(0).get('gallery_id')).toBe(gallery.get('id'));
 
-      expect(gallery.get('images').get(0).save).toHaveBeenCalled();
-      expect(toKeep.save).toHaveBeenCalled();
-      expect(toUnset.save).toHaveBeenCalled();
+        expect(gallery.get('images').get(0).save).toHaveBeenCalled();
+        expect(toKeep.save).toHaveBeenCalled();
+        expect(toUnset.save).toHaveBeenCalled();
+        done();
+      });
 
     });
 
-    it("assures removed associative entity to be deleted", function() {
+    it("assures removed associative entity to be deleted", function(done) {
 
       var toDelete = ImageTag.create({ id: 5, image_id: 4, tag_id: 6 }, { exists: true });
       var toKeep = ImageTag.create({ id: 6, image_id: 4, tag_id: 3 }, { exists: true });
 
       spyOn(ImageTag, 'all').and.callFake(function(options, fetchOptions) {
-        return ImageTag.create([toDelete, toKeep], { type: 'set' });
+        return Promise.resolve(ImageTag.create([toDelete, toKeep], { type: 'set' }));
       });
 
       var hasMany = Image.relation('images_tags');
@@ -273,20 +233,22 @@ describe("HasMany", function() {
 
       spyOn(image.get('images_tags').get(0), 'save').and.callFake(function() {
         image.get('images_tags').get(0).set('id', 7);
-        return true;
+        return Promise.resolve(image);
       });
 
       var schema = ImageTag.schema();
-      spyOn(toKeep, 'save').and.returnValue(true);
-      spyOn(schema, 'delete').and.returnValue(true);
+      spyOn(toKeep, 'save').and.returnValue(Promise.resolve(toKeep));
+      spyOn(schema, 'delete').and.returnValue(Promise.resolve());
 
-      expect(hasMany.save(image)).toBe(true);
-      expect(toDelete.exists()).toBe(false);
-      expect(image.get('images_tags').get(0).get('image_id')).toBe(image.get('id'));
+      hasMany.save(image).then(function() {
+        expect(toDelete.exists()).toBe(false);
+        expect(image.get('images_tags').get(0).get('image_id')).toBe(image.get('id'));
 
-      expect(image.get('images_tags').get(0).save).toHaveBeenCalled();
-      expect(toKeep.save).toHaveBeenCalled();
-      expect(schema.delete).toHaveBeenCalledWith({ id: 5 });
+        expect(image.get('images_tags').get(0).save).toHaveBeenCalled();
+        expect(toKeep.save).toHaveBeenCalled();
+        expect(schema.delete).toHaveBeenCalledWith({ id: 5 });
+        done();
+      });
 
     });
 

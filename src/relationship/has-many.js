@@ -57,39 +57,41 @@ class HasMany extends Relationship {
    * @return Collection            The collection of related entities.
    */
   embed(collection, options) {
-    var indexes = this._index(collection, this.keys('from'));
-    options = extend({}, { fetchOptions: { collector: this._collector(collection) } }, options);
+    var Promise = this.from().classes().promise;
+    return new Promise(function(resolve, reject) {
+      var indexes = this._index(collection, this.keys('from'));
+      options = extend({}, { fetchOptions: { collector: this._collector(collection) } }, options);
 
-    var related = this._find(Object.keys(indexes), options);
-    var name = this.name();
-    var value;
+      this._find(Object.keys(indexes), options).then(function(related) {
+        var name = this.name();
+        var value;
 
-    this._cleanup(collection);
+        this._cleanup(collection);
 
-
-    related.forEach(function(entity, index) {
-      if (entity instanceof Model) {
-        value = entity.get(this.keys('to'));
-        if (indexes[value] !== undefined) {
-          if (Array.isArray(collection)) {
-            collection[indexes[value]].get(name).push(entity);
+        related.forEach(function(entity, index) {
+          if (entity instanceof Model) {
+            value = entity.get(this.keys('to'));
+            if (indexes[value] !== undefined) {
+              if (Array.isArray(collection)) {
+                collection[indexes[value]].get(name).push(entity);
+              } else {
+                collection.get(indexes[value]).get(name).push(entity);
+              }
+            }
           } else {
-            collection.get(indexes[value]).get(name).push(entity);
+            value = entity[this.keys('to')];
+            if (indexes[value] !== undefined) {
+              if (Array.isArray(collection)) {
+                collection[indexes[value]][name].push(entity);
+              } else {
+                collection.get(indexes[value])[name].push(entity);
+              }
+            }
           }
-        }
-      } else {
-        value = entity[this.keys('to')];
-        if (indexes[value] !== undefined) {
-          if (Array.isArray(collection)) {
-            collection[indexes[value]][name].push(entity);
-          } else {
-            collection.get(indexes[value])[name].push(entity);
-          }
-        }
-      }
+        }.bind(this));
+        resolve(related);
+      }.bind(this));
     }.bind(this));
-
-    return related;
   }
 
   /**
@@ -100,46 +102,60 @@ class HasMany extends Relationship {
    * @return Boolean
    */
   save(entity, options) {
-    if (this.link() !== this.constructor.LINK_KEY) {
-      return true;
-    }
+    var Promise = this.from().classes().promise;
+    return new Promise(function(resolve, reject) {
 
-    var name = this.name();
-    if (!entity.isset(name)) {
-      return true;
-    }
-
-    var conditions = this.match(entity);
-    var to = this.to();
-    var previous = to.all({ conditions: conditions });
-
-    var indexes = this._index(previous, this.keys('from'));
-    var result = true;
-    var collection = entity.get(name);
-
-    collection.forEach(function(item, index) {
-      if (item.exists() && indexes[item.primaryKey()]) {
-        previous.unset(indexes[item.primaryKey()]);
+      if (this.link() !== this.constructor.LINK_KEY) {
+        resolve(entity);
+        return;
       }
-      item.set(conditions);
-      result = result && item.save(options);
-    });
 
-    var junction = this.junction();
+      var name = this.name();
+      if (!entity.isset(name)) {
+        resolve(entity);
+        return;
+      }
 
-    if (junction) {
-      previous.forEach(function(item, index) {
-        item.delete();
+      var conditions = this.match(entity);
+      var to = this.to();
+      to.all({ conditions: conditions }).then(function(previous){
+
+        var indexes = this._index(previous, this.keys('from'));
+        var result = true;
+        var collection = entity.get(name);
+
+        collection.forEach(function(item, index) {
+          if (item.exists() && indexes[item.primaryKey()]) {
+            previous.unset(indexes[item.primaryKey()]);
+          }
+          item.set(conditions);
+          result = result && item.save(options);
+        });
+
+        var junction = this.junction(), promises = [];
+
+        if (junction) {
+          previous.forEach(function(item, index) {
+            promises.push(item.delete());
+          });
+        } else {
+          var toKey = this.keys('to');
+          previous.forEach(function(item, index) {
+            item.unset(toKey);
+            promises.push(item.save());
+          });
+        }
+        Promise.all(promises).then(function() {
+          resolve(entity);
+        }, function(err) {
+          reject("Unable to remove `'" + toKey + "'` attachments of an entity.");
+        });
+
+      }.bind(this), function() {
+        reject("Error loading current `'hasMany'` attachments.");
       });
-    } else {
-      var toKey = this.keys('to');
-      previous.forEach(function(item, index) {
-        item.unset(toKey);
-        item.save();
-      });
-    }
 
-    return result;
+    }.bind(this));
   }
 }
 

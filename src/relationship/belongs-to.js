@@ -30,29 +30,33 @@ class BelongsTo extends Relationship {
    * @return Collection            The collection of related entities.
    */
   embed(collection, options) {
-    var indexes = this._index(collection, this.keys('from'));
-    var related = this._find(Object.keys(indexes), extend({}, {
-      fetchOptions: { collector: this._collector(collection) }
-    }, options));
+    var Promise = this.from().classes().promise;
+    return new Promise(function(resolve, reject) {
+      var indexes = this._index(collection, this.keys('from'));
+      options = extend({}, { fetchOptions: { collector: this._collector(collection) } }, options);
 
-    var name = this.name();
-    var value;
+      this._find(Object.keys(indexes), options).then(function(related) {;
+        var name = this.name();
+        var value;
 
-    indexes = this._index(related, this.keys('to'));
-    this._cleanup(collection);
+        indexes = this._index(related, this.keys('to'));
+        this._cleanup(collection);
 
-    collection.forEach(function(entity, index) {
-      if (entity instanceof Model) {
-        value = entity.get(this.keys('from'));
-        if (indexes[value] !== undefined) {
-          entity.set(name, Array.isArray(related) ? related[indexes[value]] : related.get(indexes[value]));
-        }
-      } else {
-        value = entity[this.keys('from')];
-        if (indexes[value] !== undefined) {
-          entity[name] = Array.isArray(related) ? related[indexes[value]] : related.get(indexes[value]);
-        }
-      }
+        collection.forEach(function(entity, index) {
+          if (entity instanceof Model) {
+            value = entity.get(this.keys('from'));
+            if (indexes[value] !== undefined) {
+              entity.set(name, Array.isArray(related) ? related[indexes[value]] : related.get(indexes[value]));
+            }
+          } else {
+            value = entity[this.keys('from')];
+            if (indexes[value] !== undefined) {
+              entity[name] = Array.isArray(related) ? related[indexes[value]] : related.get(indexes[value]);
+            }
+          }
+        }.bind(this));
+        resolve(related);
+      }.bind(this))
     }.bind(this));
     return related;
   }
@@ -65,31 +69,41 @@ class BelongsTo extends Relationship {
    * @return Boolean
    */
   save(entity, options) {
-    if (this.link() !== this.constructor.LINK_KEY) {
-      return true;
-    }
+    var Promise = this.from().classes().promise;
+    return new Promise(function(resolve, reject) {
 
-    var name = this.name();
-    if (!entity.isset(name)) {
-      return true;
-    }
+      if (this.link() !== this.constructor.LINK_KEY) {
+        resolve(entity);
+        return;
+      }
 
-    var related = entity.get(name);
-    var result = related.save(options);
+      var name = this.name();
+      if (!entity.isset(name)) {
+        resolve(entity);
+        return;
+      }
 
-    var keys = this.keys();
-    var from = this.keys('from');
-    var to = this.keys('to');
+      var related = entity.get(name);
 
-    var conditions = {};
-    if (!related.isset(to)) {
-      throw new Error("The `'" + to + "'` key is missing from related data.");
-    }
-    conditions[from] = related.get(to);
+      related.save(options).then(function(){
 
-    entity.set(conditions);
+        var keys = this.keys();
+        var from = this.keys('from');
+        var to = this.keys('to');
 
-    return result;
+        var conditions = {};
+        if (!related.isset(to)) {
+          reject("The `'" + to + "'` key is missing from related data.");
+          return;
+        }
+        conditions[from] = related.get(to);
+
+        entity.set(conditions);
+        resolve(entity);
+      }.bind(this), function() {
+        reject("Unable to save some `BelongsTo` related data.");
+      });
+    }.bind(this));
   }
 }
 

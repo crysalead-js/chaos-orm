@@ -202,8 +202,6 @@ class Model {
    *                         - `'type'`       _string_ : can be `'entity'` or `'set'`. `'set'` is used if the passed data represent a collection
    *                           of entities. Default to `'entity'`.
    *                         - `'exists'`     _mixed_  : corresponds whether the entity is present in the datastore or not.
-   *                         - `'autoreload'` _boolean_: sets the specific behavior when exists is `null`. A '`true`' value will perform a
-   *                           reload of the entity from the datasource. Default to `'true'`.
    *                         - `'defaults'`   _boolean_: indicates whether the entity needs to be populated with their defaults values on creation.
    *                         - `'model'`      _string_ : the model to use for instantiating the entity. Can be useful for implementing
    *                                                     som Single Table Inheritance.
@@ -307,8 +305,6 @@ class Model {
    *                      - `'parent'`     _object_ : The parent instance.
    *                      - `'rootPath'`   _string_ : A dotted field names path (for embedded entities).
    *                      - `'exists'`     _boolean_: A boolean or `null` indicating if the entity exists.
-   *                      - `'autoreload'` _boolean_: If `true` and exists is `null`, autoreload the entity
-   *                                                  from the datasource
    *                      - `'data'`       _array_  : The entity's data.
    *
    */
@@ -318,7 +314,6 @@ class Model {
       parent: undefined,
       rootPath: undefined,
       exists: false,
-      autoreload: true,
       data: []
     };
     config = extend({}, defaults, config);
@@ -381,25 +376,22 @@ class Model {
     if (this.exists() === false) {
       return;
     }
-    if (this.exists() !== true) {
-      if (config.autoreload) {
-          this.reload();
-      }
-      this.set(config.data);
-    }
-    if (this.exists() !== true) {
+    this.set(config.data);
+    this._persisted = extend({}, this._data);
+
+    var collector = this.collector();
+    if (!collector) {
       return;
     }
-    extend(this._persisted, this._data);
 
     var id = this.primaryKey();
     if (!id) {
-      return; // TODO: would probaly better to throw an exception here.
+      return; // TODO: would probably be better to throw an exception here.
     }
     var schema = this.model().schema();
     var source = schema.source();
-    var collector = this.collector();
-    if (collector && !collector.exists(source, id)) {
+
+    if (!collector.exists(source, id)) {
       collector.set(source, id, this);
     }
   }
@@ -497,7 +489,7 @@ class Model {
       data[pk] = id;
     }
     this.set(extend({}, this._data, data));
-    this._persisted = this._data;
+    this._persisted = extend({}, this._data);
     return this;
   }
 
@@ -612,7 +604,10 @@ class Model {
       return this._data[name];
     }
     if (this.model().hasRelation(name)) {
-      return this._data[name] = this.model().relation(name).get(this);
+      return this._data[name] = this.set(name, this.model().schema().cast(name, undefined, {
+        collector: this.collector(),
+        parent: this
+      }));
     }
   }
 
@@ -622,7 +617,7 @@ class Model {
    * @return String
    */
   title() {
-      return this._data.title ? this._data.title : this._data.name;
+    return this._data.title ? this._data.title : this._data.name;
   }
 
   /**
@@ -643,10 +638,10 @@ class Model {
    * @return mixed
    */
   persisted(field) {
-      if (!arguments.length) {
-        return this._persisted;
-      }
-      return this._persisted[field];
+    if (!arguments.length) {
+      return this._persisted;
+    }
+    return this._persisted[field];
   }
 
   /**
@@ -740,9 +735,6 @@ class Model {
    * @return boolean       Returns `true` on a successful save operation, `false` on failure.
    */
   save(options) {
-    if (!this.modified()) {
-      return true;
-    }
     return this.model().schema().save(this, options);
   }
 
@@ -757,33 +749,18 @@ class Model {
   }
 
   /**
-   * Similar to `.save()` except it returns a Promise instance.
-   *
-   * @param  Object  options Same options as `.save()`.
-   * @return Object          Returns a promise.
-   */
-  push(options) {
-    return new Promise(function(resolve, reject) {
-      if (this.save(extend({}, { async: true }, options))) {
-        resolve(this);
-      } else {
-        reject(this);
-      }
-    });
-  }
-
-  /**
    * Reloads the entity from the datasource.
    */
   reload() {
     var id = this.primaryKey();
-    var persisted = !id ? this.model().id(id) : undefined;
-    if (!persisted) {
-      throw new Error("The entity id:`" + id + "` doesn't exists.");
-    }
-    this._exists = true;
-    this.set(persisted.get());
-    this._persisted = this._data;
+    return this.model().id(id).then(function(entity) {
+      if (!entity) {
+        throw new Error("The entity ID:`" + id + "` doesn't exists.");
+      }
+      this._exists = true;
+      this.set(entity.get());
+      this._persisted = extend({}, this._data);
+    }.bind(this));
   }
 
   /**
@@ -800,12 +777,10 @@ class Model {
     }
     var params = {};
     params[id] = this.primaryKey();
-    if (schema.delete(params)) {
+    return schema.delete(params).then(function() {
       this._exists = false;
       this._persisted = {};
-      return true;
-    }
-    return false;
+    }.bind(this));
   }
 
   /**

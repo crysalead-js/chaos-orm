@@ -2,6 +2,12 @@ require('babel-core/register');
 
 global.context = describe;
 
+var Model = require('../../src/model');
+
+Model.classes({
+  promise : require('bluebird')
+});
+
 require('./conventions-spec');
 require('./collection/collection-spec');
 require('./collection/through-spec');

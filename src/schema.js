@@ -632,48 +632,58 @@ class Schema {
    * @param Object options    The fetching options.
    */
   embed(collection, relations, options) {
-    var habtm = [], tree = {}, rel, related, subrelations, path, to, key, name, query, matches;
-    options = options || {};
+    var Promise = this.classes().promise;
 
-    relations = this.expand(relations);
-    tree = this.treeify(relations);
+    return new Promise(function(resolve, reject) {
+      var promises = [], habtm = [], tree = {}, rel, subrelations, path, to, key, name, query, matches;
+      options = options || {};
 
-    for (name in tree) {
+      relations = this.expand(relations);
+      tree = this.treeify(relations);
 
-      rel = this.relation(name);
-      if (rel.type() === 'hasManyThrough') {
-        habtm.push(name);
-        continue;
-      }
+      for (name in tree) {
 
-      to = rel.to();
-      query = !relations[name] ? {} : relations[name];
-      if (typeof query === 'function') {
-        options.query = { handler: query };
-      } else {
-        options.query = query;
-      }
-      related = rel.embed(collection, options);
-
-      subrelations = {};
-
-      for (path in relations) {
-        matches = path.match(new RegExp('^' + name + '\.(.*)$'));
-        if (matches) {
-          subrelations[matches[1]] = relations[path];
+        rel = this.relation(name);
+        if (rel.type() === 'hasManyThrough') {
+          habtm.push(name);
+          continue;
         }
-      }
-      if (Object.keys(subrelations).length) {
-        to.schema().embed(related, subrelations, options);
-      }
-    }
 
-    var i, len;
-    len = habtm.length;
-    for (i = 0; i < len; i++) {
-      rel = this.relation(habtm[i]);
-      related = rel.embed(collection, options);
-    }
+        to = rel.to();
+        query = !relations[name] ? {} : relations[name];
+        if (typeof query === 'function') {
+          options.query = { handler: query };
+        } else {
+          options.query = query;
+        }
+
+        promises.push(rel.embed(collection, options).then(function(related) {
+          subrelations = {};
+          for (path in relations) {
+            matches = path.match(new RegExp('^' + name + '\.(.*)$'));
+            if (matches) {
+              subrelations[matches[1]] = relations[path];
+            }
+          }
+          if (Object.keys(subrelations).length) {
+            promises.push(to.schema().embed(related, subrelations, options));
+          }
+        }));
+      }
+
+      Promise.all(promises).then(function() {
+        var i, len, ps = [];
+        len = habtm.length;
+        for (i = 0; i < len; i++) {
+          rel = this.relation(habtm[i]);
+          ps.push(rel.embed(collection, options));
+        }
+        Promise.all(ps).then(function() {
+          resolve(collection);
+        });
+      }.bind(this));
+
+    }.bind(this));
   }
 
   /**
@@ -955,7 +965,7 @@ class Schema {
    *                       - `'embed'`     _Object_ : List of relations to save.
    * @return boolean       Returns `true` on a successful save operation, `false` on failure.
    */
-  async save(entity, options) {
+  save(entity, options) {
     var defaults = {
       whitelist: undefined,
       locked: this.locked(),
@@ -966,55 +976,79 @@ class Schema {
 
     options.embed = this.treeify(options.embed);
 
-    if (!this._save('belongsTo', options)) {
-      return false;
-    }
+    var Promise = this.classes().promise;
 
-    var hasRelations = ['hasMany', 'hasOne'];
+    return new Promise(function(resolve, reject) {
 
-    if (!entity.modified()) {
-      return this._save(entity, hasRelations, options);
-    }
+      this._save('belongsTo', options).then(function() {
 
-    var fields = Object.keys(this.fields());
-    var whitelist = options.whitelist;
+        var hasRelations = ['hasMany', 'hasOne'];
 
-    if (whitelist || options.locked) {
-      whitelist = whitelist ? whitelist : fields;
-    }
+        if (!entity.modified()) {
+          this._save(entity, hasRelations, options).then(function() {
+            resolve(entity);
+          }, function() {
+            reject("Unable to save all `'hasMany'`, `'hasOne'` relationships.");
+          });
+          return;
+        }
 
-    var exclude = {}, values = {}, field;
-    var diff = arrayDiff(this.relations(false), fields);
+        var fields = Object.keys(this.fields());
+        var whitelist = options.whitelist;
 
-    for (field of diff) {
-      exclude[field] = true;
-    }
+        if (whitelist || options.locked) {
+          whitelist = whitelist ? whitelist : fields;
+        }
 
-    for (field of fields) {
-      if (!exclude[field]) {
-        values[field] = entity.get(field);
-      }
-    }
+        var exclude = {}, values = {}, field;
+        var diff = arrayDiff(this.relations(false), fields);
 
-    var id, cursor;
+        for (field of diff) {
+          exclude[field] = true;
+        }
 
-    if (entity.exists() === false) {
-      cursor = await this.insert(values);
-    } else {
-      id = entity.primaryKey();
-      if (id === undefined) {
-        throw new Error("Can't update an entity missing ID data.");
-      }
-      var params = {};
-      params[this.primaryKey()] = id
-      cursor = await this.update(values, params);
-    }
-    var success = !cursor.error();
-    if (entity.exists() === false) {
-      id = entity.primaryKey() === undefined ? this.lastInsertId() : undefined;
-      entity.sync(id, {}, { exists: true });
-    }
-    return success && this._save(entity, hasRelations, options);
+        for (field of fields) {
+          if (!exclude[field]) {
+            values[field] = entity.get(field);
+          }
+        }
+
+        var promise;
+
+        if (entity.exists() === false) {
+          promise = this.insert(values);
+        } else {
+          var id = entity.primaryKey();
+          if (id === undefined) {
+            reject("Missing ID, can't update the entity.");
+          }
+          var params = {};
+          params[this.primaryKey()] = id
+          promise = this.update(values, params);
+        }
+
+        promise.then(function(cursor) {
+          if (cursor.error()) {
+            reject("Unable to save the entity.");
+            return;
+          }
+          if (entity.exists() === false) {
+            var id = entity.primaryKey() === undefined ? this.lastInsertId() : undefined;
+            entity.sync(id, {}, { exists: true });
+          }
+          this._save(entity, hasRelations, options).then(function() {
+            resolve(entity);
+          }, function() {
+            reject("Unable to save all `'hasMany'`, `'hasOne'` relationships.");
+          });
+
+        });
+
+      }.bind(this), function() {
+        reject("Unable to save all `'BelongsTo'` relationships.");
+      });
+
+    }.bind(this));
   }
 
   /**
@@ -1028,7 +1062,7 @@ class Schema {
 
     types = Array.isArray(types) ? types : [types];
 
-    var success = true;
+    var promises = [];
     var type, value, relName, rel;
 
     for (var type of types) {
@@ -1038,10 +1072,11 @@ class Schema {
         if (!rel || rel.type() !== type) {
             continue;
         }
-        success = success && rel.save(entity, extend({}, options, { embed: value }));
+        promises.push(rel.save(entity, extend({}, options, { embed: value })));
       }
     }
-    return success;
+    var Promise = this.classes().promise;
+    return Promise.all(promises);
   }
 
   /**

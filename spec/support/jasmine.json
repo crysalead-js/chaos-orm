@@ -2,5 +2,8 @@
   "spec_dir": "spec",
   "spec_files": [
     "suite/index.js"
+  ],
+  "helpers": [
+    "helpers/**/*.js"
   ]
 }

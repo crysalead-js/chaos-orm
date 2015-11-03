@@ -351,7 +351,7 @@ class Through {
    * @param Array relations The relations to eager load.
    */
   embed(relations) {
-    this._model.schema().embed(this, relations);
+    return this._model.schema().embed(this, relations);
   }
 
   /**

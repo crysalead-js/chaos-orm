@@ -228,10 +228,11 @@ class Relationship {
   get(entity, options) {
     var name = this.name();
 
+    var model = entity.model();
+    var Promise = model.classes().promise;
+
     if (!entity.exists()) {
-      return entity.set(name, entity.model().schema().cast(name, undefined, {
-        parent: entity
-      }));
+      return Promise.resolve(entity.set(name, model.schema().cast(name, undefined, { parent: entity })));
     }
 
     var link = this.link();
@@ -246,31 +247,46 @@ class Relationship {
   /**
    * Strategies used to query related objects.
    */
-  strategies() {
+  strategies(Promise) {
     var strategies = {};
 
     strategies[this.constructor.LINK_EMBEDDED] = function(entity, relationship, options) {
-      return entity.get(relationship.name());
+      return Promise.resolve(entity.get(relationship.name()));
     };
 
     strategies[this.constructor.LINK_CONTAINED] = function(entity, relationship, options) {
-      return relationship.isMany() ? entity.parent().parent() : entity.parent();
+      return Promise.resolve(relationship.isMany() ? entity.parent().parent() : entity.parent());
     };
 
     strategies[this.constructor.LINK_KEY] = function(entity, relationship, options) {
-      options = extend({}, { fetchOptions: { collector: this._collector(entity) } }, options);
-      var collection;
+      return Promise(function(resolve, reject) {
 
-      if (relationship.type() === 'hasManyThrough') {
-        collection = [entity];
-        this.embed(collection, options);
-        return entity.get(relationship.name());
-      }
-      collection = this._find(entity.get(relationship.keys('from')), options);
-      if (relationship.isMany()) {
-          return collection;
-      }
-      return collection.length ? collection.get(0) : undefined;
+        options = extend({}, { fetchOptions: { collector: this._collector(entity) } }, options);
+        var collection;
+
+        if (relationship.type() === 'hasManyThrough') {
+          collection = [entity];
+          this.embed(collection, options).then(function() {
+            resolve(entity.get(relationship.name()));
+          }, function() {
+            throw new Error("Unable to get the related relationship data.")
+          });
+          return;
+        }
+
+        this._find(entity.get(relationship.keys('from')), options).then(function(collection) {
+          if (relationship.isMany()) {
+            resolve(collection);
+            return;
+          }
+          resolve(collection.length ? collection.get(0) : undefined);
+        }, function() {
+          throw new Error("Unable to get the related relationship data.")
+        });
+      }.bind(this), function(error) {
+        reject(error);
+      });
+
     }.bind(this);
 
     strategies[this.constructor.LINK_KEY_LIST] = function(object, relationship, options) {
@@ -279,7 +295,7 @@ class Relationship {
           collector: this._collector(entity)
         }
       }, options));
-    }.bind(this);;
+    }.bind(this);
 
     return strategies;
   }
@@ -316,7 +332,8 @@ class Relationship {
     var to = this.to();
 
     if (!id) {
-      return to.create({}, { type: 'set', collector: fetchOptions.collector });
+      var Promise = to.classes().promise;
+      return Promise.resolve(to.create({}, { type: 'set', collector: fetchOptions.collector }));
     }
     var query, defaultQuery = { conditions: {} };
 

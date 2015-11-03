@@ -75,14 +75,14 @@ describe("HasOne", function() {
           type: 'set', exists: true, collector: fetchOptions.collector
         });
         if (fetchOptions['return'] && fetchOptions['return'] === 'object') {
-          return details.data();
+          return Promise.resolve(details.data());
         }
-        return details;
+        return Promise.resolve(details);
       });
 
     });
 
-    it("embeds a hasOne relationship", function() {
+    it("embeds a hasOne relationship", function(done) {
 
       var hasOne = Gallery.relation('detail');
 
@@ -91,23 +91,25 @@ describe("HasOne", function() {
         { id: 2, name: 'Bar Gallery' }
       ], { type: 'set' });
 
-      galleries.embed(['detail']);
+      galleries.embed(['detail']).then(function() {
 
-      expect(GalleryDetail.all).toHaveBeenCalledWith({
-        conditions: { gallery_id: ['1', '2'] }
-      }, {
-        collector: galleries.collector()
-      });
+        expect(GalleryDetail.all).toHaveBeenCalledWith({
+          conditions: { gallery_id: ['1', '2'] }
+        }, {
+          collector: galleries.collector()
+        });
 
-      galleries.forEach(function(gallery) {
-        expect(gallery.get('detail').get('gallery_id')).toBe(gallery.get('id'));
-        expect(gallery.get('detail').collector()).toBe(gallery.collector());
-        expect(gallery.get('detail').collector()).toBe(galleries.collector());
+        galleries.forEach(function(gallery) {
+          expect(gallery.get('detail').get('gallery_id')).toBe(gallery.get('id'));
+          expect(gallery.get('detail').collector()).toBe(gallery.collector());
+          expect(gallery.get('detail').collector()).toBe(galleries.collector());
+        });
+        done();
       });
 
     });
 
-    it("embeds a hasOne relationship using object hydration", function() {
+    it("embeds a hasOne relationship using object hydration", function(done) {
 
       var hasOne = Gallery.relation('detail');
 
@@ -118,73 +120,38 @@ describe("HasOne", function() {
 
       galleries = galleries.data();
 
-      hasOne.embed(galleries, { fetchOptions: { 'return': 'object' } });
+      hasOne.embed(galleries, { fetchOptions: { 'return': 'object' } }).then(function() {
 
-      expect(GalleryDetail.all).toHaveBeenCalledWith({
-        conditions: { gallery_id: ['1', '2'] }
-      }, {
-        'return': 'object'
-      });
-
-      galleries.forEach(function(gallery) {
-        expect(gallery['detail']['gallery_id']).toBe(gallery['id']);
-        expect(gallery['detail'] instanceof Model).toBe(false);
-      });
-
-    });
-
-  });
-
-  describe(".get()", function() {
-
-    it("returns `undefined` for unexisting foreign key", function() {
-
-      spyOn(GalleryDetail, 'all').and.callFake(function(options, fetchOptions) {
-        fetchOptions = fetchOptions || {};
-        return GalleryDetail.create([], {
-          type: 'set', exists: true, collector: fetchOptions.collector
+        expect(GalleryDetail.all).toHaveBeenCalledWith({
+          conditions: { gallery_id: ['1', '2'] }
+        }, {
+          'return': 'object'
         });
-      });
 
-      var gallery = Gallery.create({ id: 1, name: 'Foo Gallery' },  { exists: true });
-      expect(gallery.get('detail')).toBe(undefined);
-
-    });
-
-    it("lazy loads a belongsTo relation", function() {
-
-      spyOn(GalleryDetail, 'all').and.callFake(function(options, fetchOptions) {
-        fetchOptions = fetchOptions || {};
-        return GalleryDetail.create([{ id: 1, description: 'Foo Gallery Description', gallery_id: 1}], {
-          type: 'set', exists: true, collector: fetchOptions.collector
+        galleries.forEach(function(gallery) {
+          expect(gallery['detail']['gallery_id']).toBe(gallery['id']);
+          expect(gallery['detail'] instanceof Model).toBe(false);
         });
+        done();
       });
 
-      var gallery = Gallery.create({ id: 1, name: 'Foo Gallery' }, { exists: true });
-
-      expect(gallery.get('detail').get('gallery_id')).toBe(gallery.get('id'));
-      expect(gallery.get('detail').collector()).toBe(gallery.collector());
-
-      expect(GalleryDetail.all).toHaveBeenCalledWith({
-        conditions: { gallery_id: 1 }
-      }, {
-        collector: gallery.collector()
-      });
     });
 
   });
 
   describe(".save()", function() {
 
-    it("bails out if no relation data hasn't been setted", function() {
+    it("bails out if no relation data hasn't been setted", function(done) {
 
       var hasOne = Gallery.relation('detail');
       var gallery = Gallery.create({ id: 1, name: 'Foo Gallery' }, { exists: true });
-      expect(hasOne.save(gallery)).toBe(true);
-
+      hasOne.save(gallery).then(function() {
+        expect(gallery.isset('detail')).toBe(false);
+        done();
+      });
     });
 
-    it("saves a hasOne relationship", function() {
+    it("saves a hasOne relationship", function(done) {
 
       var hasOne = Gallery.relation('detail');
 
@@ -193,12 +160,14 @@ describe("HasOne", function() {
 
       spyOn(gallery.get('detail'), 'save').and.callFake(function() {
         gallery.get('detail').set('id', 1);
-        return true;
+        return Promise.resolve(gallery);
       });
 
-      expect(hasOne.save(gallery)).toBe(true);
-      expect(gallery.get('detail').save).toHaveBeenCalled();
-      expect(gallery.get('detail').get('gallery_id')).toBe(gallery.get('detail').get('id'));
+      hasOne.save(gallery).then(function() {
+        expect(gallery.get('detail').save).toHaveBeenCalled();
+        expect(gallery.get('detail').get('gallery_id')).toBe(gallery.get('detail').get('id'));
+        done();
+      });
 
     });
 

@@ -117,45 +117,62 @@ class HasManyThrough extends Relationship {
    * @return Collection            The collection of related entities.
    */
   embed(collection, options) {
-    options = extend({}, { fetchOptions: { collector: this._collector(collection) } }, options);
+    var Promise = this.from().classes().promise;
 
-    var name = this.name();
-    var through = this.through();
-    var using = this.using();
+    return new Promise(function(resolve, reject) {
 
-    var from = this.from();
-    var relThrough = from.relation(through);
-    var middle = relThrough.embed(collection, options);
+      options = extend({}, { fetchOptions: { collector: this._collector(collection) } }, options);
 
-    var pivot = relThrough.to();
-    var relUsing = pivot.schema().relation(using);
-    var related = relUsing.embed(middle, options);
+      var name = this.name();
+      var through = this.through();
+      var using = this.using();
 
-    this._cleanup(collection);
+      var from = this.from();
+      var relThrough = from.relation(through);
 
-    var fromKey = this.keys('from');
-    var indexes = this._index(related, this.keys('to'));
+      this._cleanup(collection);
 
-    var value;
+      relThrough.embed(collection, options).then(function(middle) {
 
-    collection.forEach(function(entity, index) {
-      if (entity instanceof Model) {
-        entity.get(through).forEach(function(item) {
-          if (item.isset(using)) {
-            var value = item.get(using);
-            value.get(name); // It's not a useless statement.
-          }
+        var pivot = relThrough.to();
+        var relUsing = pivot.schema().relation(using);
+
+        relUsing.embed(middle, options).then(function(related) {
+
+          var fromKey = this.keys('from');
+          var indexes = this._index(related, this.keys('to'));
+
+          var value;
+
+          collection.forEach(function(entity, index) {
+            if (entity instanceof Model) {
+              entity.get(through).forEach(function(item) {
+                if (item.isset(using)) {
+                  var value = item.get(using);
+                  value.get(name); // It's not a useless statement.
+                }
+              });
+            } else {
+              entity[through].forEach(function(item, key) {
+                if (indexes[item[fromKey]] !== undefined) {
+                  collection[index][name].push(related[indexes[item[fromKey]]]);
+                  collection[index][through][key][using] = related[indexes[item[fromKey]]];
+                }
+              });
+            }
+          });
+
+          resolve(related);
+
+        }.bind(this), function() {
+          reject("Unabled to fetch `'HasManyThrough'` related data.");
         });
-      } else {
-        entity[through].forEach(function(item, key) {
-          if (indexes[item[fromKey]] !== undefined) {
-            collection[index][name].push(related[indexes[item[fromKey]]]);
-            collection[index][through][key][using] = related[indexes[item[fromKey]]];
-          }
-        });
-      }
-    });
-    return related;
+
+      }.bind(this), function() {
+        reject("Unabled to fetch `'HasManyThrough'` pivot data.");
+      });
+
+    }.bind(this));
   }
 
   /**
@@ -166,7 +183,8 @@ class HasManyThrough extends Relationship {
    * @return Boolean
    */
   save(entity, options) {
-    return true;
+    var Promise = this.from().classes().promise;
+    return Promise.resolve(entity);
   }
 }
 

@@ -411,7 +411,7 @@ class Collection {
    * @param array $relations The relations to eager load.
    */
   embed(relations) {
-    this.model().schema().embed(this, relations);
+    return this.model().schema().embed(this, relations);
   }
 
   /**

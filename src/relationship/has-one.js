@@ -15,38 +15,40 @@ class HasOne extends Relationship {
    * @return Collection            The collection of related entities.
    */
   embed(collection, options) {
-    var indexes = this._index(collection, this.keys('from'));
-    var related = this._find(Object.keys(indexes), extend({}, {
-      fetchOptions: { collector: this._collector(collection) }
-    }, options));
+    var Promise = this.from().classes().promise;
+    return new Promise(function(resolve, reject) {
+      var indexes = this._index(collection, this.keys('from'));
+      options = extend({}, { fetchOptions: { collector: this._collector(collection) } }, options);
 
-    var name = this.name();
-    var value;
+      this._find(Object.keys(indexes), options).then(function(related) {
+        var name = this.name();
+        var value;
+        this._cleanup(collection);
 
-    this._cleanup(collection);
-
-    related.forEach(function(entity, index) {
-      if (entity instanceof Model) {
-        value = entity.get(this.keys('to'));
-        if (indexes[value] !== undefined) {
-          if (Array.isArray(collection)) {
-            collection[indexes[value]].set(name, entity);
+        related.forEach(function(entity, index) {
+          if (entity instanceof Model) {
+            value = entity.get(this.keys('to'));
+            if (indexes[value] !== undefined) {
+              if (Array.isArray(collection)) {
+                collection[indexes[value]].set(name, entity);
+              } else {
+                collection.get(indexes[value]).set(name, entity);
+              }
+            }
           } else {
-            collection.get(indexes[value]).set(name, entity);
+            value = entity[this.keys('to')];
+            if (indexes[value] !== undefined) {
+              if (Array.isArray(collection)) {
+                collection[indexes[value]][name] = entity;
+              } else {
+                collection.get(indexes[value])[name] = entity;
+              }
+            }
           }
-        }
-      } else {
-        value = entity[this.keys('to')];
-        if (indexes[value] !== undefined) {
-          if (Array.isArray(collection)) {
-            collection[indexes[value]][name] = entity;
-          } else {
-            collection.get(indexes[value])[name] = entity;
-          }
-        }
-      }
+        }.bind(this));
+        resolve(related);
+      }.bind(this));
     }.bind(this));
-    return related;
   }
 
   /**
@@ -57,18 +59,27 @@ class HasOne extends Relationship {
    * @return Boolean
    */
   save(entity, options) {
-    if (this.link() !== this.constructor.LINK_KEY) {
-      return true;
-    }
+    var Promise = this.from().classes().promise;
+    return new Promise(function(resolve, reject) {
+      if (this.link() !== this.constructor.LINK_KEY) {
+        resolve(entity);
+        return;
+      }
 
-    var name = this.name();
-    if (!entity.isset(name)) {
-      return true;
-    }
+      var name = this.name();
+      if (!entity.isset(name)) {
+        resolve(entity);
+        return;
+      }
 
-    var conditions = this.match(entity);
-    var related = entity.get(name);
-    return !!related.set(conditions).save(options);
+      var conditions = this.match(entity);
+      var related = entity.get(name);
+      related.set(conditions).save(options).then(function() {
+        resolve(entity);
+      }, function() {
+        reject("Unable to save some `HasOne` related data.");
+      });
+    }.bind(this));
   }
 }
 

@@ -99,10 +99,10 @@ describe("HasManyThrough", function() {
           { id: 7, image_id: 4, tag_id: 1 }
         ], { type: 'set', exists: true, collector: fetchOptions.collector });
         if (!fetchOptions['return']) {
-          return imagesTags;
+          return Promise.resolve(imagesTags);
         }
         if (fetchOptions['return'] && fetchOptions['return'] === 'object') {
-          return imagesTags.data();
+          return Promise.resolve(imagesTags.data());
         }
       });
 
@@ -117,15 +117,15 @@ describe("HasManyThrough", function() {
           { id: 6, name: 'City' }
         ], { type: 'set', exists: true, collector: fetchOptions.collector });
         if (!fetchOptions['return']) {
-          return tags;
+          return Promise.resolve(tags);
         }
         if (fetchOptions['return'] === 'object') {
-          return tags.data();
+          return Promise.resolve(tags.data());
         }
       });
     });
 
-    it("embeds a hasManyThrough relationship", function() {
+    it("embeds a hasManyThrough relationship", function(done) {
 
       var hasManyThrough = Image.relation('tags');
 
@@ -137,29 +137,33 @@ describe("HasManyThrough", function() {
         { id: 5, gallery_id: 2, title: 'Unknown' }
       ], { type: 'set', exists: true });
 
-      images.embed(['tags']);
+      images.embed(['tags']).then(function() {
 
-      expect(ImageTag.all).toHaveBeenCalledWith({
-        conditions: { image_id: ['1', '2', '3', '4', '5'] }
-      }, { collector: images.collector() });
+        expect(ImageTag.all).toHaveBeenCalledWith({
+          conditions: { image_id: ['1', '2', '3', '4', '5'] }
+        }, { collector: images.collector() });
 
-      expect(Tag.all).toHaveBeenCalledWith({
-        conditions: { id: ['1', '3', '5', '6'] }
-      }, { collector: images.collector() });
+        expect(Tag.all).toHaveBeenCalledWith({
+          conditions: { id: ['1', '3', '5', '6'] }
+        }, { collector: images.collector() });
 
-      images.forEach(function(image) {
-        image.get('images_tags').forEach(function(image_tag, index) {
-          expect(image.get('tags').get(index)).toBe(image_tag.get('tag'));
-          expect(image.get('tags').get(index).collector()).toBe(image_tag.get('tag').collector());
-          expect(image.get('tags').get(index).collector()).toBe(image_tag.collector());
-          expect(image.get('tags').get(index).collector()).toBe(image.collector());
-          expect(image.get('tags').get(index).collector()).toBe(images.collector());
+        images.forEach(function(image) {
+          image.get('images_tags').forEach(function(image_tag, index) {
+            expect(image_tag.get('tag')).not.toBe(undefined);
+            expect(image.get('tags').get(index)).toBe(image_tag.get('tag'));
+            expect(image.get('tags').get(index).collector()).toBe(image_tag.get('tag').collector());
+            expect(image.get('tags').get(index).collector()).toBe(image_tag.collector());
+            expect(image.get('tags').get(index).collector()).toBe(image.collector());
+            expect(image.get('tags').get(index).collector()).toBe(images.collector());
+          });
         });
+        done();
+
       });
 
     });
 
-    it("embeds a hasManyThrough relationship using object hydration", function() {
+    it("embeds a hasManyThrough relationship using object hydration", function(done) {
 
       var hasManyThrough = Image.relation('tags');
 
@@ -173,66 +177,25 @@ describe("HasManyThrough", function() {
 
       images = images.data();
 
-      hasManyThrough.embed(images, { fetchOptions: { 'return': 'object' } });
+      hasManyThrough.embed(images, { fetchOptions: { 'return': 'object' } }).then(function() {
 
-      expect(ImageTag.all).toHaveBeenCalledWith({
-        conditions: { image_id: ['1', '2', '3', '4', '5'] }
-      }, { 'return': 'object' });
+        expect(ImageTag.all).toHaveBeenCalledWith({
+          conditions: { image_id: ['1', '2', '3', '4', '5'] }
+        }, { 'return': 'object' });
 
-      expect(Tag.all).toHaveBeenCalledWith({
-        conditions: { id: ['1', '3', '5', '6'] }
-      }, { 'return': 'object' });
+        expect(Tag.all).toHaveBeenCalledWith({
+          conditions: { id: ['1', '3', '5', '6'] }
+        }, { 'return': 'object' });
 
-      images.forEach(function(image) {
-        image['images_tags'].forEach(function(image_tag, index) {
-          expect(image_tag['tag']).toBe(image['tags'][index]);
-          expect(image['tags'][index] instanceof Model).toBe(false);
+        images.forEach(function(image) {
+          image['images_tags'].forEach(function(image_tag, index) {
+            expect(image_tag['tag']).toBe(image['tags'][index]);
+            expect(image['tags'][index] instanceof Model).toBe(false);
+          });
         });
+        done();
+
       });
-
-    });
-
-  });
-
-  describe(".get()", function() {
-
-    it("lazy loads a belongsTo relation", function() {
-
-      spyOn(ImageTag, 'all').and.callFake(function(options, fetchOptions) {
-        fetchOptions = fetchOptions || {};
-        var imagesTags =  ImageTag.create([
-          { id: 1, image_id: 1, tag_id: 1 },
-          { id: 2, image_id: 1, tag_id: 3 }
-        ], { type: 'set', exists: true, collector: fetchOptions.collector });
-        return imagesTags;
-      });
-
-      spyOn(Tag, 'all').and.callFake(function(options, fetchOptions) {
-        fetchOptions = fetchOptions || {};
-        var tags =  Tag.create([
-          { id: 1, name: 'High Tech' },
-          { id: 3, name: 'Computer' }
-        ], { type: 'set', exists: true, collector: fetchOptions.collector });
-        return tags;
-      });
-
-      var image = Image.create({ id: 1, gallery_id: 1, title: 'Amiga 1200' }, { exists: true });
-
-      expect(image.get('tags').count()).toBe(2);
-
-      expect(ImageTag.all).toHaveBeenCalledWith({
-        conditions: { image_id: [ '1' ] }
-      }, { collector: image.collector() });
-
-      expect(Tag.all).toHaveBeenCalledWith({
-        conditions: { id: ['1', '3'] }
-      }, { collector: image.collector() });
-
-      expect(image.get('tags').get(0).data()).toEqual({ id: 1, name: 'High Tech' });
-      expect(image.get('tags').get(1).data()).toEqual({ id: 3, name: 'Computer' });
-
-      expect(image.get('tags').get(0).collector()).toBe(image.collector());
-      expect(image.get('tags').get(0).collector()).toBe(image.collector());
 
     });
 
@@ -240,10 +203,12 @@ describe("HasManyThrough", function() {
 
   describe(".save()", function() {
 
-    it("bails out on save since it's just an alias", function() {
+    it("bails out on save since it's just an alias", function(done) {
 
       var hasManyThrough = Image.relation('tags');
-      expect(hasManyThrough.save()).toBe(true);
+      hasManyThrough.save().then(function() {
+        done();
+      });
 
     });
 

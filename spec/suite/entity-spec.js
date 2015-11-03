@@ -35,22 +35,6 @@ describe("Entity", function() {
 
     });
 
-    it("throws an exception if exists is `null` but no record actually exists", function() {
-
-      spyOn(MyModel, 'id');
-
-      var closure = function() {
-        var entity = MyModel.create({
-          id: 1,
-          title: 'Good Bye',
-          body: 'Folks'
-        }, { exists: undefined });
-      };
-
-      expect(closure).toThrow(new Error("The entity id:`1` doesn't exists."));
-
-    });
-
   });
 
   describe(".exists()", function() {
@@ -254,26 +238,6 @@ describe("Entity", function() {
 
       entity.set('hello_boy', 'boy');
       expect(entity.get('hello_boy')).toBe('Hi boy');
-
-    });
-
-    it("lazy loads relations", function() {
-
-      var schema = MyModel.schema();
-      class TargetModel extends Model {};
-
-      schema.bind('abc', {
-        relation: 'hasOne',
-        to: TargetModel,
-      });
-
-      var entity = new MyModel();
-      var relation = MyModel.relation('abc');
-
-      spyOn(relation, 'get');
-
-      entity.get('abc');
-      expect(relation.get).toHaveBeenCalled();
 
     });
 

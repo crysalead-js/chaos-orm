@@ -75,14 +75,14 @@ describe("BelongsTo", function() {
           type: 'set', exists: true, collector: fetchOptions.collector
         });
         if (fetchOptions['return'] && fetchOptions['return'] === 'object') {
-          return galleries.data();
+          return Promise.resolve(galleries.data());
         }
-        return galleries;
+        return Promise.resolve(galleries);
       });
 
     });
 
-    it("embeds a belongsTo relationship", function() {
+    it("embeds a belongsTo relationship", function(done) {
 
       var belongsTo = Image.relation('gallery');
 
@@ -94,22 +94,24 @@ describe("BelongsTo", function() {
         { gallery_id: 2, title: 'Unknown' }
       ], { type: 'set' });
 
-      images.embed(['gallery']);
+      images.embed(['gallery']).then(function() {
 
-      expect(Gallery.all).toHaveBeenCalledWith({
-        conditions: { id: ['1', '2'] }
-      }, {
-        collector: images.collector()
-      });
+        expect(Gallery.all).toHaveBeenCalledWith({
+          conditions: { id: ['1', '2'] }
+        }, {
+          collector: images.collector()
+        });
 
-      images.forEach(function(image) {
-        expect(image.get('gallery').get('id')).toBe(image.get('gallery_id'));
-        expect(image.get('gallery').collector()).toBe(image.collector());
+        images.forEach(function(image) {
+          expect(image.get('gallery').get('id')).toBe(image.get('gallery_id'));
+          expect(image.get('gallery').collector()).toBe(image.collector());
+        });
+        done();
       });
 
     });
 
-    it("embeds a belongsTo relationship using object hydration", function() {
+    it("embeds a belongsTo relationship using object hydration", function(done) {
 
       var belongsTo = Image.relation('gallery');
 
@@ -123,66 +125,40 @@ describe("BelongsTo", function() {
 
       images = images.data();
 
-      belongsTo.embed(images, { fetchOptions: { 'return': 'object' } });
+      belongsTo.embed(images, { fetchOptions: { 'return': 'object' } }).then(function() {;
 
-      expect(Gallery.all).toHaveBeenCalledWith({
-        conditions: { id: ['1', '2'] }
-      }, {
-        'return': 'object'
-      });
-
-      images.forEach(function(image) {
-        expect(image['gallery']['id']).toBe(image['gallery_id']);
-        expect(image['gallery'] instanceof Model).toBe(false);
-      });
-
-    });
-
-  });
-
-  describe(".get()", function() {
-
-    it("returns `undefined` for unexisting foreign key", function() {
-
-      var image = Image.create({ id: 1, title: 'Amiga 1200' },  { exists: true });
-      expect(image.get('gallery')).toBe(undefined);
-
-    });
-
-    it("lazy loads a belongsTo relation", function() {
-
-      spyOn(Gallery, 'all').and.callFake(function(options, fetchOptions) {
-        fetchOptions = fetchOptions || {};
-        return Gallery.create([{ id: 1, name: 'Foo Gallery' }], {
-          type: 'set', exists: true, collector: fetchOptions.collector
+        expect(Gallery.all).toHaveBeenCalledWith({
+          conditions: { id: ['1', '2'] }
+        }, {
+          'return': 'object'
         });
+
+        images.forEach(function(image) {
+          expect(image['gallery']['id']).toBe(image['gallery_id']);
+          expect(image['gallery'] instanceof Model).toBe(false);
+        });
+
+        done();
       });
 
-      var image = Image.create({ id: 1, gallery_id: 1, title: 'Amiga 1200' }, { exists: true });
-
-      expect(image.get('gallery').get('id')).toBe(image.get('gallery_id'));
-      expect(image.get('gallery').collector()).toBe(image.collector());
-
-      expect(Gallery.all).toHaveBeenCalledWith({
-        conditions: { id: 1 }
-      }, {
-        collector: image.collector()
-      });
     });
 
   });
 
   describe(".save()", function() {
 
-    it("bails out if no relation data hasn't been setted", function() {
+    it("bails out if no relation data hasn't been setted", function(done) {
 
       var belongsTo = Image.relation('gallery');
       var image = Image.create({ id: 1, gallery_id: 1, title: 'Amiga 1200' });
-      expect(belongsTo.save(image)).toBe(true);
+      belongsTo.save(image).then(function() {
+        expect(image.isset('gallery')).toBe(false);
+        done();
+      });
 
     });
 
-    it("saves a belongsTo relationship", function() {
+    it("saves a belongsTo relationship", function(done) {
 
       var belongsTo = Image.relation('gallery');
 
@@ -191,31 +167,32 @@ describe("BelongsTo", function() {
 
       spyOn(image.get('gallery'), 'save').and.callFake(function() {
         image.get('gallery').set('id', 1);
-        return true;
+        return Promise.resolve(image);
       });
 
-      expect(belongsTo.save(image)).toBe(true);
-      expect(image.get('gallery').save).toHaveBeenCalled();
-      expect(image.get('gallery_id')).toBe(image.get('gallery').get('id'));
+      belongsTo.save(image).then(function() {
+        expect(image.get('gallery').save).toHaveBeenCalled();
+        expect(image.get('gallery_id')).toBe(image.get('gallery').get('id'));
+        done();
+      });
 
     });
 
-    it("throws an exception if the saves relation didn't populate any ID", function() {
+    it("throws an exception if the saves relation didn't populate any ID", function(done) {
 
-      var closure = function() {
-        var belongsTo = Image.relation('gallery');
+      var belongsTo = Image.relation('gallery');
 
-        var image = Image.create({ id: 1, gallery_id: 1, title: 'Amiga 1200' }, { exists: true });
-        image.set('gallery', { name: 'Foo Gallery' });
+      var image = Image.create({ id: 1, gallery_id: 1, title: 'Amiga 1200' }, { exists: true });
+      image.set('gallery', { name: 'Foo Gallery' });
 
-        spyOn(image.get('gallery'), 'save').and.callFake(function() {
-          return true;
-        });
+      spyOn(image.get('gallery'), 'save').and.callFake(function() {
+        return Promise.resolve(image);
+      });
 
-        belongsTo.save(image);
-      };
-
-      expect(closure).toThrow(new Error("The `'id'` key is missing from related data."));
+      belongsTo.save(image).catch(function(error) {
+        expect(error).toBe("The `'id'` key is missing from related data.");
+        done();
+      });
 
     });
 
