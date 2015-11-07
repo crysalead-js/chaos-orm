@@ -1,5 +1,6 @@
-import {extend, merge} from 'extend-merge';
-import {expand, flatten} from 'expand-flatten';
+import co from 'co';
+import { extend, merge } from 'extend-merge';
+import { expand, flatten } from 'expand-flatten';
 import intersect from 'intersect';
 import Conventions from './conventions';
 import Relationship from './relationship';
@@ -56,7 +57,7 @@ class Schema {
    */
   static classes(classes) {
     if (arguments.length) {
-      this._classes = merge({}, this._classes, classes);
+      this._classes = extend({}, this._classes, classes);
     }
     return this._classes;
   }
@@ -65,40 +66,39 @@ class Schema {
    * Configures the meta for use.
    *
    * @param Object config Possible options are:
-   *                      - `'connection'`  _object_ : The connection instance (defaults to `undefined`).
-   *                      - `'source'`      _string_ : The source name (defaults to `undefined`).
-   *                      - `'model'`       _string_ : The fully namespaced model class name (defaults to `undefined`).
-   *                      - `'locked'`      _boolean_: set the ability to dynamically add/remove fields (defaults to `false`).
-   *                      - `'primaryKey'`  _array_  : The primary key value (defaults to `id`).
-   *                      - `'fields'`      _array_  : array of field definition where keys are field names and values are arrays
-   *                                                   with the following keys. All properties are optionnal except the `'type'`:
-   *                                                   - `'type'`       _string_ : the type of the field.
-   *                                                   - `'default'`    _mixed_  : the default value.
-   *                                                   - `'null'`       _boolean_: allow null value (default to `'true'` excpect for serial).
-   *                                                   - `'length'`     _integer_: the length of the data.
-   *                                                   - `'precision'`  _integer_: the precision (for decimals).
-   *                                                   - `'use'`        _string_ : the database type to override the associated type for this type.
-   *                                                   - `'serial'`     _string_ : autoincremented field.
-   *                                                   - `'primary'`    _boolean_: primary key.
-   *                                                   - `'array'`      _boolean_ : if the field is a collection (default to `'false'`).
-   *                      - `'meta'`        _array_  : array of meta definitions for the schema. The definitions are related to
-   *                                                   the datasource. For the MySQL adapter the following options are available:
-   *                                                   - `'charset'`    _string_: the charset value to use for the table.
-   *                                                   - `'collate'`    _string_: the collate value to use for the table.
-   *                                                   - `'engine'`     _stirng_: the engine value to use for the table.
-   *                                                   - `'tablespace'` _string_: the tablespace value to use for the table.
-   *                      - `'handlers'`    _array_  : casting handlers.
-   *                      - `'conventions'` _object_ : The naming conventions instance.
-   *                      - `'classes'`     _object_ : The class dependencies.
+   *                      - `'connection'`  _Function_ : The connection instance (defaults to `undefined`).
+   *                      - `'source'`      _String_   : The source name (defaults to `undefined`).
+   *                      - `'model'`       _Function_ : The fully namespaced model class name (defaults to `undefined`).
+   *                      - `'locked'`      _Boolean_  : set the ability to dynamically add/remove fields (defaults to `false`).
+   *                      - `'primaryKey'`  _Object_   : The primary key value (defaults to `id`).
+   *                      - `'fields'`      _Map_      : array of field definition where keys are field names and values are arrays
+   *                                                     with the following keys. All properties are optionnal except the `'type'`:
+   *                                                     - `'type'`       _string_ : the type of the field.
+   *                                                     - `'default'`    _mixed_  : the default value.
+   *                                                     - `'null'`       _boolean_: allow null value (default to `'true'` excpect for serial).
+   *                                                     - `'length'`     _integer_: the length of the data.
+   *                                                     - `'precision'`  _integer_: the precision (for decimals).
+   *                                                     - `'use'`        _string_ : the database type to override the associated type for this type.
+   *                                                     - `'serial'`     _string_ : autoincremented field.
+   *                                                     - `'primary'`    _boolean_: primary key.
+   *                                                     - `'array'`      _boolean_ : if the field is a collection (default to `'false'`).
+   *                      - `'meta'`        _Object_   : array of meta definitions for the schema. The definitions are related to
+   *                                                    the datasource. For the MySQL adapter the following options are available:
+   *                                                    - `'charset'`    _string_: the charset value to use for the table.
+   *                                                    - `'collate'`    _string_: the collate value to use for the table.
+   *                                                    - `'engine'`     _stirng_: the engine value to use for the table.
+   *                                                    - `'tablespace'` _string_: the tablespace value to use for the table.
+   *                      - `'handlers'`    _Object_   : casting handlers.
+   *                      - `'conventions'` _Function_ : The naming conventions instance.
+   *                      - `'classes'`     _Object_   : The class dependencies.
    */
-  constructor(config)
-  {
+  constructor(config) {
     var defaults = {
       connection: undefined,
       source: undefined,
       model: undefined,
       locked: true,
-      fields: {},
+      fields: [],
       meta: {},
       handlers: {},
       conventions: undefined,
@@ -154,7 +154,7 @@ class Schema {
      *
      * @var Object
      */
-    this._fields = config.fields;
+    this._fields = new Map();
 
     /**
      * The source name.
@@ -201,8 +201,9 @@ class Schema {
 
     var key, handlers;
 
-    for (key in config.fields) {
-      this._fields[key] = this._initField(config.fields[key]);
+    for(var field of config.fields) {
+      var key = Object.keys(field)[0];
+      this._fields.set(key, this._initField(field[key]));
     }
 
     handlers = this._handlers;
@@ -232,7 +233,7 @@ class Schema {
    */
   classes(classes) {
     if (arguments.length) {
-      this._classes = merge({}, this._classes, classes);
+      this._classes = extend({}, this._classes, classes);
     }
     return this._classes;
   }
@@ -342,28 +343,31 @@ class Schema {
    * @return Array An array of field names.
    */
   names() {
-    return Object.keys(this._fields);
+    return Array.from(this._fields.keys());
   }
 
   /**
    * Gets all fields.
    *
-   * @return Object
+   * @return Array
    */
   fields(attribute) {
     var name;
+    var fields = [];
     if (!arguments.length) {
-      var fields = {};
-      for (var name in this._fields) {
-          fields[name] = this.field(name);
+      for (var [name, value] of this._fields) {
+        var field = {};
+        field[name] = value;
+        fields.push(field);
       }
-      return fields;
+    } else {
+      for (var [name, value] of this._fields) {
+        var field = {};
+        field[name] = this.field(name, attribute);
+        fields.push(field);
+      }
     }
-    var result = {};
-    for (var name in this._fields) {
-      result[name] = this.field(name, attribute);
-    }
-    return result;
+    return fields;
   }
 
   /**
@@ -374,10 +378,10 @@ class Schema {
    * @return mixed
    */
   field(name, attribute) {
-    if (this._fields[name] === undefined) {
+    if (!this._fields.has(name)) {
       return;
     }
-    var field = this._fields[name];
+    var field = this._fields.get(name);
 
     if (attribute !== undefined) {
       return field[attribute];
@@ -392,14 +396,13 @@ class Schema {
    * @return mixed       Returns all default values or a specific one if `name` is set.
    */
   defaults(name) {
-    if (name !== undefined) {
-      return this._fields[name] ? this._fields[name]['default'] : undefined;
+    if (arguments.length === 1) {
+      return this._fields.has(name) ? this._fields.get(name)['default'] : undefined;
     }
-    var key, value, defaults = {};
-    for (key in this._fields) {
-      value = this._fields[key];
+    var defaults = {};
+    for (var [name, value] of this._fields) {
       if (value['default'] !== undefined) {
-        defaults[key] = value['default'];
+        defaults[name] = value['default'];
       }
     }
     return defaults;
@@ -425,7 +428,7 @@ class Schema {
     var field = this._initField(params);
 
     if (field.type !== 'object') {
-      this._fields[name] = field;
+      this._fields.set(name, field);
       return this;
     }
     var relationship = this.classes().relationship;
@@ -436,7 +439,7 @@ class Schema {
       to: field.model ? field.model : this.model(),
       link: relationship.LINK_EMBEDDED
     });
-    this._fields[name] = field;
+    this._fields.set(name, field);
 
     return this;
   }
@@ -470,7 +473,7 @@ class Schema {
     var names = Array.isArray(name) ? name : [name];
     var i, len = name.length;
     for (var i = 0; i < len; i++) {
-      delete this._fields[names[i]];
+      this._fields.delete(names[i]);
     }
     return this;
   }
@@ -483,7 +486,7 @@ class Schema {
    */
   has(name) {
     if (!Array.isArray(name)) {
-      return this._fields.hasOwnProperty(name);
+      return this._fields.has(name);
     }
     return intersect(name, this._fields.keys()).length === name.length;
   }
@@ -492,17 +495,21 @@ class Schema {
    * Appends additional fields to the schema. Will overwrite existing fields if a
    * conflicts arise.
    *
-   * @param  mixed  fields The fields array or a schema instance to merge.
+   * @param  Array  fields The fields array or a schema instance to merge.
    * @param  Object meta   New meta data.
    * @return Object        Returns `this`.
    */
   append(fields) {
     if (fields.constructor === Object) {
       for (var key in fields) {
-        this._fields[key] = this._initField(fields[key]);
+        this._fields.set(key, this._initField(fields[key]));
       }
     } else {
-      this._fields = extend({}, this._fields, fields.fields());
+      fields = fields instanceof Schema ? fields.fields() : fields;
+      for (var value of fields) {
+        var key = Object.keys(value);
+        this._fields.set(key, value[key]);
+      }
     }
     return this;
   }
@@ -518,7 +525,7 @@ class Schema {
   bind(name, config) {
     var relationship = this.classes().relationship;
 
-    var config = extend({}, {
+    config = extend({}, {
       type: 'entity',
       from: this.model(),
       to: undefined,
@@ -632,16 +639,14 @@ class Schema {
    * @param Object options    The fetching options.
    */
   embed(collection, relations, options) {
-    var Promise = this.classes().promise;
-
-    return new Promise(function(resolve, reject) {
-      var promises = [], habtm = [], tree = {}, rel, subrelations, path, to, key, name, query, matches;
+    return co(function*() {
+      var habtm = [], tree = {}, rel, subrelations, path, to, key, query, matches;
       options = options || {};
 
       relations = this.expand(relations);
       tree = this.treeify(relations);
 
-      for (name in tree) {
+      for (var name in tree) {
 
         rel = this.relation(name);
         if (rel.type() === 'hasManyThrough') {
@@ -657,31 +662,27 @@ class Schema {
           options.query = query;
         }
 
-        promises.push(rel.embed(collection, options).then(function(related) {
-          subrelations = {};
-          for (path in relations) {
-            matches = path.match(new RegExp('^' + name + '\.(.*)$'));
-            if (matches) {
-              subrelations[matches[1]] = relations[path];
-            }
+        var related = yield rel.embed(collection, options);
+        subrelations = {};
+        for (path in relations) {
+          matches = path.match(new RegExp('^' + name + '\.(.*)$'));
+          if (matches) {
+            subrelations[matches[1]] = relations[path];
           }
-          if (Object.keys(subrelations).length) {
-            promises.push(to.schema().embed(related, subrelations, options));
-          }
-        }));
+        }
+        if (Object.keys(subrelations).length) {
+          yield to.schema().embed(related, subrelations, options);
+        }
       }
 
-      Promise.all(promises).then(function() {
-        var i, len, ps = [];
-        len = habtm.length;
-        for (i = 0; i < len; i++) {
-          rel = this.relation(habtm[i]);
-          ps.push(rel.embed(collection, options));
-        }
-        Promise.all(ps).then(function() {
-          resolve(collection);
-        });
-      }.bind(this));
+      var i, len;
+      len = habtm.length;
+      for (i = 0; i < len; i++) {
+        rel = this.relation(habtm[i]);
+        yield rel.embed(collection, options);
+      }
+
+      return collection;
 
     }.bind(this));
   }
@@ -797,8 +798,8 @@ class Schema {
       }
       return this._cast(data, options);
     }
-    if (this._fields[name]) {
-      options = extend({}, this._fields[name], options);
+    if (this._fields.has(name)) {
+      options = extend({}, this._fields.get(name), options);
       if (data === null && options['null']) {
         return null;
       }
@@ -976,77 +977,61 @@ class Schema {
 
     options.embed = this.treeify(options.embed);
 
-    var Promise = this.classes().promise;
+    return co(function*() {
 
-    return new Promise(function(resolve, reject) {
+      yield this._save('belongsTo', options);
 
-      this._save('belongsTo', options).then(function() {
+      var hasRelations = ['hasMany', 'hasOne'];
 
-        var hasRelations = ['hasMany', 'hasOne'];
+      if (!entity.modified()) {
+        yield this._save(entity, hasRelations, options);
+        return entity;
+      }
 
-        if (!entity.modified()) {
-          this._save(entity, hasRelations, options).then(function() {
-            resolve(entity);
-          }, function() {
-            reject("Unable to save all `'hasMany'`, `'hasOne'` relationships.");
-          });
-          return;
+      var fields = this.names();
+      var whitelist = options.whitelist;
+
+      if (whitelist || options.locked) {
+        whitelist = whitelist ? whitelist : fields;
+      }
+
+      var exclude = {}, values = {}, field;
+      var diff = arrayDiff(this.relations(false), fields);
+
+      for (field of diff) {
+        exclude[field] = true;
+      }
+
+      for (field of fields) {
+        if (!exclude[field] && entity.get(field) !== undefined) {
+          values[field] = entity.get(field);
         }
+      }
 
-        var fields = Object.keys(this.fields());
-        var whitelist = options.whitelist;
-
-        if (whitelist || options.locked) {
-          whitelist = whitelist ? whitelist : fields;
+      var cursor;
+      if (entity.exists() === false) {
+        cursor = yield this.insert(values);
+      } else {
+        var id = entity.primaryKey();
+        if (id === undefined) {
+          reject("Missing ID, can't update the entity.");
         }
+        var params = {};
+        params[this.primaryKey()] = id
+        cursor = yield this.update(values, params);
+      }
 
-        var exclude = {}, values = {}, field;
-        var diff = arrayDiff(this.relations(false), fields);
+      if (cursor.error()) {
+        throw new Error("Unable to save the entity.");
+      }
 
-        for (field of diff) {
-          exclude[field] = true;
-        }
+      if (entity.exists() === false) {
+        var id = entity.primaryKey() === undefined ? this.lastInsertId() : undefined;
+        entity.sync(id, {}, { exists: true });
+      }
+      yield this._save(entity, hasRelations, options);
 
-        for (field of fields) {
-          if (!exclude[field]) {
-            values[field] = entity.get(field);
-          }
-        }
-
-        var promise;
-
-        if (entity.exists() === false) {
-          promise = this.insert(values);
-        } else {
-          var id = entity.primaryKey();
-          if (id === undefined) {
-            reject("Missing ID, can't update the entity.");
-          }
-          var params = {};
-          params[this.primaryKey()] = id
-          promise = this.update(values, params);
-        }
-
-        promise.then(function(cursor) {
-          if (cursor.error()) {
-            reject("Unable to save the entity.");
-            return;
-          }
-          if (entity.exists() === false) {
-            var id = entity.primaryKey() === undefined ? this.lastInsertId() : undefined;
-            entity.sync(id, {}, { exists: true });
-          }
-          this._save(entity, hasRelations, options).then(function() {
-            resolve(entity);
-          }, function() {
-            reject("Unable to save all `'hasMany'`, `'hasOne'` relationships.");
-          });
-
-        });
-
-      }.bind(this), function() {
-        reject("Unable to save all `'BelongsTo'` relationships.");
-      });
+      return entity;
 
     }.bind(this));
   }
@@ -1062,21 +1047,20 @@ class Schema {
 
     types = Array.isArray(types) ? types : [types];
 
-    var promises = [];
-    var type, value, relName, rel;
+    return co(function*() {
+      var type, value, relName, rel;
 
-    for (var type of types) {
-      for (relName in options.embed) {
-        value = options.embed[relName];
-        rel = this.relation(relName)
-        if (!rel || rel.type() !== type) {
-            continue;
+      for (var type of types) {
+        for (relName in options.embed) {
+          value = options.embed[relName];
+          rel = this.relation(relName)
+          if (!rel || rel.type() !== type) {
+              continue;
+          }
+          yield rel.save(entity, extend({}, options, { embed: value }));
         }
-        promises.push(rel.save(entity, extend({}, options, { embed: value })));
       }
-    }
-    var Promise = this.classes().promise;
-    return Promise.all(promises);
+    }.bind(this));
   }
 
   /**

@@ -1,6 +1,4 @@
-import Through from '../../src/collection/through';
-import Schema from '../../src/schema';
-import Model from '../../src/model';
+import { Through, Schema, Model } from '../..';
 
 import Gallery from '../fixture/model/gallery';
 import Image from '../fixture/model/image';
@@ -51,7 +49,7 @@ describe("Schema", function() {
         model: Image,
         primaryKey: 'key',
         locked: false,
-        fields: { id: 'serial', age: 'integer' },
+        fields: [{ id: 'serial' }, { age: 'integer' }],
         meta: { some: 'meta'},
         conventions: conventions
       });
@@ -61,18 +59,22 @@ describe("Schema", function() {
       expect(schema.model()).toBe(Image);
       expect(schema.primaryKey()).toBe('key');
       expect(schema.locked()).toBe(false);
-      expect(schema.fields()).toEqual({
-        id: {
-          type: 'serial',
-          array: false,
-          null: false
+      expect(schema.fields()).toEqual([
+        {
+          id: {
+            type: 'serial',
+            array: false,
+            null: false
+          }
         },
-        age: {
-          type: 'integer',
-          array: false,
-          null: true
+        {
+          age: {
+            type: 'integer',
+            array: false,
+            null: true
+          }
         }
-      });
+      ]);
       expect(schema.meta()).toEqual({ some: 'meta' });
       expect(schema.conventions()).toBe(conventions);
 
@@ -175,49 +177,57 @@ describe("Schema", function() {
 
     it("returns all fields", function() {
 
-      expect(this.schema.fields()).toEqual({
-        id: {
-          type: 'serial',
-          array: false,
-          null: false
+      expect(this.schema.fields()).toEqual([
+        {
+          id: {
+            type: 'serial',
+            array: false,
+            null: false
+          }
         },
-        gallery_id: {
-          type: 'integer',
-          array: false,
-          null: true
+        {
+          gallery_id: {
+            type: 'integer',
+            array: false,
+            null: true
+          }
         },
-        name: {
-          type: 'string',
-          default: 'Enter The Name Here',
-          array: false,
-          null: true
+        {
+          name: {
+            type: 'string',
+            default: 'Enter The Name Here',
+            array: false,
+            null: true
+          }
         },
-        title: {
-          type: 'string',
-          default: 'Enter The Title Here',
-          length: 50,
-          array: false,
-          null: true
+        {
+          title: {
+            type: 'string',
+            default: 'Enter The Title Here',
+            length: 50,
+            array: false,
+            null: true
+          }
         }
-      });
+      ]);
 
     });
 
     it("returns an attribute only", function() {
 
-      expect(this.schema.fields('default')).toEqual({
-        id: undefined,
-        gallery_id: undefined,
-        name: 'Enter The Name Here',
-        title: 'Enter The Title Here'
-      });
+      expect(this.schema.fields('default')).toEqual([
+        { id: undefined },
+        { gallery_id: undefined },
+        { name: 'Enter The Name Here' },
+        { title: 'Enter The Title Here' }
+      ]);
 
-      expect(this.schema.fields('type')).toEqual({
-        id: 'serial',
-        gallery_id: 'integer',
-        name: 'string',
-        title: 'string'
-      });
+      expect(this.schema.fields('type')).toEqual([
+        { id: 'serial' },
+        { gallery_id: 'integer' },
+        { name: 'string' },
+        { title: 'string' }
+      ]);
 
     });
 
@@ -364,23 +374,29 @@ describe("Schema", function() {
 
         var fields = this.schema.fields();
 
-        expect(fields).toEqual({
-          id: {
-            type: 'serial',
-            array: false,
-            null: false
+        expect(fields).toEqual([
+          {
+            id: {
+              type: 'serial',
+              array: false,
+              null: false
+            }
           },
-          name: {
-            type: 'string',
-            array: false,
-            null: true
+          {
+            name: {
+              type: 'string',
+              array: false,
+              null: true
+            }
           },
-          title: {
-            type: 'string',
-            array: false,
-            null: true
+          {
+            title: {
+              type: 'string',
+              array: false,
+              null: true
+            }
           }
-        });
+        ]);
 
       });
 
@@ -398,23 +414,29 @@ describe("Schema", function() {
 
         var fields = this.schema.fields();
 
-        expect(fields).toEqual({
-          id: {
-            type: 'serial',
-            array: false,
-            null: false
+        expect(fields).toEqual([
+          {
+            id: {
+              type: 'serial',
+              array: false,
+              null: false
+            }
           },
-          name: {
-            type: 'string',
-            array: false,
-            null: true
+          {
+            name: {
+              type: 'string',
+              array: false,
+              null: true
+            }
           },
-          title: {
-            type: 'string',
-            array: false,
-            null: true
+          {
+            title: {
+              type: 'string',
+              array: false,
+              null: true
+            }
           }
-        });
+        ]);
 
       });
 

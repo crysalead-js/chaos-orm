@@ -125,6 +125,7 @@ describe("HasOne", function() {
         expect(GalleryDetail.all).toHaveBeenCalledWith({
           conditions: { gallery_id: ['1', '2'] }
         }, {
+          'collector': undefined,
           'return': 'object'
         });
 

@@ -1,4 +1,4 @@
-import {extend, merge} from 'extend-merge';
+import { extend, merge } from 'extend-merge';
 import camelize from 'camel-case';
 import pascalize from 'pascal-case';
 import underscore from 'snake-case';

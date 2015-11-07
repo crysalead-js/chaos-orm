@@ -1,4 +1,4 @@
-import {extend, merge} from 'extend-merge';
+import { extend, merge } from 'extend-merge';
 import Conventions from './conventions';
 import Model from './model';
 
@@ -229,7 +229,6 @@ class Relationship {
     var name = this.name();
 
     var model = entity.model();
-    var Promise = model.classes().promise;
 
     if (!entity.exists()) {
       return Promise.resolve(entity.set(name, model.schema().cast(name, undefined, { parent: entity })));
@@ -332,13 +331,12 @@ class Relationship {
     var to = this.to();
 
     if (!id) {
-      var Promise = to.classes().promise;
       return Promise.resolve(to.create({}, { type: 'set', collector: fetchOptions.collector }));
     }
     var query, defaultQuery = { conditions: {} };
 
     defaultQuery.conditions[this.keys('to')] = id;
-    query = extend({}, options.query, defaultQuery);
+    query = extend({}, defaultQuery, options.query);
     return to.all(query, fetchOptions);
   }
 

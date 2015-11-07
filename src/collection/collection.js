@@ -1,4 +1,4 @@
-import {extend, merge} from 'extend-merge';
+import { extend, merge } from 'extend-merge';
 import Collector from "../collector";
 
 /**
@@ -386,7 +386,7 @@ class Collection {
    */
   _set(data, offset, options) {
     var defaults = { defaults: false };
-    var options = extend({}, defaults, {
+    options = extend({}, defaults, {
       collector: this.collector(),
       model: this.model(),
       rootPath: this._rootPath,

@@ -1,4 +1,4 @@
-import {extend, merge} from 'extend-merge';
+import { extend, merge } from 'extend-merge';
 
 class Cursor {
   /**
@@ -153,7 +153,7 @@ class Cursor {
    */
   valid() {
     if (!this._init) {
-      this._fetch();
+      return this._fetch();
     }
     return this._valid;
   }
@@ -217,10 +217,8 @@ class Cursor {
     this._init = true;
     if(this._resource) {
       return this._fetchResource();
-    } else {
-      return this._fetchArray();
     }
-    return false;
+    return this._fetchArray();
   }
 
   /**

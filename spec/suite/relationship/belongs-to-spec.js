@@ -125,11 +125,11 @@ describe("BelongsTo", function() {
 
       images = images.data();
 
-      belongsTo.embed(images, { fetchOptions: { 'return': 'object' } }).then(function() {;
-
+      belongsTo.embed(images, { fetchOptions: { 'return': 'object' } }).then(function() {
         expect(Gallery.all).toHaveBeenCalledWith({
           conditions: { id: ['1', '2'] }
         }, {
+          'collector': undefined,
           'return': 'object'
         });
 
@@ -190,7 +190,7 @@ describe("BelongsTo", function() {
       });
 
       belongsTo.save(image).catch(function(error) {
-        expect(error).toBe("The `'id'` key is missing from related data.");
+        expect(error).toEqual(new Error("The `'id'` key is missing from related data."));
         done();
       });
 

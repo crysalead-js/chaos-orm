@@ -1,4 +1,4 @@
-import {extend, merge} from 'extend-merge';
+import { extend, merge } from 'extend-merge';
 import Collection from "./collection";
 
 /**

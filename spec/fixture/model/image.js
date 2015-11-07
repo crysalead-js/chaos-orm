@@ -1,4 +1,4 @@
-import Model from '../../../src/model';
+import { Model } from '../../..';
 import ImageTag from './image-tag';
 import Gallery from './gallery';
 

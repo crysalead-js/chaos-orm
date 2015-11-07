@@ -1,4 +1,5 @@
-import {extend, merge} from 'extend-merge';
+import co from 'co';
+import { extend, merge } from 'extend-merge';
 import Conventions from '../conventions';
 import Relationship from '../relationship';
 import Model from '../model';
@@ -117,11 +118,8 @@ class HasManyThrough extends Relationship {
    * @return Collection            The collection of related entities.
    */
   embed(collection, options) {
-    var Promise = this.from().classes().promise;
-
-    return new Promise(function(resolve, reject) {
-
-      options = extend({}, { fetchOptions: { collector: this._collector(collection) } }, options);
+    return co(function*() {
+      options = merge({}, { fetchOptions: { collector: this._collector(collection) } }, options);
 
       var name = this.name();
       var through = this.through();
@@ -132,45 +130,36 @@ class HasManyThrough extends Relationship {
 
       this._cleanup(collection);
 
-      relThrough.embed(collection, options).then(function(middle) {
+      var middle = yield relThrough.embed(collection, options);
 
-        var pivot = relThrough.to();
-        var relUsing = pivot.schema().relation(using);
+      var pivot = relThrough.to();
+      var relUsing = pivot.schema().relation(using);
 
-        relUsing.embed(middle, options).then(function(related) {
+      var related = yield relUsing.embed(middle, options);
 
-          var fromKey = this.keys('from');
-          var indexes = this._index(related, this.keys('to'));
+      var fromKey = this.keys('from');
+      var indexes = this._index(related, this.keys('to'));
 
-          var value;
+      var value;
 
-          collection.forEach(function(entity, index) {
-            if (entity instanceof Model) {
-              entity.get(through).forEach(function(item) {
-                if (item.isset(using)) {
-                  var value = item.get(using);
-                  value.get(name); // It's not a useless statement.
-                }
-              });
-            } else {
-              entity[through].forEach(function(item, key) {
-                if (indexes[item[fromKey]] !== undefined) {
-                  collection[index][name].push(related[indexes[item[fromKey]]]);
-                  collection[index][through][key][using] = related[indexes[item[fromKey]]];
-                }
-              });
+      collection.forEach(function(entity, index) {
+        if (entity instanceof Model) {
+          entity.get(through).forEach(function(item) {
+            if (item.isset(using)) {
+              var value = item.get(using);
+              value.get(name); // It's not a useless statement.
             }
           });
-
-          resolve(related);
-
-        }.bind(this), function() {
-          reject("Unabled to fetch `'HasManyThrough'` related data.");
-        });
-
-      }.bind(this), function() {
-        reject("Unabled to fetch `'HasManyThrough'` pivot data.");
+        } else {
+          entity[through].forEach(function(item, key) {
+            if (indexes[item[fromKey]] !== undefined) {
+              collection[index][name].push(related[indexes[item[fromKey]]]);
+              collection[index][through][key][using] = related[indexes[item[fromKey]]];
+            }
+          });
+        }
       });
+      return related;
 
     }.bind(this));
   }
@@ -183,7 +172,6 @@ class HasManyThrough extends Relationship {
    * @return Boolean
    */
   save(entity, options) {
-    var Promise = this.from().classes().promise;
     return Promise.resolve(entity);
   }
 }

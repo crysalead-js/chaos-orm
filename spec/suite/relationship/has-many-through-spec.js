@@ -181,11 +181,11 @@ describe("HasManyThrough", function() {
 
         expect(ImageTag.all).toHaveBeenCalledWith({
           conditions: { image_id: ['1', '2', '3', '4', '5'] }
-        }, { 'return': 'object' });
+        }, { 'collector': undefined, 'return': 'object' });
 
         expect(Tag.all).toHaveBeenCalledWith({
           conditions: { id: ['1', '3', '5', '6'] }
-        }, { 'return': 'object' });
+        }, { 'collector': undefined, 'return': 'object' });
 
         images.forEach(function(image) {
           image['images_tags'].forEach(function(image_tag, index) {

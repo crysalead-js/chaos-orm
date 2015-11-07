@@ -1,4 +1,4 @@
-import Model from '../../../src/model';
+import { Model } from '../../..';
 import Gallery from './gallery';
 
 class GalleryDetail extends Model {

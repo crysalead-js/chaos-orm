@@ -1,5 +1,5 @@
-import {extend, merge} from "extend-merge";
-import {expand, flatten} from "expand-flatten";
+import { extend, merge } from "extend-merge";
+import { expand, flatten } from "expand-flatten";
 import Conventions from "./conventions";
 import Collector from "./collector";
 import Schema from "./schema";
@@ -33,7 +33,7 @@ class Model {
    */
   static classes(classes) {
     if (arguments.length) {
-      this._classes = merge({}, this._classes, classes);
+      this._classes = extend({}, this._classes, classes);
     }
     return this._classes;
   }
@@ -137,7 +137,7 @@ class Model {
    * @return Object          An instance of `Query`.
    */
   static find(options) {
-    var options = extend({}, this.query(), options);
+    options = extend({}, this.query(), options);
     return this.schema().query({ query: options });
   }
 
@@ -221,7 +221,7 @@ class Model {
     options.defaults = !options.exists;
 
     if (options.defaults && options.type === 'entity') {
-      data = merge(expand(this.schema().defaults()), data);
+      data = extend(expand(this.schema().defaults()), data);
     }
 
     var type = options.type;
@@ -250,7 +250,7 @@ class Model {
       conventions: this.conventions(),
       model: this
     };
-    config.source = this.conventions().apply('source', config.classes.entity);
+    config.source = this.conventions().apply('source', config.classes.entity.name);
 
     var classname = this._schema;
     schema = this._schemas[this.name] = new classname(config);
@@ -861,8 +861,7 @@ Model._classes = {
   collector: Collector,
   set: Collection,
   through: Through,
-  conventions: Conventions,
-  promise: Promise
+  conventions: Conventions
 };
 
 /**

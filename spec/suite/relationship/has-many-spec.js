@@ -129,6 +129,7 @@ describe("HasMany", function() {
         expect(Image.all).toHaveBeenCalledWith({
           conditions: { gallery_id: ['1', '2'] }
         }, {
+          'collector': undefined,
           'return': 'object'
         });
 

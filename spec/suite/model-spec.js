@@ -1,8 +1,8 @@
-import Collection from '../../src/collection/collection';
-import Schema from '../../src/schema';
-import Model from '../../src/model';
+import { Collection, Conventions, Source, Schema, Model } from '../..';
 
 class MyModel extends Model {}
+class MySchema extends Schema {};
+MyModel._schema = MySchema;
 
 describe("Model", function() {
 
@@ -14,19 +14,22 @@ describe("Model", function() {
 
     it("configures the model", function() {
 
-      var schema = {};
+      var options = {};
       var query = { option: 'value' };
-      var connection = {};
-      var conventions = {};
+      var connection = new Source();
+      var conventions = new Conventions();
 
       MyModel.config({
-        schema: schema,
         query: query,
         connection: connection,
         conventions: conventions
       });
 
-      expect(MyModel.schema()).toBe(schema);
+      var schema = MyModel.schema();
+
+      expect(schema instanceof MySchema).toBe(true);
+      expect(MyModel.schema().source()).toBe('my_model');
+
       expect(MyModel.query()).toBe(query);
       expect(MyModel.connection()).toBe(connection);
       expect(MyModel.conventions()).toBe(conventions);
