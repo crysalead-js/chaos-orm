@@ -330,8 +330,8 @@ class Relationship {
     }
     var to = this.to();
 
-    if (!id) {
-      return Promise.resolve(to.create({}, { type: 'set', collector: fetchOptions.collector }));
+    if (!id || !id.length) {
+      return Promise.resolve(to.create([], { type: 'set', collector: fetchOptions.collector }));
     }
     var query, defaultQuery = { conditions: {} };
 

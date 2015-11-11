@@ -351,12 +351,12 @@ describe("Through", function() {
     it("deletages the call up to the schema instance", function() {
 
       var schema = new Schema();
-      spyOn(schema, 'embed');
+      var stub = spyOn(schema, 'embed');
 
       MyTag.config({ schema: schema });
 
       this.through.embed(['relation1.relation2']);
-      expect(schema.embed).toHaveBeenCalledWith(this.through, ['relation1.relation2']);
+      expect(stub).toHaveBeenCalledWith(this.through, ['relation1.relation2']);
 
     });
 
@@ -366,12 +366,12 @@ describe("Through", function() {
 
     it("calls `toArray()`", function() {
 
-      spyOn(Collection, 'toArray').and.callThrough();
+      var spy = spyOn(Collection, 'toArray');
 
       var options = {};
       this.through.data(options);
 
-      expect(Collection.toArray).toHaveBeenCalledWith(this.through, options);
+      expect(spy).toHaveBeenCalledWith(this.through, options);
 
     });
 

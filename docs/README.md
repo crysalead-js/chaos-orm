@@ -55,5 +55,34 @@ The spec suite can be runned with:
 ```
 cd chaos-orm
 npm install
-mocha // or jasmine whatever is fine
+npm test
 ```
+
+## Documentation
+
+Important: in the following documentation [chaos-pgsql](https://github.com/crysalead-js/chaos-pgsql) is used to illustrate examples. So don't forget to run `composer require crysalead-js/chaos-pgsql` in your project before poking around examples.
+
+* [Connections](connections.md)
+* [Models](models.md)
+  * [Definition](models.md#definition)
+  * [Schema](models.md#schema)
+  * [Entities](models.md#entities)
+  * [Validations](models.md#validations)
+  * [Querying](models.md#Querying)
+    * [Querying methods](models.md#querying_methods)
+    * [Fetching methods](models.md#fetching_methods)
+    * [Scopes](models.md#Scopes)
+    * [Global scope](models.md#global_scope)
+    * [Querying shortcuts](models.md#querying_shortcuts)
+  * [Getters/Setters](models.md#getters_getters)
+* [Entities](entities.md)
+  * [Creation](entities.md#creation)
+  * [CRUD Actions](entities.md#crud)
+  * [Additional Methods](entities.md#methods)
+* [Schemas](schemas.md)
+  * [Overview](schemas.md#overview)
+  * [Fields](schemas.md#fields)
+  * [Relations](schemas.md#relations)
+  * [Formatters](schemas.md#formatters)
+  * [Custom types](schemas.md#types)
+  * [Additionnal Methods](schemas.md#methods)

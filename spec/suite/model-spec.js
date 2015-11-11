@@ -1,7 +1,9 @@
 import { Collection, Conventions, Source, Schema, Model } from '../..';
 
 class MyModel extends Model {}
+
 class MySchema extends Schema {};
+
 MyModel._schema = MySchema;
 
 describe("Model", function() {
@@ -170,13 +172,13 @@ describe("Model", function() {
 
       MyModel.query({ method1: 'param1' });
 
-      spyOn(schema, 'query');
+      var stub = spyOn(schema, 'query');
 
       MyModel.find({
         method2: 'param2'
       });
 
-      expect(schema.query).toHaveBeenCalledWith({
+      expect(stub).toHaveBeenCalledWith({
         query: {
           method1: 'param1',
           method2: 'param2'
@@ -206,13 +208,13 @@ describe("Model", function() {
 
       var schema = MyModel.schema();
 
-      spyOn(schema, 'query').and.callThrough();
-      spyOn(this.query, 'first').and.callThrough();
+      var schemaSpy = spyOn(schema, 'query').and.callThrough();
+      var querySpy = spyOn(this.query, 'first');
 
       MyModel.first({ field: 'value' }, { fetch: 'options' });
 
-      expect(schema.query).toHaveBeenCalledWith({ query: { field: 'value' } });
-      expect(this.query.first).toHaveBeenCalledWith({ fetch: 'options' });
+      expect(schemaSpy).toHaveBeenCalledWith({ query: { field: 'value' } });
+      expect(querySpy).toHaveBeenCalledWith({ fetch: 'options' });
 
     });
 
@@ -233,16 +235,16 @@ describe("Model", function() {
 
     it("delegates to `.find`", function() {
 
-      spyOn(MyModel, 'find').and.callThrough();
-      spyOn(this.query, 'first').and.callThrough();
+      var myModelSpy = spyOn(MyModel, 'find').and.callThrough();
+      var querySpy = spyOn(this.query, 'first');
 
       MyModel.id(1, { option: 'value' }, { fetch: 'options' });
 
-      expect(MyModel.find).toHaveBeenCalledWith({
+      expect(myModelSpy).toHaveBeenCalledWith({
         conditions: { id: 1 },
         option: 'value'
       });
-      expect(this.query.first).toHaveBeenCalledWith({ fetch: 'options' });
+      expect(querySpy).toHaveBeenCalledWith({ fetch: 'options' });
 
     });
 
@@ -263,13 +265,13 @@ describe("Model", function() {
 
     it("delegates to `.all`", function() {
 
-      spyOn(MyModel, 'find').and.callThrough();
-      spyOn(this.query, 'all').and.callThrough();
+      var myModelSpy = spyOn(MyModel, 'find').and.callThrough();
+      var querySpy = spyOn(this.query, 'all');
 
       MyModel.all({ query: { field: 'value' } }, { fetch: 'options' });
 
-      expect(MyModel.find).toHaveBeenCalledWith({ query: { field: 'value' } });
-      expect(this.query.all).toHaveBeenCalledWith({ fetch: 'options' });
+      expect(myModelSpy).toHaveBeenCalledWith({ query: { field: 'value' } });
+      expect(querySpy).toHaveBeenCalledWith({ fetch: 'options' });
 
     });
 
@@ -301,11 +303,11 @@ describe("Model", function() {
 
       var schema = MyModel.schema();
 
-      spyOn(schema, 'relations').and.callThrough();
+      var spy = spyOn(schema, 'relations');
 
       MyModel.relations('hasMany');
 
-      expect(schema.relations).toHaveBeenCalledWith('hasMany');
+      expect(spy).toHaveBeenCalledWith('hasMany');
 
     });
 
@@ -321,11 +323,11 @@ describe("Model", function() {
         to: 'TargetModel'
       });
 
-      spyOn(schema, 'relation').and.callThrough();
+      var spy = spyOn(schema, 'relation');
 
       MyModel.relation('abc');
 
-      expect(schema.relation).toHaveBeenCalledWith('abc');
+      expect(spy).toHaveBeenCalledWith('abc');
 
     });
 

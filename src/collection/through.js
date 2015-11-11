@@ -114,18 +114,19 @@ class Through {
    * @param Function closure The closure to execute.
    */
   forEach(closure, thisArg) {
-    var next = this[Symbol.iterator]().next;
-    var current = next();
+    var index = 0;
+    var collection = this._parent.get(this._through);
 
     if (thisArg) {
       closure = closure.bind(this);
     }
 
-    while (!current.done) {
-      closure(current.value[1], current.value[0], this);
-      current = next();
+    while (index < collection.length) {
+      closure(collection.get(index).get(this._using), index, this);
+      index++;
     }
   }
+
 
   /**
    * Handles dispatching of methods against all items in the collection.
@@ -375,7 +376,7 @@ class Through {
         if (index >= collection.length) {
           return { done: true };
         } else {
-          return { value: [index, collection.get(index++).get(this._using)], done: false };
+          return { value: collection.get(index++).get(this._using), done: false };
         }
       }.bind(this)
     };

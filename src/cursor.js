@@ -7,17 +7,11 @@ class Cursor {
    * @param Object config Possible values are:
    *                      - `'data'`     _array_   : A data array.
    *                      - `'resource'` _resource_: The resource to fetch on.
-   *                      - `'error'`    _boolean_ : A error boolean flag.
-   *                      - `'errno'`    _mixed_   : An error code number.
-   *                      - `'errmsg'`   _string_  : A full string error message.
    */
   constructor(config) {
     var defaults = {
       data: [],
-      resource: undefined,
-      error: false,
-      errno: 0,
-      errmsg: ''
+      resource: undefined
     };
 
     config = extend({}, defaults, config);
@@ -36,27 +30,6 @@ class Cursor {
      * @var array
      */
     this._data = config.data;
-
-    /**
-     * Indicates whether the cursor is valid or not.
-     *
-     * @var Boolean
-     */
-    this._error = config.error;
-
-    /**
-     * Stores the error number.
-     *
-     * @var integer
-     */
-    this._errno = config.errno;
-
-    /**
-     * Stores the error message.
-     *
-     * @var String
-     */
-    this._errmsg = config.errmsg;
 
     /**
      * Indicates whether the fetching has been started.
@@ -117,33 +90,6 @@ class Cursor {
    */
   resource() {
     return this._resource;
-  }
-
-  /**
-   * Returns the error value.
-   *
-   * @return Boolean
-   */
-  error() {
-    return this._error;
-  }
-
-  /**
-   * Returns the error number.
-   *
-   * @return mixed
-   */
-  errno() {
-    return this._errno;
-  }
-
-  /**
-   * Returns the error message.
-   *
-   * @return String
-   */
-  errmsg() {
-    return this._errmsg;
   }
 
   /**

@@ -116,30 +116,35 @@ class HasMany extends Relationship {
       var conditions = this.match(entity);
       var to = this.to();
       var previous = yield to.all({ conditions: conditions });
+      var existing = {};
 
       var indexes = this._index(previous, this.keys('from'));
       var result = true;
       var collection = entity.get(name);
 
-      collection.forEach(function(item, index) {
-        if (item.exists() && indexes[item.primaryKey()]) {
-          previous.unset(indexes[item.primaryKey()]);
+      for (var item of collection) {
+        if (item.exists() && indexes[item.primaryKey()] !== undefined) {
+          existing[indexes[item.primaryKey()]] = true;
         }
         item.set(conditions);
-        result = result && item.save(options);
-      });
+        yield item.save(options);
+      }
 
-      var junction = this.junction(), promises= [];
+      var junction = this.junction(), promises = [];
 
       if (junction) {
         previous.forEach(function (item, index) {
-          promises.push(item.delete());
+          if (!existing[index]) {
+            promises.push(item.delete());
+          }
         });
       } else {
         var toKey = this.keys('to');
         previous.forEach(function (item, index) {
-          item.unset(toKey);
-          promises.push(item.save());
+          if (!existing[index]) {
+            item.unset(toKey);
+            promises.push(item.save());
+          }
         });
       }
       yield* promises;

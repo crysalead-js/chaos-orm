@@ -166,16 +166,15 @@ class Collection {
    * @param Function closure The closure to execute.
    */
   forEach(closure, thisArg) {
-    var next = this[Symbol.iterator]().next;
-    var current = next();
+    var index = 0;
 
     if (thisArg) {
       closure = closure.bind(this);
     }
 
-    while (!current.done) {
-      closure(current.value[1], current.value[0], this);
-      current = next();
+    while (index < this._data.length) {
+      closure(this._data[index], index, this);
+      index++;
     }
   }
 
@@ -431,7 +430,7 @@ class Collection {
     var index = 0;
     return {
       next: function() {
-        return index < this._data.length ? { value: [index, this._data[index++]], done: false } : { done: true };
+        return index < this._data.length ? { value: this._data[index++], done: false } : { done: true };
       }.bind(this)
     };
   }

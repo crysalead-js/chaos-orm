@@ -2,6 +2,7 @@ import co from 'co';
 import { extend, merge } from 'extend-merge';
 import { expand, flatten } from 'expand-flatten';
 import intersect from 'intersect';
+import dateformat from 'date-format';
 import Conventions from './conventions';
 import Relationship from './relationship';
 import BelongsTo from './relationship/belongs-to';
@@ -11,6 +12,10 @@ import HasManyThrough from './relationship/has-many-through';
 
 function normalize(array) {
   var i, len, key, result = {};
+
+  if (typeof array === 'string') {
+    array = [array];
+  }
 
   if (!Array.isArray(array)) {
     if (!array || typeof array !== 'object') {
@@ -218,7 +223,7 @@ class Schema {
     this.formatter('array', 'float',     handlers['array']['float']);
     this.formatter('array', 'decimal',   handlers['array']['float']);
     this.formatter('array', 'date',      handlers['array']['date']);
-    this.formatter('array', 'datetime',  handlers['array']['date']);
+    this.formatter('array', 'datetime',  handlers['array']['datetime']);
     this.formatter('array', 'boolean',   handlers['array']['boolean']);
     this.formatter('array', 'null',      handlers['array']['null']);
     this.formatter('array', '_default_', handlers['array']['string']);
@@ -696,7 +701,6 @@ class Schema {
   expand(relations) {
     var num, name, rel, relPath;
     relations = normalize(relations);
-
     for (var path in relations) {
       num = path.lastIndexOf('.');
       name = num !== -1 ? path.substr(0, num) : path;
@@ -704,7 +708,7 @@ class Schema {
       if (rel.type() !== 'hasManyThrough') {
         continue;
       }
-      var relPath = rel.through() + '.' + rel.using() + (num !== -1 ? '.' + path.substr(0, num + 1) : '');
+      var relPath = rel.through() + '.' + rel.using() + (num !== -1 ? '.' + path.substr(num + 1) : '');
       if (!relations[relPath]) {
         relations[relPath] = relations[path];
       }
@@ -862,20 +866,16 @@ class Schema {
         },
         'date': function(value, options) {
           options = options || {};
+          options.format = options.format ? options.format : 'yyyy-MM-dd';
+          return this._format('array', 'datetime', value, options);
+        }.bind(this),
+        'datetime': function(value, options) {
+          options = options || {};
+          options.format = options.format ? options.format : 'yyyy-MM-dd hh:mm:ss';
           if (!value instanceof Date) {
             value = new Date(value);
           }
-          var year = value.getFullYear();
-          var month = value.getMonth() + 1;
-          var day = value.getDate();
-          var hours = value.getHours();
-          var minutes = value.getMinutes();
-          var seconds = value.getSeconds();
-
-          function pad2(n){
-            return n > 9 ? "" + n: "0" + n;
-          }
-          return year + "-" + month + "-" + day + " " + pad2(hours) + ":" + pad2(minutes) + ":" + pad2(seconds);
+          return dateformat.asString(options.format, value);
         },
         'boolean': function(value, options) {
           return !!value;
@@ -898,7 +898,19 @@ class Schema {
    */
   format(mode, name, value, options) {
     var type = value === null ? 'null' : this.type(name);
+    return this._format(mode, type, value, options);
+  }
 
+  /**
+   * Formats a value according to its type.
+   *
+   * @param   String mode    The format mode (i.e. `'cast'` or `'datasource'`).
+   * @param   String type    The format type.
+   * @param   mixed  value   The value to format.
+   * @param   mixed  options The options array to pass the the formatter handler.
+   * @return  mixed          The formated value.
+   */
+  _format(mode, type, value, options) {
     var formatter;
 
     if (this._formatters[mode] && this._formatters[mode][type]) {
@@ -979,7 +991,7 @@ class Schema {
 
     return co(function*() {
 
-      yield this._save('belongsTo', options);
+      yield this._save(entity, 'belongsTo', options);
 
       var hasRelations = ['hasMany', 'hasOne'];
 
@@ -1008,21 +1020,16 @@ class Schema {
         }
       }
 
-      var cursor;
       if (entity.exists() === false) {
-        cursor = yield this.insert(values);
+        yield this.insert(values);
       } else {
         var id = entity.primaryKey();
         if (id === undefined) {
-          reject("Missing ID, can't update the entity.");
+          throw new Error("Missing ID, can't update the entity.");
         }
         var params = {};
         params[this.primaryKey()] = id
-        cursor = yield this.update(values, params);
-      }
-
-      if (cursor.error()) {
-        throw new Error("Unable to save the entity.");
+        yield this.update(values, params);
       }
 
       if (entity.exists() === false) {
@@ -1046,7 +1053,6 @@ class Schema {
     options = extend({}, defaults, options);
 
     types = Array.isArray(types) ? types : [types];
-
     return co(function*() {
       var type, value, relName, rel;
 

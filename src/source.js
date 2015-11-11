@@ -134,6 +134,27 @@ class Source {
     }
     return formatter ? formatter(value, options) : value;
   }
+
+  static getType(value) {
+    if (typeof value === 'object') {
+      if (value === null) {
+        return 'null';
+      }
+      if (Array.isArray(value)) {
+        return 'array';
+      }
+      return 'object';
+    }
+    if (typeof value === 'string') {
+      return 'string';
+    }
+    if (typeof value === 'boolean') {
+      return 'boolean';
+    }
+    if (typeof value === 'number') {
+      return value % 1 === 0 ? 'integer' : 'double';
+    }
+  }
 }
 
 export default Source;

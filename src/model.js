@@ -677,7 +677,8 @@ class Model {
       }
       var modified = false;
       var value = this._data[key] !== undefined ? this._data[key] : this._persisted[key];
-      if (typeof value.modified === 'function' && schema.has(key)) {
+
+      if (value && typeof value.modified === 'function' && schema.has(key)) {
         modified = value.modified();
       } else {
         modified = this._persisted[key] !== value;
@@ -728,11 +729,11 @@ class Model {
    * post.save({ validate: false });
    * }}}
    *
-   * @param Object  options Options:
-   *                       - `'whitelist'` _Array_  : An array of fields that are allowed to be saved to this record.
-   *                       - `'locked'`    _Boolean_: Lock data to the schema fields.
-   *                       - `'with'`      _Array_  : List of relations to save.
-   * @return boolean       Returns `true` on a successful save operation, `false` on failure.
+   * @param  Object  options Options:
+   *                          - `'whitelist'` _Array_         : An array of fields that are allowed to be saved to this record.
+   *                          - `'locked'`    _Boolean_       : Lock data to the schema fields.
+   *                          - `'embed'`     _Boolean|Array_ : List of relations to save.
+   * @return Promise
    */
   save(options) {
     return this.model().schema().save(this, options);
@@ -742,7 +743,7 @@ class Model {
    * Similar to `.save()` except the direct relationship has not been saved by default.
    *
    * @param  Object  options Same options as `.save()`.
-   * @return Boolean         Returns `true` on a successful save operation, `false` on failure.
+   * @return Promise
    */
   persist(options) {
     return this.save(extend({}, { embed: false }, options));
@@ -750,6 +751,8 @@ class Model {
 
   /**
    * Reloads the entity from the datasource.
+   *
+   * @return Promise
    */
   reload() {
     var id = this.primaryKey();
@@ -766,8 +769,8 @@ class Model {
   /**
    * Removes the data associated with the current `Model`.
    *
-   * @param Object options Options.
-   * @return boolean Success.
+   * @param  Object  options Options.
+   * @return Promise
    */
   delete(options) {
     var schema = this.model().schema();
@@ -786,7 +789,7 @@ class Model {
   /**
    * Returns the errors from the last `.validate()` call.
    *
-   * @return array The occured errors.
+   * @return Object The occured errors.
    */
   errors(options) {
     var defaults = { embed: true };

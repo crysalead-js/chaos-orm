@@ -1,0 +1,284 @@
+## Schemas
+
+* [Overview](#overview)
+* [Fields](#fields)
+* [Relations](#relations)
+* [Formatters](#formatters)
+* [Custom types](#types)
+* [Additionnal Methods](#methods)
+
+### <a name="overview"></a>Overview
+
+The Schema abstraction is the central point of the Chaos data abstraction layer. Schema instances are bridges between in-memory entities representation and datasources storage.
+
+Note: `Schema` corresponds to the mapper part in the DataMapper pattern.
+
+Schemas are compounded by:
+* fields
+* and relationships (through model class name references).
+
+#### <a name="fields"></a>Fields
+
+Schemas are like tables and contain typed fields (like `string`, `integer`, etc.). To define a schema's field we need to use the `.set()` method.
+
+Example:
+
+```php
+import { Schema } from "chaos-orm";
+
+var schema = new Schema();
+var schema.set('id',   { type: 'serial' });
+var schema.set('name', { type: 'string' });
+```
+
+The `'type'` define an abstract representation of type which essentially depends on the used datasource. For example `'type' => 'serial'` will mean `INT NOT NULL AUTO_INCREMENT` for a MySQL connection and `SERIAL` for PostgreSQL.
+
+With the RDBMS schema implementation for example, you can rely on the following abstracted `'type'` definitions:
+
+* `'id'`
+* `'serial'`
+* `'string'`
+* `'text'`
+* `'integer'`
+* `'boolean'`
+* `'float'`
+* `'decimal'`
+* `'date'`
+* `'time'`
+* `'datetime'`
+* `'binary'`
+* `'uuid'`
+
+Each type above will be matched to a RDBMS type definition through the dedicaded database adapter.
+
+However it's also possible to create you own types and also override the default ones. See the [custom types section bellow](#types) for more informations on types.
+
+With Chaos you are not limited to "scalar" types, you can also have objects and arrays. So with PostgreSQL you should be able to support schema like:
+
+```php
+import { Schema } from "chaos-orm";
+
+var schema = new Schema();
+schema.set('id',             { type: 'serial' });
+schema.set('user',           { type: 'object' });
+schema.set('user.firstname', { type: 'string' });
+schema.set('user.lastname',  { type: 'string' });
+schema.set('comments',       { type: 'id', array: true });
+```
+
+Field definition can have the following options:
+
+* `'default'`: sets a default field value.
+* `'array'`: indicates whether it's a collection of `'type'` or just a `'type'` value.
+* `'null'`: indicates if the null value is allowed.
+* `'use'`: allows to use a specific RDBMS type definition (e.g `{ type: 'integer', use: 'int8' }`).
+
+#### <a name="relations"></a>Relations
+
+There's two way to set up a relation:
+
+* `.bind()`: is used to define external relations (i.e via foreign keys).
+* `.set()`: is used to define embeded relations (i.e same method as for fields).
+
+The first parameter of methods will be the name of the relation (which mean the name of the field name used to store the relationship data). And the second parameter is an array of options. Possible values are:
+
+* `'relation'`: The name of the relationship (i.e 'belongsTo', 'hasOne', 'hasMany' or 'hasManyThrough').
+* `'to'`: The target model name, can be a fully namespaced class name or just the class name if it belongs to the same namespace of the source.
+* `'keys'`: A key value array where the key is the field name of the ID in the source model and the value, the ID in the target model (i.e. `['fromId' => 'toId']`).
+* `'link'`: For relational databases, the only valid value is `Relationship::LINK_KEY`, which means a foreign key. But for document-oriented and other non-relational databases, different types of linking, including key lists or even embedding.
+
+Example:
+
+```php
+import { Schema } from "chaos-orm";
+import Author from "./model/author";
+import Image from "./model/image";
+
+var schema = new Schema();
+
+// Embeded relation
+schema.set('author', {
+  relation: 'hasOne',
+  to: Author
+});
+
+// External relation
+schema.bind('images', [
+  relation: 'hasMany',
+  to: Image,
+  keys: { id: 'gallery_id' }
+]);
+```
+
+#### <a name="formatters"></a>Formatters
+
+Formatters are a handy way to perform casting between different data representations. For example when data are loaded from a database, they must be casted first to fit the schema definition, and then, must be casted back into the datasource format to be saved.
+
+A schema with a connection has three built-in type of formatters:
+- `'cast'`: used to load data into an entity. Data can come from the datasource or form manually setted data (e.g. `entity.set('created', '2015-07-26'`)).
+- `'datasource'` : used to cast entity's data back to a compatible datasource format.
+- `'array'` : used to export a entity's data into a kind of generic array structure (used by `entiy.data()`);
+
+Let's take for example the date type in MySQL. In the RDBMS the date are stored as a "yyyy-MM-dd hh:mm:ss" string. However it's not a really handy structure to deal with. It would be interesting To have them casted into `DateTime` instances (which is the actually the default behavior).
+
+With Chaos, you can define as many formatters as you need. Let's take a concrete example:
+
+```php
+use myproject\model\Gallery;
+import Gallery from "./model/gallery";
+
+var schema = Gallery::schema();
+
+// Just to make sure created is of type date.
+schema.set('created', { type: 'date' });
+
+var entity = Gallery::create([
+    'name'    => 'My Gallery',
+    'created' => '2014-10-26 00:25:15'   // It's a string
+]);
+
+entity.get('created');                   // It's a Date instance
+
+// Exports into quoted string compatible with my RDBMS
+entity.to('datasource');                 // [
+                                         //     'name'    => "'My Gallery'",
+                                         //     'created' => "'2014-10-26 00:25:15'"
+                                         // ]);
+```
+
+As you can seen `'created'` has been initialized using a string. Internaly the casting handler attached to the `'date'` type has been executed to cast the string into an instance of `DateTime`. And then `.to('datasource')` exported entity's data into some datasource compatible data (i.e. using quoted string).
+
+All `'cast'` and `'datasource'` handlers of the schema come from the database adapter instance (i.e. the connection). So if a schema has been defined with no connection, these handlers won't be defined and `::create()` as well as `.to('datasource')` won't perform any casting and will just leave the data unchanged.
+
+Using the above example, let's change default handlers to be able to use my `MyDateTime` class instead of the default `DateTime` one:
+
+```php
+import dateformat from 'date-format';
+import Gallery from "./model/gallery";
+
+var schema = Gallery.schema();
+
+// Just to make sure created is of type date.
+schema.set('created', { type: 'date' });
+
+// Override the date handler (casting context)
+schema.formatter('cast', 'date', function(value, options) {
+  return new Date(value);
+});
+
+// Override the date handler (datasource context)
+schema.formatter('datasource', 'date', function(value, options ) {
+  options = options || {};
+  options.format = options.format ? options.format : 'yyyy-MM-dd hh:mm:ss';
+  if (!value instanceof Date) {
+    value = new Date(value);
+  }
+  return schema.connection().dialect().quote(dateformat.format(options.format, value));
+});
+
+var entity = Gallery.create({
+  name: 'My Gallery',
+  created: '2014-10-26 00:25:15'   // It's a string
+});
+
+entity.get('created');                  // It's a Date instance
+
+// Exports into quoted string compatible with my RDBMS
+entity.to('datasource');     // {
+                             //    name: "'My Gallery'",
+                             //    created: "'2014-10-26 00:25:15'"
+                             // });
+```
+
+The fact that the `'cast'` handler manage several types of data is necessery because the casting handlers are used to cast datasource data as well as manually setted data like `entity.created = '2015-07-26'`.
+
+Also, the `'datasource'` handler need to manage several types of data because `'cast'` handlers are optionnals so there's no warranty that the passed value is of a specific type.
+
+##### Custom Formatters
+
+It's also possible to define some custom formatters. To do so, you need to add you custom handler using the `.formatter()` method with a specific key. Let's take the following example where I want a custom export of entities's data for `<form>`s.
+
+Example:
+
+```php
+import Gallery from "./model/gallery";
+
+var schema = Gallery.schema();
+
+// To make sure created is of type date.
+schema.set('created', { type: 'date' });
+
+var entity = Gallery.create({
+  name: 'My Gallery',
+  created: '2014-10-26 00:25:15'
+});
+
+schema.formatter('form', 'date', function(value, options) {
+  options = options || {};
+  options.format = options.format ? options.format : 'dd/MM/yyyy';
+  if (!value instanceof Date) {
+    value = new Date(value);
+  }
+  return dateformat.format(options.format, value);
+});
+
+entity.get('created');                       // It's a Date instance
+
+entity.to('form', { format: 'dd/MM/yyyy' }); // {
+                                             //    name: 'My Gallery',
+                                             //    created: '2014-10-26'
+                                             // });
+```
+
+#### <a name="types"></a>Custom types
+
+With Chaos it's possible to add your custom data types. For example it can be interesting to add some PostgreSQL geometric types to make them casted into objects by formatters, instead of dealing with string values.
+
+Adding a new type requires to set at least a `'cast'` and a `'datasource'` handler.
+
+Example:
+
+```php
+import Gallery from "./model/gallery";
+
+var schema = Gallery.schema();
+
+schema.formatter('cast', 'customtype', function(value, options) {
+    return ...; // returns the casted value
+});
+
+schema.formatter('datasource', 'customtype', function(value, options) {
+    return ...; // returns a datasource compatible value
+});
+
+// Now you can use your custom type.
+schema.set('custom', { type: 'customtype' });
+
+schema.set('custom', "customdata");
+```
+
+#### <a name="methods"></a>Additionnal Methods
+
+One of the principal key point of Chaos is that a `Schema` can be easily adapted to take advantage of specific datasource features. So the additionnal methods can by anything you willing to implement.
+
+In the example bellow I will use `Schema` to show how the added methods of this specific implementation can be used in practice:
+
+```php
+co(function* () {
+  var schema = Gallery.schema();
+
+  schema.create();                                   // creates the table
+  schema.insert({ name: 'MyGallery' });              // inserts raw datas w/o any validation
+
+  var id = yield schema.connection().lastInsertId(); // gets the last inserted id
+
+  yield schema.update({
+    name: 'MyNewGallery'
+  }, { id: id });                                    // updates raw datas w/o any validation
+
+  yield schema.remove({ id: id });                   // removes raw datas
+  yield schema.drop();                               // drops the table
+});
+```
+
+The fact there's no additional abstraction layer between models and schemas allows to take advantages of any kind of datasource features by simply extending your base models and making a use of it.

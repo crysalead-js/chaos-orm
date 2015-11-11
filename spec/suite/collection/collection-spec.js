@@ -5,7 +5,7 @@ class MyModel extends Model {};
 
 describe("Collection", function() {
 
-  describe(".__construct()", function() {
+  describe(".constructor()", function() {
 
     it("loads the data", function() {
 
@@ -354,15 +354,15 @@ describe("Collection", function() {
 
     it("deletages the call up to the schema instance", function() {
 
-      var schema = {embed: function() {}};
-      spyOn(schema, 'embed');
+      var schema = { embed: function() {} };
+      var spy = spyOn(schema, 'embed');
 
       MyModel.config({ schema: schema });
 
       var galleries = MyModel.create({}, { type: 'set' });
 
       galleries.embed(['relation1.relation2']);
-      expect(schema.embed).toHaveBeenCalledWith(galleries, ['relation1.relation2']);
+      expect(spy).toHaveBeenCalledWith(galleries, ['relation1.relation2']);
 
       MyModel.config();
 
@@ -375,11 +375,11 @@ describe("Collection", function() {
     it("calls `toArray()`", function() {
 
       var collection = new Collection({ data: [1] });
-      spyOn(Collection, 'toArray').and.callThrough();
+      var spy = spyOn(Collection, 'toArray').and.callThrough();
 
       var options = {};
       expect(collection.data(options)).toEqual([1]);
-      expect(Collection.toArray).toHaveBeenCalledWith(collection, options);
+      expect(spy).toHaveBeenCalledWith(collection, options);
 
     });
 

@@ -1,7 +1,5 @@
-require('babel-core/register');
-
-global.context = describe;
-global.Promise = require('bluebird');
+process.env.TZ = 'UTC';
+Promise = require('bluebird');
 
 require('./conventions-spec');
 require('./collection/collection-spec');
