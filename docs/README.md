@@ -6,9 +6,10 @@
 Chaos is an independent, persistence-agnostic layer responsible for defining entities' business logic and relationships. It allows to describe a [Domain Model](https://en.wikipedia.org/wiki/Domain_model) without any assumption about the persistence layer.
 
 Available datasources libraries:
-  * [MySQL](https://github.com/crysalead-js/chaos-mysql)
-  * [PostgreSQL](https://github.com/crysalead-js/chaos-postgresql)
-  * [Sqlite](https://github.com/crysalead-js/chaos-sqlite)
+
+* [MySQL](https://github.com/crysalead-js/chaos-mysql)
+* [PostgreSQL](https://github.com/crysalead-js/chaos-postgresql)
+* [Sqlite](https://github.com/crysalead-js/chaos-sqlite)
 
 Chaos dramatically simplify the developpment of a datasources libraries by providing all persistence-agnostic logic like relationships, eager loading at the root level. The only requirement is the datasource you envisionned to use need to be able to fetch a record/document thanks to a unique identifier (i.e no composite primary key).
 
