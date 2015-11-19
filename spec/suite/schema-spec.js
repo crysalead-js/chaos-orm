@@ -1,4 +1,4 @@
-import { Through, Schema, Model } from '../..';
+import { Through, Schema, Model } from '../../src';
 
 import Gallery from '../fixture/model/gallery';
 import Image from '../fixture/model/image';

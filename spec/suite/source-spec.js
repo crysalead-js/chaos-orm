@@ -1,4 +1,4 @@
-import { Source } from '../..';
+import { Source } from '../../src';
 
 describe("Source", function() {
 

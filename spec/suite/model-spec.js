@@ -1,4 +1,4 @@
-import { Collection, Conventions, Source, Schema, Model } from '../..';
+import { Collection, Conventions, Source, Schema, Model } from '../../src';
 
 class MyModel extends Model {}
 
