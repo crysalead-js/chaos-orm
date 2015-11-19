@@ -9,7 +9,7 @@
 
 Once a model has been defined it's possible to create entity instances using its `::create()` method.
 
-```php
+```js
 var gallery = Gallery::create({ name: 'MyGallery' });
 gallery.set('name', 'MyGallery');
 ```
@@ -24,7 +24,7 @@ The first parameter is the entity's data to set. And the second parameter takes 
 
 The meaning of the `'exists'` states can be quite confusing if you don't get its purpose correctly. `'exists'` is used to indicate that the data you are passing is a pre-existing entity from the database, without actually querying the database:
 
-```php
+```js
 var gallery = Gallery.create({
   id: 123,
   name: 'MyGallery'
@@ -45,7 +45,7 @@ The `'exists'` attribute can have three different states:
 
 There's several way to get or set an entity's value. The simplest one is using the "magic" syntax:
 
-```php
+```js
 entity.set('name', "A name"); // Sets a value
 entity.get('name');           // Gets a value
 ```
@@ -54,7 +54,7 @@ But it's also possible to override the default behavior by adding some specific 
 
 Let's take the following example:
 
-```php
+```js
 class User extends Model {
   getFullname() {
     return this.get('firstname') + ' ' + this.get('lastname');
@@ -64,7 +64,7 @@ class User extends Model {
 
 Then you can access your virtual field like the following:
 
-```php
+```js
 var user = User.create([
   firstname: 'Johnny',
   lastname: 'Boy'
@@ -75,7 +75,7 @@ user.get('fullname'); // Johnny Boy
 
 It's also possible to set multiple values in one go using the `.set()` method:
 
-```php
+```js
 var gallery = Gallery.create();
 gallery.set([
   name: 'MyAwesomeGallery',
@@ -101,7 +101,7 @@ The `.save()` method performs an `INSERT` or an `UPDATE` query depending the ent
 
 Example of usage:
 
-```php
+```js
 var gallery = Gallery.create();
 gallery.set('name', '');
 
@@ -123,7 +123,7 @@ Once an entity has been saved its exists value has been set to `true` which will
 
 Example:
 
-```php
+```js
 co(function* () {
   var gallery = Gallery.create({
     name: 'MyGallery'
@@ -144,7 +144,7 @@ You can reliably use `modified()` to check whether a field has been updated or n
 
 `.modified()` with a field name as argument returns `true` if the field has been modified. If no argument is given, `.modified()` retruns `true` if one of the entity's field has been modified:
 
-```php
+```js
 var entity = Gallery.create({ name: 'old name' }, { exists: true });
 entity.modified('title'); // false
 
@@ -155,7 +155,7 @@ entity.modified();        // true
 
 Also it's also possible to retrieve the persisted data are using `.persisted()` (i.e. the previous state of values):
 
-```php
+```js
 var entity = Gallery.create({ name: 'old name' }, { exists: true });
 entity.set('name', 'new name');
 
@@ -167,7 +167,7 @@ entity.persisted('name')); // old name
 
 Deleting entities from a datasource is pretty straightforward and can be accomplished by simply calling the `.delete()` method on entities to delete:
 
-```php
+```js
 co(function* () {
   var gallery = Gallery.create({ name: 'MyGallery' });
   yield gallery.save();

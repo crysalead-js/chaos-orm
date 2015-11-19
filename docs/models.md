@@ -18,7 +18,7 @@ The main purpose of models is to abstract business logic and datasources operati
 
 In Chaos the built-in `Schema` class for all PDO compatible databases is `chaos\database\Schema`. For example to create a `Gallery` model which uses the PDO related `Schema` class you can write:
 
-```php
+```js
 import { Model } from 'chaos-orm';
 import { Schema } from 'chaos-database';
 
@@ -29,7 +29,7 @@ Gallery._schema = Schema;
 
 And a complete model definition could be the following:
 
-```php
+```js
 import { Model } from 'chaos-orm';
 import { Schema } from 'chaos-database';
 import Image from './model/image';
@@ -54,7 +54,7 @@ The model definition is pretty straightforward. A "blank" schema instance is inj
 
 By default the injected schema instance is pre-configured with a source name and a primary key field name through a `Conventions` instance used to extract correct values. However in Chaos you can either set your own `Conventions` instance or manually set specific values like the following:
 
-```php
+```js
 // Sets a custom prefixed table name
 schema.source('prefixed_gallery');
 
@@ -71,19 +71,19 @@ In the previous example you noticed that fields and relations have been defined 
 
 Once done, you can retrieve the model's schema using `.schema()` or defined relations using `.relations()`:
 
-```php
+```js
 relations = Gallery.relations(); // ['images']
 ```
 
 And to get a specific relation you need to use `.relation()`:
 
-```php
+```js
 relation = Gallery.relation('images'); // A `HasMany` instance
 ```
 
 It's also possible to check the availability of a specific relation using `.hasRelation()`:
 
-```php
+```js
 relation = Gallery.hasRelation('images'); // A boolean
 ```
 
@@ -93,7 +93,7 @@ relation = Gallery.hasRelation('images'); // A boolean
 
 Once a model has been defined it's possible to create entity instances using the `.create()` method.
 
-```php
+```js
 gallery = Gallery.create(['name' => 'MyGallery']);
 gallery.set('name', 'MyAwesomeGallery');
 ```
@@ -108,7 +108,7 @@ The model `.find()` method is used to perform queries on a datasource. By using 
 
 Let's start with a simple query for finding all entities:
 
-```php
+```js
 co(function* () {
   var galleries = yield Gallery.find().all();
 
@@ -133,7 +133,7 @@ With the database schema, it's possible to use the following methods to configur
 
 So for example, we can write the following query:
 
-```php
+```js
 co(function* () {
   var galleries = yield Gallery.find()
                                .where({ name: 'MyGallery' })
@@ -157,7 +157,7 @@ To deal with JOINs, the `.has()` method is available to RDBMS compatible `Query`
 
 Example:
 
-```php
+```js
 co(function* () {
   var galleries = yield Gallery.find();
                                .where({ name: 'MyGallery' })
@@ -190,7 +190,7 @@ On the `Query` instance it's also possible to use some different getter to retre
 
 The response of above methods will depends on the `'return'` option value. By default the fething method will return an entity or a collection of entities. However you can switch to a different representation like in the following:
 
-```php
+```js
 co(function* () {
   // A collection of entities
   var galleries = yield Gallery.find().all();
@@ -208,7 +208,7 @@ All different representations can be mixed with the `.with()` paremeter to get n
 
 In cases where you always want finders results to be constrained to some conditions by default, some global query options can be setted at a model level. Default options can be defined by the `static _query` property inside the model class or by using the `.query()` method like the following:
 
-```php
+```js
 Galleries.query({
   conditions: { published: true },
   limit: 4
@@ -223,7 +223,7 @@ This way all finds will now be scoped to `static _query` constraints.
 
 Gets the first entity:
 
-```php
+```js
 var promise = galleries.first();
 
 // Similar to
@@ -234,7 +234,7 @@ var promise = galleries.find().first();
 
 Gets all entities:
 
-```php
+```js
 var promise = galleries.all();
 
 // Similar to
@@ -245,7 +245,7 @@ var promise = galleries.find().all();
 
 Gets an entity of a specific id:
 
-```php
+```js
 var promise = galleries.id(123);
 
 // Similar to

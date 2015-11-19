@@ -23,7 +23,7 @@ Schemas are like tables and contain typed fields (like `string`, `integer`, etc.
 
 Example:
 
-```php
+```js
 import { Schema } from "chaos-orm";
 
 var schema = new Schema();
@@ -55,7 +55,7 @@ However it's also possible to create you own types and also override the default
 
 With Chaos you are not limited to "scalar" types, you can also have objects and arrays. So with PostgreSQL you should be able to support schema like:
 
-```php
+```js
 import { Schema } from "chaos-orm";
 
 var schema = new Schema();
@@ -89,7 +89,7 @@ The first parameter of methods will be the name of the relation (which mean the 
 
 Example:
 
-```php
+```js
 import { Schema } from "chaos-orm";
 import Author from "./model/author";
 import Image from "./model/image";
@@ -123,7 +123,7 @@ Let's take for example the date type in MySQL. In the RDBMS the date are stored 
 
 With Chaos, you can define as many formatters as you need. Let's take a concrete example:
 
-```php
+```js
 use myproject\model\Gallery;
 import Gallery from "./model/gallery";
 
@@ -152,7 +152,7 @@ All `'cast'` and `'datasource'` handlers of the schema come from the database ad
 
 Using the above example, let's change default handlers to be able to use my `MyDateTime` class instead of the default `DateTime` one:
 
-```php
+```js
 import dateformat from 'date-format';
 import Gallery from "./model/gallery";
 
@@ -200,7 +200,7 @@ It's also possible to define some custom formatters. To do so, you need to add y
 
 Example:
 
-```php
+```js
 import Gallery from "./model/gallery";
 
 var schema = Gallery.schema();
@@ -238,7 +238,7 @@ Adding a new type requires to set at least a `'cast'` and a `'datasource'` handl
 
 Example:
 
-```php
+```js
 import Gallery from "./model/gallery";
 
 var schema = Gallery.schema();
@@ -263,7 +263,7 @@ One of the principal key point of Chaos is that a `Schema` can be easily adapted
 
 In the example bellow I will use `Schema` to show how the added methods of this specific implementation can be used in practice:
 
-```php
+```js
 co(function* () {
   var schema = Gallery.schema();
 

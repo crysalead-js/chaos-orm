@@ -13,13 +13,11 @@ Available datasources libraries:
 
 Chaos dramatically simplify the developpment of a datasources libraries by providing all persistence-agnostic logic like relationships, eager loading at the root level. The only requirement is the datasource you envisionned to use need to be able to fetch a record/document thanks to a unique identifier (i.e no composite primary key).
 
-## Community
+## Install
 
-To ask questions, provide feedback or otherwise communicate with the team, join us on `#chaos` on Freenode.
-
-## Requirements
-
- * PHP 5.5+
+```bash
+npm install chaos-orm
+```
 
 ## Main Features
 
@@ -49,11 +47,11 @@ co(function* () {
 
 See the whole [documentation here](http://chaos-orm.readthedocs.org/en/latest).
 
-### Testing
+## Testing
 
 The spec suite can be runned with:
 
-```
+```bash
 cd chaos-orm
 npm install
 npm test
