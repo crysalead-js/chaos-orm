@@ -270,7 +270,12 @@ class Model {
    */
   static schema(schema) {
     if (arguments.length) {
-      return this._schemas[this.name] = schema;
+      if (typeof schema === 'function') {
+        this._schema = schema;
+      } else {
+        this._schemas[this.name] = schema;
+      }
+      return this;
     }
     if (this._schemas[this.name] !== undefined) {
       return this._schemas[this.name];
@@ -938,10 +943,10 @@ Model._connection = undefined;
 Model._conventions = undefined;
 
 /**
- * Stores the default schema class dependency.
+ * MUST BE re-defined in sub-classes which require a different schema.
  *
  * @var Function
  */
-Model._schema = null;
+Model._schema = undefined;
 
 export default Model;

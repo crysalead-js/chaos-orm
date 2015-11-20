@@ -13,15 +13,9 @@ import HasMany from './relationship/has-many';
 import HasManyThrough from './relationship/has-many-through';
 
 /**
- * Populates circular dependencies below since there are not supported yet by Babel.
+ * Populates circular dependencies below since they are not supported by Babel yet.
  */
-
-/**
- * Stores the default schema class dependency.
- *
- * @var Function
- */
-Model._schema = Schema;
+Model.schema(Schema);
 
 export {
   Conventions,
