@@ -523,6 +523,76 @@ class Schema {
   }
 
   /**
+   * Sets a BelongsTo relation.
+   *
+   * @param  String    name   The name of the relation (i.e. field name where it will be binded).
+   * @param  mixed     to     the model to bind.
+   * @param  Array     config The configuration that should be specified in the relationship.
+   *                          See the `Relationship` class for more information.
+   * @return Boolean
+   */
+  belongsTo(name, to, config) {
+    config = extend({}, {
+      to: to,
+      relation: 'belongsTo'
+    }, config);
+    return this.bind(name, config);
+  }
+
+  /**
+   * Sets a hasMany relation.
+   *
+   * @param  String    name   The name of the relation (i.e. field name where it will be binded).
+   * @param  mixed     to     the model to bind.
+   * @param  Array     config The configuration that should be specified in the relationship.
+   *                          See the `Relationship` class for more information.
+   * @return Boolean
+   */
+  hasMany(name, to, config) {
+    config = extend({}, {
+      to: to,
+      relation: 'hasMany'
+    }, config);
+    return this.bind(name, config);
+  }
+
+  /**
+   * Sets a hasOne relation.
+   *
+   * @param  String    name   The name of the relation (i.e. field name where it will be binded).
+   * @param  mixed     to     the model to bind.
+   * @param  Array     config The configuration that should be specified in the relationship.
+   *                          See the `Relationship` class for more information.
+   * @return Boolean
+   */
+  hasOne(name, to, config) {
+    config = extend({}, {
+      to: to,
+      relation: 'hasOne'
+    }, config);
+    return this.bind(name, config);
+  }
+
+  /**
+   * Sets a hasManyThrough relation.
+   *
+   * @param  String    name    The name of the relation (i.e. field name where it will be binded).
+   * @param  String    through the relation name to pivot table.
+   * @param  String    using   the target relation name in the through relation.
+   * @param  Array     config  The configuration that should be specified in the relationship.
+   *                           See the `Relationship` class for more information.
+   * @return Boolean
+   */
+  hasManyThrough(name, through, using, config) {
+    config = extend({}, {
+      through: through,
+      using: using,
+      relation: 'hasManyThrough'
+    }, config);
+    return this.bind(name, config);
+  }
+
+  /**
    * Lazy bind a relation.
    *
    * @param  String    name   The name of the relation (i.e. field name where it will be binded).

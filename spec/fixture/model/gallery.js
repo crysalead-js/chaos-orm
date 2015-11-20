@@ -8,17 +8,8 @@ class Gallery extends Model {
     schema.set('id', { type: 'serial' });
     schema.set('name', { type: 'string' });
 
-    schema.bind('detail', {
-      relation: 'hasOne',
-      to: 'GalleryDetail',
-      keys: { id: 'gallery_id' }
-    });
-
-    schema.bind('images', {
-      relation: 'hasMany',
-      to: 'Image',
-      keys: { id: 'gallery_id' }
-    });
+    schema.hasOne('detail', 'GalleryDetail', { keys: { id: 'gallery_id' } });
+    schema.hasMany('images', 'Image', { keys: { id: 'gallery_id' } });
   }
 }
 

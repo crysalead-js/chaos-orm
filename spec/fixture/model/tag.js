@@ -9,17 +9,8 @@ class Tag extends Model
     schema.set('id', { type: 'serial' });
     schema.set('name', { type: 'string', length: 50 });
 
-    schema.bind('images_tags', {
-      relation: 'hasMany',
-      to: 'ImageTag',
-      key: { id: 'tag_id' }
-    });
-
-    schema.bind('images', {
-      relation: 'hasManyThrough',
-      through: 'images_tags',
-      using: 'image'
-    });
+    schema.hasMany('images_tags', 'ImageTag', { keys: { id: 'tag_id' } });
+    schema.hasManyThrough('images', 'images_tags', 'image');
   }
 }
 

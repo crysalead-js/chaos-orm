@@ -141,17 +141,9 @@ class Model {
    *    default: []
    * });
    *
-   * schema.bind('tags', {
-   *   relation: 'hasManyThrough',
-   *   through: 'post_tag',
-   *   using: 'tag'
-   * });
+   * schema.hasManyThrough('tags', 'post_tag', 'tag');
    *
-   * schema.bind('post_tag', {
-   *   relation: 'hasMany',
-   *   to: PostTag,
-   *   key: { id: 'post_id' }
-   * });
+   * schema.hasMany('post_tag', PostTag, { keys: { id: 'post_id' } });
    * ```
    *
    * @param Object $schema The schema instance.

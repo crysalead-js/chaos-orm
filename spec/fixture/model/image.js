@@ -10,23 +10,9 @@ class Image extends Model {
     schema.set('name', { type: 'string' });
     schema.set('title', { type: 'string', length: 50 });
 
-    schema.bind('gallery', {
-      relation: 'belongsTo',
-      to: 'Gallery',
-      keys: { gallery_id: 'id' }
-    });
-
-    schema.bind('images_tags', {
-      relation: 'hasMany',
-      to: 'ImageTag',
-      keys: { id: 'image_id' }
-    });
-
-    schema.bind('tags', {
-      relation: 'hasManyThrough',
-      through: 'images_tags',
-      using: 'tag'
-    });
+    schema.belongsTo('gallery', 'Gallery', { keys: { gallery_id: 'id' } });
+    schema.hasMany('images_tags', 'ImageTag', { keys: { id: 'image_id' } });
+    schema.hasManyThrough('tags', 'images_tags', 'tag');
   }
 }
 
