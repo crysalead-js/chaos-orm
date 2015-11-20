@@ -420,14 +420,14 @@ class Model {
       return;
     }
 
-    var id = this.primaryKey();
-    if (!id) {
-      return; // TODO: would probably be better to throw an exception here.
-    }
-
     if (!this.constructor._schema) {
       var name = this.constructor.name;
       throw new Error("`" + this.constructor.name + "` has an empty `" + name + "._schema` property.");
+    }
+
+    var id = this.primaryKey();
+    if (!id) {
+      return;
     }
 
     var schema = this.model().schema();
