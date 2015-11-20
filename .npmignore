@@ -3,6 +3,5 @@ coverage/
 mkdocs.yml
 node_modules/
 spec/
-src/
 test/
 

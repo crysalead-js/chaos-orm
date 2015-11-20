@@ -19,6 +19,7 @@
     "cleanup": "rm -rf ./coverage"
   },
   "main": "lib/index.js",
+  "jsnext:main": "src/index.js",
   "dependencies": {
     "camel-case": "^1.2.0",
     "co": "^4.6.0",
