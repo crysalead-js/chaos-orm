@@ -12,6 +12,17 @@ import HasOne from './relationship/has-one';
 import HasMany from './relationship/has-many';
 import HasManyThrough from './relationship/has-many-through';
 
+/**
+ * Populates circular dependencies below since there are not supported yet by Babel.
+ */
+
+/**
+ * Stores the default schema class dependency.
+ *
+ * @var Function
+ */
+Model._schema = Schema;
+
 export {
   Conventions,
   Cursor,

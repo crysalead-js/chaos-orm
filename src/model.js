@@ -252,8 +252,7 @@ class Model {
     };
     config.source = this.conventions().apply('source', config.classes.entity.name);
 
-    var classname = this._schema;
-    schema = this._schemas[this.name] = new classname(config);
+    schema = this._schemas[this.name] = new this._schema(config);
     this._define(schema);
     return schema;
   }
@@ -388,6 +387,12 @@ class Model {
     if (!id) {
       return; // TODO: would probably be better to throw an exception here.
     }
+
+    if (!this.constructor._schema) {
+      var name = this.constructor.name;
+      throw new Error("`" + this.constructor.name + "` has an empty `" + name + "._schema` property.");
+    }
+
     var schema = this.model().schema();
     var source = schema.source();
 
@@ -868,18 +873,11 @@ Model._classes = {
 };
 
 /**
- * Stores the default schema class dependency.
- *
- * @var Array
- */
-Model._schema = Schema;
-
-/**
  * Stores model's schema.
  *
  * @var Array
  */
-Model._schemas = [];
+Model._schemas = {};
 
 /**
  * Default query parameters for the model finders.
@@ -901,5 +899,12 @@ Model._connection = undefined;
  * @var Object A naming conventions.
  */
 Model._conventions = undefined;
+
+/**
+ * Stores the default schema class dependency.
+ *
+ * @var Function
+ */
+Model._schema = null;
 
 export default Model;
