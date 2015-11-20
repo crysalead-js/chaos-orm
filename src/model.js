@@ -863,7 +863,7 @@ class Model {
 /**
  * Class dependencies.
  *
- * @var Array
+ * @var Object
  */
 Model._classes = {
   collector: Collector,
@@ -873,16 +873,21 @@ Model._classes = {
 };
 
 /**
+ * Registered models
+ */
+Model._models = {};
+
+/**
  * Stores model's schema.
  *
- * @var Array
+ * @var Object
  */
 Model._schemas = {};
 
 /**
  * Default query parameters for the model finders.
  *
- * @var array
+ * @var Object
  */
 Model._query = {};
 

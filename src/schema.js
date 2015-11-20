@@ -227,7 +227,6 @@ class Schema {
     this.formatter('array', 'boolean',   handlers['array']['boolean']);
     this.formatter('array', 'null',      handlers['array']['null']);
     this.formatter('array', '_default_', handlers['array']['string']);
-
   }
 
   /**
