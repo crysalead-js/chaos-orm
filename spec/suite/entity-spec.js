@@ -1,6 +1,4 @@
-import Schema from '../../src/schema';
-import Model from '../../src/model';
-import HasOne from '../../src/relationship/has-one';
+import { Schema, Model, HasOne } from '../../src';
 
 import Gallery from '../fixture/model/gallery';
 import Image from '../fixture/model/image';

@@ -10,11 +10,12 @@ class GalleryDetail extends Model {
 
     schema.bind('gallery', {
       relation: 'belongsTo',
-      to: Gallery,
+      to: 'Gallery',
       keys: { gallery_id: 'id' }
     });
   }
-
 }
+
+GalleryDetail.register();
 
 export default GalleryDetail;

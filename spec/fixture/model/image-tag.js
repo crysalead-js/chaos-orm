@@ -11,16 +11,18 @@ class ImageTag extends Model {
 
     schema.bind('image', {
       relation: 'belongsTo',
-      to: Image,
+      to: 'Image',
       keys: { image_id: 'id' }
     });
 
     schema.bind('tag', {
       relation: 'belongsTo',
-      to: Tag,
+      to: 'Tag',
       keys: { tag_id: 'id' }
     });
   }
 }
+
+ImageTag.register();
 
 export default ImageTag;

@@ -1,7 +1,4 @@
-import Conventions from '../../../src/conventions';
-import Relationship from '../../../src/relationship';
-import BelongsTo from '../../../src/relationship/belongs-to';
-import Model from '../../../src/model';
+import { Conventions, Relationship, Model, BelongsTo } from '../../../src';
 
 import Gallery from '../../fixture/model/gallery';
 import Image from '../../fixture/model/image';

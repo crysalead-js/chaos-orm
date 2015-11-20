@@ -2,11 +2,43 @@ import { extend, merge } from "extend-merge";
 import { expand, flatten } from "expand-flatten";
 import Conventions from "./conventions";
 import Collector from "./collector";
-import Schema from "./schema";
 import Collection from "./collection/collection";
 import Through from "./collection/through";
 
 class Model {
+
+  /**
+   * Registers a model dependency.
+   *
+   * @param  String   name  The dependency name.
+   * @param  Function model The model to register.
+   * @return Object         Returns `this`.
+   */
+  static register(name, model) {
+    if (arguments.length === 2) {
+      this._models[name] = model;
+      return this;
+    }
+    var name = name !== undefined ? name : this.name;
+    this._models[name] = this;
+    return this;
+  }
+
+  /**
+   * Returns a registered model dependency.
+   *
+   * @param  String   name The field name.
+   * @return Function       Returns `this`.
+   */
+  static registered(name) {
+    if (!arguments.length) {
+      return Object.keys(this._models);
+    }
+    if (this._models[name] === undefined) {
+      throw new Error("Undefined `" + name + "` as model dependency, the model need to be registered first.");
+    }
+    return this._models[name];
+  }
 
   /**
    * Configures the Model.

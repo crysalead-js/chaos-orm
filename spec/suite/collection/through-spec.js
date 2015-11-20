@@ -1,7 +1,4 @@
-import Collection from '../../../src/collection/collection';
-import Through from '../../../src/collection/through';
-import Schema from '../../../src/schema';
-import Model from '../../../src/model';
+import { Collection, Through, Schema, Model } from '../../../src';
 import Gallery from '../../fixture/model/gallery';
 import GalleryDetail from '../../fixture/model/gallery-detail';
 import Image from '../../fixture/model/image';

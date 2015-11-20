@@ -1,4 +1,4 @@
-import Cursor from '../../src/cursor';
+import { Cursor } from '../../src';
 
 describe("Cursor", function() {
 

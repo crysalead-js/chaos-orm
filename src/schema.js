@@ -437,6 +437,10 @@ class Schema {
     }
     var relationship = this.classes().relationship;
 
+    if (field.model) {
+      field.model = typeof field.model === 'string' ? this.model().registered(field.model) : field.model;
+    }
+
     this.bind(name, {
       type: field.array ? 'set' : 'entity',
       relation: field.array ? 'hasMany' : 'hasOne',
@@ -548,6 +552,8 @@ class Schema {
       if (config.relation !== 'hasManyThrough') {
         throw new Error("Binding requires `'to'` option to be set.");
       }
+    } else {
+      config.to = typeof config.to === 'string' ? this.model().registered(config.to) : config.to;
     }
 
     config.array = config.relation.match(/Many/);

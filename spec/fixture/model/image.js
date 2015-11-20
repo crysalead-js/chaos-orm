@@ -12,13 +12,13 @@ class Image extends Model {
 
     schema.bind('gallery', {
       relation: 'belongsTo',
-      to: Gallery,
+      to: 'Gallery',
       keys: { gallery_id: 'id' }
     });
 
     schema.bind('images_tags', {
       relation: 'hasMany',
-      to: ImageTag,
+      to: 'ImageTag',
       keys: { id: 'image_id' }
     });
 
@@ -29,5 +29,7 @@ class Image extends Model {
     });
   }
 }
+
+Image.register();
 
 export default Image;

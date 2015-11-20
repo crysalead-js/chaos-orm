@@ -1,4 +1,4 @@
-import Conventions from '../../src/conventions';
+import { Conventions } from '../../src';
 
 describe("Conventions", function() {
 

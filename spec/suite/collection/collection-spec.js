@@ -1,5 +1,5 @@
 import Collection from '../../../src/collection/collection';
-import Model from '../../../src/model';
+import { Model } from '../../../src';
 
 class MyModel extends Model {};
 

@@ -10,17 +10,18 @@ class Gallery extends Model {
 
     schema.bind('detail', {
       relation: 'hasOne',
-      to: GalleryDetail,
+      to: 'GalleryDetail',
       keys: { id: 'gallery_id' }
     });
 
     schema.bind('images', {
       relation: 'hasMany',
-      to: Image,
+      to: 'Image',
       keys: { id: 'gallery_id' }
     });
   }
-
 }
+
+Gallery.register();
 
 export default Gallery;

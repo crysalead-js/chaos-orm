@@ -320,7 +320,7 @@ describe("Model", function() {
       var schema = MyModel.schema();
       schema.bind('abc', {
         relation: 'hasOne',
-        to: 'TargetModel'
+        to: function TargetModel() {}
       });
 
       var spy = spyOn(schema, 'relation');

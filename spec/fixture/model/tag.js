@@ -11,7 +11,7 @@ class Tag extends Model
 
     schema.bind('images_tags', {
       relation: 'hasMany',
-      to: ImageTag,
+      to: 'ImageTag',
       key: { id: 'tag_id' }
     });
 
@@ -21,8 +21,9 @@ class Tag extends Model
       using: 'image'
     });
   }
-
 }
+
+Tag.register();
 
 export default Tag;
 
