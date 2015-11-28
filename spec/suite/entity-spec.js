@@ -1,3 +1,4 @@
+import co from 'co';
 import { Schema, Model, HasOne } from '../../src';
 
 import Gallery from '../fixture/model/gallery';
@@ -512,6 +513,85 @@ describe("Entity", function() {
 
       var entity = MyModel.create(data);
       expect(entity.toString()).toBe('test record');
+
+    });
+
+  });
+
+  describe(".validate()", function() {
+
+    beforeEach(function() {
+      var validator = Gallery.validator();
+      validator.rule('name', 'not:empty');
+
+      var validator = Image.validator();
+      validator.rule('name', 'not:empty');
+    });
+
+    afterEach(function() {
+      Gallery.reset();
+      Image.reset();
+    });
+
+    it("validate an entity", function(done) {
+
+      co(function*() {
+        var gallery = Gallery.create();
+        expect(yield gallery.validate()).toBe(false);
+        expect(gallery.errors()).toEqual({ name: ['is required'] });
+
+        gallery.set('name', '');
+        expect(yield gallery.validate()).toBe(false);
+        expect(gallery.errors()).toEqual({ name: ['must not be a empty'] });
+
+        gallery.set('name', 'new gallery');
+        expect(yield gallery.validate()).toBe(true);
+        expect(gallery.errors()).toEqual({});
+        done();
+      });
+
+    });
+
+    it("validate an nested entities", function(done) {
+
+      co(function*() {
+        var gallery = Gallery.create();
+        gallery.get('images').push(Image.create());
+        gallery.get('images').push(Image.create());
+
+        expect(yield gallery.validate()).toBe(false);
+        expect(gallery.errors()).toEqual({
+          name: ['is required'],
+          images: [
+            { name: ['is required'] },
+            { name: ['is required'] }
+          ]
+        });
+
+        gallery.set('name', '');
+        gallery.get('images').get(0).set('name', '');
+        gallery.get('images').get(1).set('name', '');
+        expect(yield gallery.validate()).toBe(false);
+        expect(gallery.errors()).toEqual({
+          name: ['must not be a empty'],
+          images: [
+            { name: ['must not be a empty'] },
+            { name: ['must not be a empty'] }
+          ]
+        });
+
+        gallery.set('name', 'new gallery');
+        gallery.get('images').get(0).set('name', 'image1');
+        gallery.get('images').get(1).set('name', 'image2');
+        expect(yield gallery.validate()).toBe(true);
+        expect(gallery.errors()).toEqual({
+            images: [
+              {},
+              {}
+            ]
+        });
+        done();
+      });
 
     });
 

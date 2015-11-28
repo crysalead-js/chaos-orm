@@ -29,7 +29,8 @@
     "intersect": "^1.0.1",
     "pascal-case": "^1.1.1",
     "pluralize": "^1.2.1",
-    "snake-case": "^1.1.1"
+    "snake-case": "^1.1.1",
+    "chaos-validator": "^1.0"
   },
   "devDependencies": {
     "babel-cli": "^6.2.0",

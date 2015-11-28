@@ -1046,25 +1046,36 @@ class Schema {
   /**
    * Creates and/or updates an entity and its direct relationship data in the datasource.
    *
-   * @param Object entity  The entity instance to save.
-   * @param Object options Options:
-   *                       - `'whitelist'` _Object_ : An array of fields that are allowed to be saved to this record.
-   *                       - `'locked'`    _Boolean_: Lock data to the schema fields.
-   *                       - `'embed'`     _Object_ : List of relations to save.
-   * @return boolean       Returns `true` on a successful save operation, `false` on failure.
+   * @param Object   entity  The entity instance to save.
+   * @param Object   options Options:
+   *                         - `'validate'`  _Boolean_: If `false`, validation will be skipped, and the record will
+   *                                                    be immediately saved. Defaults to `true`.
+   *                         - `'whitelist'` _Object_ : An array of fields that are allowed to be saved to this record.
+   *                         - `'locked'`    _Boolean_: Lock data to the schema fields.
+   *                         - `'embed'`     _Object_ : List of relations to save.
+   * @return Promise         Returns a promise.
    */
   save(entity, options) {
-    var defaults = {
-      whitelist: undefined,
-      locked: this.locked(),
-      embed: true
-    };
-
-    options = extend({}, defaults, options);
-
-    options.embed = this.treeify(options.embed);
-
     return co(function*() {
+
+      var defaults = {
+        validate: true,
+        whitelist: undefined,
+        locked: this.locked(),
+        embed: true
+      };
+
+      options = extend({}, defaults, options);
+
+      if (options.validate) {
+        var ok = yield entity.validate(options);
+        if (!ok) {
+          return false;
+        }
+      }
+
+      options.validate = false;
+      options.embed = this.treeify(options.embed);
 
       yield this._save(entity, 'belongsTo', options);
 
@@ -1121,7 +1132,10 @@ class Schema {
   /**
    * Save relations helper.
    *
-   * @param array $types Type of relations to save.
+   * @param  Object  entity  The entity instance.
+   * @param  Array   types   Type of relations to save.
+   * @param  Object  options Options array.
+   * @return Promise         Returns a promise.
    */
   _save(entity, types, options) {
     var defaults = { embed: {} };

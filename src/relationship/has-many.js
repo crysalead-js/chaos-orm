@@ -100,7 +100,7 @@ class HasMany extends Relationship {
    *
    * @param  Object  entity  The relation's entity
    * @param  Object  options Saving options.
-   * @return Boolean
+   * @return Promise
    */
   save(entity, options) {
     return co(function*() {

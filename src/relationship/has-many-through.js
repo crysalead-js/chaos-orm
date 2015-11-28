@@ -169,10 +169,21 @@ class HasManyThrough extends Relationship {
    *
    * @param  Object  entity  The relation's entity
    * @param  Object  options Saving options.
-   * @return Boolean
+   * @return Promise
    */
   save(entity, options) {
     return Promise.resolve(entity);
+  }
+
+  /**
+   * Validating an entity relation.
+   *
+   * @param  Object   entity  The relation's entity
+   * @param  Object   options Saving options.
+   * @return Promise
+   */
+  validate(entity, options) {
+    return Promise.resolve(true);
   }
 }
 

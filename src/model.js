@@ -1,5 +1,7 @@
+import co from 'co';
 import { extend, merge } from "extend-merge";
 import { expand, flatten } from "expand-flatten";
+import { Validator } from "chaos-validator";
 import Conventions from "./conventions";
 import Collector from "./collector";
 import Collection from "./collection/collection";
@@ -45,6 +47,7 @@ class Model {
    *
    * @param Object config Possible options are:
    *                      - `'schema'`      _Object_: The schema instance to use.
+   *                      - `'validator'`   _Object_: The validator instance to use.
    *                      - `'connection'`  _Object_: The connection instance to use.
    *                      - `'conventions'` _Object_: The conventions instance to use.
    */
@@ -54,6 +57,7 @@ class Model {
     this.conventions(config.conventions);
     this.connection(config.connection);
     this.schema(config.schema);
+    this.validator(config.validator);
     this.query(config.query);
   }
 
@@ -149,6 +153,14 @@ class Model {
    * @param Object $schema The schema instance.
    */
   static _define(schema) {
+  }
+
+  /**
+   * This function is called once for initializing the validator instance.
+   *
+   * @param Object validator The validator instance.
+   */
+  static _rules(validator) {
   }
 
   /**
@@ -284,6 +296,27 @@ class Model {
     schema = this._schemas[this.name] = new this._schema(config);
     this._define(schema);
     return schema;
+  }
+
+  /**
+   * Gets/sets the validator instance.
+   *
+   * @param  Object validator The validator instance to set or none to get it.
+   * @return mixed            The validator instance on get.
+   */
+  static validator(validator) {
+    if (arguments.length) {
+      this._validators[this.name] = validator;
+      return;
+    }
+
+    if (this._validators[this.name]) {
+      return this._validators[this.name];
+    }
+    var classname = this.classes().validator;
+    var validator = this._validators[this.name] = new classname();
+    this._rules(validator);
+    return validator;
   }
 
   /**
@@ -764,6 +797,8 @@ class Model {
    * }}}
    *
    * @param  Object  options Options:
+   *                          - `'validate'`  _Boolean_       : If `false`, validation will be skipped, and the record will
+   *                                                            be immediately saved. Defaults to `true`.
    *                          - `'whitelist'` _Array_         : An array of fields that are allowed to be saved to this record.
    *                          - `'locked'`    _Boolean_       : Lock data to the schema fields.
    *                          - `'embed'`     _Boolean|Array_ : List of relations to save.
@@ -821,6 +856,67 @@ class Model {
   }
 
   /**
+   * Validates the entity data.
+   *
+   * @param  array   options Available options:
+   *                         - `'events'` _mixed_    : A string or array defining one or more validation
+   *                           events. Events are different contexts in which data events can occur, and
+   *                           correspond to the optional `'on'` key in validation rules. For example, by
+   *                           default, `'events'` is set to either `'create'` or `'update'`, depending on
+   *                           whether the entity already exists. Then, individual rules can specify
+   *                           `'on' => 'create'` or `'on' => 'update'` to only be applied at certain times.
+   *                           You can also set up custom events in your rules as well, such as `'on' => 'login'`.
+   *                           Note that when defining validation rules, the `'on'` key can also be an array of
+   *                           multiple events.
+   *                         - `'required'` _boolean_ : Sets the validation rules `'required'` default value.
+   *                         - `'embed'`    _array_   : List of relations to validate.
+   * @return Promise         Returns a promise.
+   */
+  validate(options) {
+    return co(function* () {
+      var defaults = {
+        events: this.exists() !== false ? 'update' : 'create',
+        required: this.exists() !== false ? false : true,
+        embed: true
+      };
+      options = extend({}, defaults, options);
+      var validator = this.model().validator();
+
+      var valid = yield this._validate(options);
+
+      var success = yield validator.validate(this.get(), options);
+      this._errors = validator.errors();
+      return success && valid;
+    }.bind(this));
+  }
+
+  /**
+   * Validates a relation.
+   *
+   * @param  array   $options Available options:
+   *                          - `'embed'` _array_ : List of relations to validate.
+   * @return boolean          Returns `true` if all validation rules on all fields succeed, otherwise `false`.
+   */
+  _validate(options) {
+    return co(function* () {
+      var defaults = { embed: true };
+      options = extend({}, defaults, options);
+
+      var schema = this.model().schema();
+      var embed = schema.treeify(options.embed);
+      var success = true;
+
+      for (var name in embed) {
+        var value = embed[name];
+        var rel = schema.relation(name);
+        var ok = yield rel.validate(this, extend({}, options, { embed: value }));
+        var success = success && ok;
+      }
+      return success;
+    }.bind(this));
+  }
+
+  /**
    * Returns the errors from the last `.validate()` call.
    *
    * @return Object The occured errors.
@@ -831,11 +927,11 @@ class Model {
     var schema = this.model().schema();
     var embed = schema.treeify(options.embed);
     var errors = extend({}, this._errors);
-    var value, relation, fieldname;
+
     for (var name in embed) {
-      value = embed[name];
-      relation = schema.relation(name);
-      fieldname = relation.name();
+      var value = embed[name];
+      var relation = schema.relation(name);
+      var fieldname = relation.name();
       if (this._data[fieldname]) {
         errors[fieldname] = this._data[fieldname].errors(extend({}, options, { embed: value }));
       }
@@ -898,7 +994,8 @@ Model._classes = {
   collector: Collector,
   set: Collection,
   through: Through,
-  conventions: Conventions
+  conventions: Conventions,
+  validator: Validator
 };
 
 /**
@@ -912,6 +1009,13 @@ Model._models = {};
  * @var Object
  */
 Model._schemas = {};
+
+/**
+ * Stores validator instances.
+ *
+ * @var Object
+ */
+Model._validators = {};
 
 /**
  * Default query parameters for the model finders.

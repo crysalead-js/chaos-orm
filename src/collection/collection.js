@@ -1,3 +1,4 @@
+import co from 'co';
 import { extend, merge } from 'extend-merge';
 import Collector from "../collector";
 
@@ -421,6 +422,39 @@ class Collection {
    */
   data(options) {
     return this.constructor.toArray(this, options);
+  }
+
+  /**
+   * Validates a collection.
+   *
+   * @param  Object  options Validate options.
+   * @return Promise
+   */
+  validate(options ) {
+    var self = this;
+    return co(function*() {
+      var success = true;
+      for (var entity of self) {
+        var ok = yield entity.validate(options);
+        if (!ok) {
+          success = false;
+        }
+      }
+      return success;
+    });
+  }
+
+  /**
+   * Returns the errors from the last validate call.
+   *
+   * @return Array The occured errors.
+   */
+  errors(options) {
+    var errors = [];
+    for (var entity of this) {
+      errors.push(entity.errors());
+    }
+    return errors;
   }
 
   /**

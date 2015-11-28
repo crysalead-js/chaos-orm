@@ -1,3 +1,4 @@
+import co from 'co';
 import { extend, merge } from 'extend-merge';
 import Conventions from './conventions';
 import Model from './model';
@@ -396,6 +397,24 @@ class Relationship {
       } else {
         delete entity[name];
       }
+    });
+  }
+
+  /**
+   * Validating an entity relation.
+   *
+   * @param  Object  entity  The relation's entity.
+   * @param  Object  options The validation options.
+   * @return Promise
+   */
+  validate(entity, options) {
+    var name = this.name();
+    return co(function*() {
+      var fieldname = name;
+      if (!entity.isset(fieldname)) {
+        return true;
+      }
+      return entity.get(fieldname).validate(options);
     });
   }
 }
