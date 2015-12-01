@@ -105,12 +105,12 @@ class HasMany extends Relationship {
   save(entity, options) {
     return co(function*() {
       if (this.link() !== this.constructor.LINK_KEY) {
-        return entity;
+        return true;
       }
 
       var name = this.name();
       if (!entity.isset(name)) {
-        return entity;
+        return true;
       }
 
       var conditions = this.match(entity);
@@ -121,13 +121,15 @@ class HasMany extends Relationship {
       var indexes = this._index(previous, this.keys('from'));
       var result = true;
       var collection = entity.get(name);
+      var success = true;
 
       for (var item of collection) {
         if (item.exists() && indexes[item.primaryKey()] !== undefined) {
           existing[indexes[item.primaryKey()]] = true;
         }
         item.set(conditions);
-        yield item.save(options);
+        var ok = yield item.save(options);
+        success = success && ok;
       }
 
       var junction = this.junction(), promises = [];
@@ -148,7 +150,7 @@ class HasMany extends Relationship {
         });
       }
       yield* promises;
-      return entity;
+      return success;
 
     }.bind(this));
   }

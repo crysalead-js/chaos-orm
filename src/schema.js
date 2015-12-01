@@ -1068,8 +1068,8 @@ class Schema {
       options = extend({}, defaults, options);
 
       if (options.validate) {
-        var ok = yield entity.validate(options);
-        if (!ok) {
+        var valid = yield entity.validate(options);
+        if (!valid) {
           return false;
         }
       }
@@ -1077,13 +1077,16 @@ class Schema {
       options.validate = false;
       options.embed = this.treeify(options.embed);
 
-      yield this._save(entity, 'belongsTo', options);
+      var success = yield this._save(entity, 'belongsTo', options);
+
+      if (!success) {
+        return false;
+      }
 
       var hasRelations = ['hasMany', 'hasOne'];
 
       if (!entity.modified()) {
-        yield this._save(entity, hasRelations, options);
-        return entity;
+        return yield this._save(entity, hasRelations, options);
       }
 
       var fields = this.names();
@@ -1107,7 +1110,7 @@ class Schema {
       }
 
       if (entity.exists() === false) {
-        yield this.insert(values);
+        success = yield this.insert(values);
       } else {
         var id = entity.primaryKey();
         if (id === undefined) {
@@ -1115,16 +1118,15 @@ class Schema {
         }
         var params = {};
         params[this.primaryKey()] = id
-        yield this.update(values, params);
+        success = yield this.update(values, params);
       }
-
       if (entity.exists() === false) {
         var id = entity.primaryKey() === undefined ? this.lastInsertId() : undefined;
         entity.sync(id, {}, { exists: true });
       }
-      yield this._save(entity, hasRelations, options);
+      var ok = yield this._save(entity, hasRelations, options);
 
-      return entity;
+      return success && ok;
 
     }.bind(this));
   }
@@ -1143,7 +1145,7 @@ class Schema {
 
     types = Array.isArray(types) ? types : [types];
     return co(function*() {
-      var type, value, relName, rel;
+      var type, value, relName, rel, success = true;
 
       for (var type of types) {
         for (relName in options.embed) {
@@ -1152,9 +1154,11 @@ class Schema {
           if (!rel || rel.type() !== type) {
               continue;
           }
-          yield rel.save(entity, extend({}, options, { embed: value }));
+          var ok = yield rel.save(entity, extend({}, options, { embed: value }));
+          success = success && ok;
         }
       }
+      return success;
     }.bind(this));
   }
 

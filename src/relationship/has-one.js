@@ -60,18 +60,17 @@ class HasOne extends Relationship {
   save(entity, options) {
     return co(function*() {
       if (this.link() !== this.constructor.LINK_KEY) {
-        return entity;
+        return true;
       }
 
       var name = this.name();
       if (!entity.isset(name)) {
-        return entity;
+        return true;
       }
 
       var conditions = this.match(entity);
       var related = entity.get(name);
-      yield related.set(conditions).save(options);
-      return entity;
+      return yield related.set(conditions).save(options);
     }.bind(this));
   }
 }

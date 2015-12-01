@@ -172,7 +172,7 @@ class HasManyThrough extends Relationship {
    * @return Promise
    */
   save(entity, options) {
-    return Promise.resolve(entity);
+    return Promise.resolve(true);
   }
 
   /**

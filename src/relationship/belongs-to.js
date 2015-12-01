@@ -71,17 +71,17 @@ class BelongsTo extends Relationship {
   save(entity, options) {
     return co(function*() {
       if (this.link() !== this.constructor.LINK_KEY) {
-        return entity;
+        return true;
       }
 
       var name = this.name();
       if (!entity.isset(name)) {
-        return entity;
+        return true;
       }
 
       var related = entity.get(name);
 
-      yield related.save(options);
+      var success = yield related.save(options);
 
       var keys = this.keys();
       var from = this.keys('from');
@@ -94,7 +94,7 @@ class BelongsTo extends Relationship {
       conditions[from] = related.get(to);
 
       entity.set(conditions);
-      return entity;
+      return success;
     }.bind(this));
   }
 }
