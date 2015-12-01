@@ -23,13 +23,6 @@ class Source {
      */
     this._handlers = merge({}, this._handlers(), config.handlers);
 
-    /**
-     * Last occurred error message.
-     *
-     * @var String
-     */
-    this._errmsg = undefined;
-
     var handlers = this._handlers;
 
     this.formatter('cast', 'id',        handlers.cast['integer']);
@@ -140,15 +133,6 @@ class Source {
       }
     }
     return formatter ? formatter(value, options) : value;
-  }
-
-  /**
-   * Returns the last occurred error message.
-   *
-   * @return String
-   */
-  errmsg() {
-    return this._errmsg;
   }
 
   static getType(value) {
