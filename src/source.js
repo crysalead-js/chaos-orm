@@ -12,16 +12,23 @@ class Source {
     /**
      * Import/export casting definitions.
      *
-     * @var array
+     * @var Object
      */
     this._formatters = {};
 
     /**
      * Type conversion definitions.
      *
-     * @var array
+     * @var Object
      */
     this._handlers = merge({}, this._handlers(), config.handlers);
+
+    /**
+     * Last occurred error message.
+     *
+     * @var String
+     */
+    this._errmsg = undefined;
 
     var handlers = this._handlers;
 
@@ -133,6 +140,15 @@ class Source {
       }
     }
     return formatter ? formatter(value, options) : value;
+  }
+
+  /**
+   * Returns the last occurred error message.
+   *
+   * @return String
+   */
+  errmsg() {
+    return this._errmsg;
   }
 
   static getType(value) {
