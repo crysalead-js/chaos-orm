@@ -1,5 +1,4 @@
 import Conventions from './conventions';
-import Cursor from './cursor';
 import Collector from './collector';
 import Collection from './collection/collection';
 import Through from './collection/through';
@@ -19,7 +18,6 @@ Model.schema(Schema);
 
 export {
   Conventions,
-  Cursor,
   Collector,
   Collection,
   Through,
