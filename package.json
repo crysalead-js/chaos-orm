@@ -1,6 +1,6 @@
 {
   "name": "chaos-orm",
-  "version": "1.1.2",
+  "version": "1.1.3",
   "description": "Datastore Agnostic Model Layer",
   "license": "MIT",
   "repository": {
