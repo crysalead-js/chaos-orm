@@ -9,6 +9,7 @@ class Source {
    */
   constructor(config) {
     config = config || {};
+
     /**
      * Import/export casting definitions.
      *
@@ -135,6 +136,12 @@ class Source {
     return formatter ? formatter(value, options) : value;
   }
 
+  /**
+   * Extracts the type of a value.
+   *
+   * @param  mixed  The value.
+   * @return String The value type.
+   */
   static getType(value) {
     if (typeof value === 'object') {
       if (value === null) {

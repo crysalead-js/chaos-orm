@@ -799,13 +799,22 @@ class Model {
    * @param  Object  options Options:
    *                          - `'validate'`  _Boolean_       : If `false`, validation will be skipped, and the record will
    *                                                            be immediately saved. Defaults to `true`.
-   *                          - `'whitelist'` _Array_         : An array of fields that are allowed to be saved to this record.
-   *                          - `'locked'`    _Boolean_       : Lock data to the schema fields.
-   *                          - `'embed'`     _Boolean|Array_ : List of relations to save.
    * @return Promise
    */
   save(options) {
-    return this.model().schema().save(this, options);
+    return co(function*() {
+      var defaults = {
+        validate: true
+      };
+      options = extend({}, defaults, options);
+      if (options.validate) {
+        var valid = yield this.validate(options);
+        if (!valid) {
+          return false;
+        }
+      }
+      return yield this.model().schema().save(this, options);
+    }.bind(this));
   }
 
   /**
