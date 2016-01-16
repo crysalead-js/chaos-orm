@@ -597,6 +597,45 @@ describe("Entity", function() {
 
   });
 
+  describe(".save()", function() {
+
+    afterEach(function() {
+      Image.reset();
+      Gallery.reset();
+    })
+
+    it("validates by default", function(done) {
+
+      co(function*() {
+        var image = Image.create();
+        Image.validator().rule('name', 'not:empty');
+
+        expect(yield image.save()).toBe(false);
+        expect(image.exists()).toBe(false);
+        done();
+      }.bind(this));
+
+    });
+
+    it("validates direct relationships by default", function(done) {
+
+      co(function*() {
+        Gallery.validator().rule('name', 'not:empty');
+
+        var image = Image.create({
+          name: 'amiga_1200.jpg',
+          title: 'Amiga 1200',
+          gallery: {}
+        });
+        expect(yield image.save()).toBe(false);
+        expect(image.exists()).toBe(false);
+        done();
+      }.bind(this));
+
+    });
+
+  });
+
   describe(".to('array')", function() {
 
     it("exports data using `'array'` formatter handlers", function() {
