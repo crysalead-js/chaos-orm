@@ -186,7 +186,8 @@ class Through {
    */
   set(offset, data) {
     var name = this._through;
-    return this._parent.get(name).set(offset, this._item(data));
+    this._parent.get(name).set(offset, this._item(data));
+    return this;
   }
 
   /**

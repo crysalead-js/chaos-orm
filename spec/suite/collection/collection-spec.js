@@ -219,7 +219,7 @@ describe("Collection", function() {
     it("pushes elements", function() {
 
       var collection = new Collection();
-      collection.push('foo');
+      expect(collection.push('foo')).toBe(collection);
       expect(collection.get(0)).toBe('foo');
       expect(collection.count()).toBe(1);
 
@@ -239,7 +239,7 @@ describe("Collection", function() {
 
   });
 
-  describe(".set/get()", function() {
+  describe(".set()/get()", function() {
 
     it("updates at a specific key", function() {
 
@@ -247,7 +247,7 @@ describe("Collection", function() {
       collection.push('foo');
       expect(collection.get(0)).toBe('foo');
 
-      collection.set(0, 'foo updated');
+      expect(collection.set(0, 'foo updated')).toBe(collection);
       expect(collection.get(0)).toBe('foo updated');
 
     });

@@ -570,7 +570,8 @@ class Model {
    */
   set(name, data, options) {
     if (typeof name === 'string') {
-      return this._set(name, data, options);
+      this._set(name, data, options);
+      return this;
     }
     options = data || {};
     data = name || {};
@@ -671,10 +672,11 @@ class Model {
       return this._data[name];
     }
     if (this.model().hasRelation(name)) {
-      return this._data[name] = this.set(name, this.model().schema().cast(name, undefined, {
+      this.set(name, this.model().schema().cast(name, undefined, {
         collector: this.collector(),
         parent: this
-      }));
+      }))
+      return this._data[name];
     }
   }
 

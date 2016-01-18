@@ -165,9 +165,9 @@ describe("Entity", function() {
       var date = new Date('2014-10-26 00:25:15');
 
       var entity = new MyModel();
-      entity.set('title', 'Hello');
-      entity.set('body', 'World');
-      entity.set('created', date);
+      expect(entity.set('title', 'Hello')).toBe(entity);
+      expect(entity.set('body', 'World')).toBe(entity);
+      expect(entity.set('created', date)).toBe(entity);
 
       expect(entity.get('title')).toBe('Hello');
       expect(entity.get('body')).toBe('World');
@@ -187,11 +187,11 @@ describe("Entity", function() {
       var date = new Date('2014-10-26 00:25:15');
 
       var entity = new MyModel();
-      entity.set({
+      expect(entity.set({
         title: 'Hello',
         body: 'World',
         created: date
-      });
+      })).toBe(entity);
       expect(entity.get('title')).toBe('Hello');
       expect(entity.get('body')).toBe('World');
       expect(entity.get('created')).toBe(date);

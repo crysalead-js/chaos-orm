@@ -223,7 +223,8 @@ class Collection {
    * @return mixed          Returns the set `Entity` object.
    */
   set(offset, data) {
-    return this._set(data, offset);
+    this._set(data, offset);
+    return this;
   }
 
   /**
@@ -233,7 +234,8 @@ class Collection {
    * @return mixed      Returns the set `Entity` object.
    */
   push(data) {
-    return this._set(data);
+    this._set(data);
+    return this;
   }
 
   /**

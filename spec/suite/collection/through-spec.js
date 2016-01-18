@@ -239,7 +239,7 @@ describe("Through", function() {
 
   });
 
-  describe(".set/get()", function() {
+  describe(".set()/get()", function() {
 
     it("allows array access", function() {
 
@@ -249,7 +249,7 @@ describe("Through", function() {
 
     it("sets at a specific key", function() {
 
-      this.through.set(0, { name: '10' });
+      expect(this.through.set(0, { name: '10' })).toBe(this.through);
       expect(this.through.get(0).data()).toEqual({ name: '10' });
       expect(this.through.count()).toBe(5);
 
