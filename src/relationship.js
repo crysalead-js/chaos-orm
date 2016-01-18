@@ -226,79 +226,80 @@ class Relationship {
    * @param  Object entity An entity.
    * @return               The related data.
    */
-  get(entity, options) {
-    var name = this.name();
+  // get(entity, options) {
+  //   var name = this.name();
 
-    var model = entity.model();
+  //   var model = entity.model();
 
-    if (!entity.exists()) {
-      return Promise.resolve(entity.set(name, model.schema().cast(name, undefined, { parent: entity })));
-    }
+  //   if (!entity.exists()) {
+  //     entity.set(name, model.schema().cast(name, undefined, { parent: entity }));
+  //     return Promise.resolve(entity.get(name));
+  //   }
 
-    var link = this.link();
-    var strategies = this.strategies();
+  //   var link = this.link();
+  //   var strategies = this.strategies();
 
-    if (!strategies[link] || typeof strategies[link] !== 'function') {
-        throw new Error("Attempted to get object for invalid relationship link type `'" + link + "'`.");
-    }
-    return strategies[link](entity, this, options);
-  }
+  //   if (!strategies[link] || typeof strategies[link] !== 'function') {
+  //       throw new Error("Attempted to get object for invalid relationship link type `'" + link + "'`.");
+  //   }
+  //   return strategies[link](entity, this, options);
+  // }
 
-  /**
-   * Strategies used to query related objects.
-   */
-  strategies(Promise) {
-    var strategies = {};
+  // /**
+  //  * Strategies used to query related objects.
+  //  */
+  // strategies(Promise) {
+  //   var strategies = {};
 
-    strategies[this.constructor.LINK_EMBEDDED] = function(entity, relationship, options) {
-      return Promise.resolve(entity.get(relationship.name()));
-    };
+  //   strategies[this.constructor.LINK_EMBEDDED] = function(entity, relationship, options) {
+  //     return Promise.resolve(entity.get(relationship.name()));
+  //   };
 
-    strategies[this.constructor.LINK_CONTAINED] = function(entity, relationship, options) {
-      return Promise.resolve(relationship.isMany() ? entity.parent().parent() : entity.parent());
-    };
+  //   strategies[this.constructor.LINK_CONTAINED] = function(entity, relationship, options) {
+  //     return Promise.resolve(relationship.isMany() ? entity.parent().parent() : entity.parent());
+  //   };
 
-    strategies[this.constructor.LINK_KEY] = function(entity, relationship, options) {
-      return Promise(function(resolve, reject) {
+  //   strategies[this.constructor.LINK_KEY] = function(entity, relationship, options) {
+  //     return Promise(function(resolve, reject) {
 
-        options = extend({}, { fetchOptions: { collector: this._collector(entity) } }, options);
-        var collection;
+  //       options = extend({}, { fetchOptions: { collector: this._collector(entity) } }, options);
+  //       var collection;
 
-        if (relationship.type() === 'hasManyThrough') {
-          collection = [entity];
-          this.embed(collection, options).then(function() {
-            resolve(entity.get(relationship.name()));
-          }, function() {
-            throw new Error("Unable to get the related relationship data.")
-          });
-          return;
-        }
+  //       if (relationship.type() === 'hasManyThrough') {
+  //         collection = [entity];
+  //         this.embed(collection, options).then(function() {
+  //           resolve(entity.get(relationship.name()));
+  //         }, function() {
+  //           throw new Error("Unable to get the related relationship data.")
+  //         });
+  //         return;
+  //       }
 
-        this._find(entity.get(relationship.keys('from')), options).then(function(collection) {
-          if (relationship.isMany()) {
-            resolve(collection);
-            return;
-          }
-          resolve(collection.length ? collection.get(0) : undefined);
-        }, function() {
-          throw new Error("Unable to get the related relationship data.")
-        });
-      }.bind(this), function(error) {
-        reject(error);
-      });
+  //       this._find(entity.get(relationship.keys('from')), options).then(function(collection) {
+  //         if (relationship.isMany()) {
+  //           resolve(collection);
+  //           return;
+  //         }
+  //         resolve(collection.length ? collection.get(0) : undefined);
+  //       }, function() {
+  //         throw new Error("Unable to get the related relationship data.")
+  //       });
+  //     }.bind(this), function(error) {
+  //       reject(error);
+  //     });
 
-    }.bind(this);
+  //   }.bind(this);
 
-    strategies[this.constructor.LINK_KEY_LIST] = function(object, relationship, options) {
-      return this._find(entity.get(relationship.keys('from')), extend({}, {
-        fetchOptions: {
-          collector: this._collector(entity)
-        }
-      }, options));
-    }.bind(this);
+  //   strategies[this.constructor.LINK_KEY_LIST] = function(object, relationship, options) {
+  //     return this._find(entity.get(relationship.keys('from')), extend({}, {
+  //       fetchOptions: {
+  //         collector: this._collector(entity)
+  //       }
+  //     }, options));
+  //   }.bind(this);
 
-    return strategies;
-  }
+  //   return strategies;
+  // }
 
   /**
    * Get a related object (or objects) for the given object connected to it by this relationship.
