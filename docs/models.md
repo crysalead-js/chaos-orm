@@ -14,9 +14,9 @@
 
 ### <a name="definition"></a>Definition
 
-The main purpose of models is to abstract business logic and datasources operations from higher levels. The in-memory representation of data are represented by models instances (i.e entities). And the datasources operations are delegated to the `Schema` instance attached to a model.
+The main purpose of models is to abstract business logic and datasources operations from a higher level. The in-memory representation of data are represented by models instances (i.e entities). And the datasources operations are delegated to the `Schema` instance attached to a model.
 
-In Chaos the built-in `Schema` class for all PDO compatible databases is `chaos\database\Schema`. For example to create a `Gallery` model which uses the PDO related `Schema` class you can write:
+In Chaos the built-in `Schema` class for all RDBMS compatible databases is based on `chaos-database`. For example to create a `Gallery` model which uses the RDBMS related `Schema` class you can write:
 
 ```js
 import { Model } from 'chaos-orm';
@@ -40,19 +40,15 @@ class Gallery extends Model {
     schema.set('id', { type: 'serial' });
     schema.set('name', { type: 'string' });
 
-    schema.bind('images', {
-      relation: 'hasMany',
-      to: Image,
-      keys: { id: 'gallery_id' }
-    });
+    schema.hasMany('images', Image);
   }
 }
 Gallery._schema = Schema;
 ```
 
-The model definition is pretty straightforward. A "blank" schema instance is injected to the `._define()` method and can be configured right there to fit the Domain Model.
+The model definition is pretty straightforward. The schema instance is configured through the `._define()` method.
 
-By default the injected schema instance is pre-configured with a source name and a primary key field name through a `Conventions` instance used to extract correct values. However in Chaos you can either set your own `Conventions` instance or manually set specific values like the following:
+By default the schema instance is pre-configured with a source name and a primary key field name extracted from the model through a `Conventions` instance. You can set your own `Conventions` instance or manually set the pre-configured values like so:
 
 ```js
 // Sets a custom prefixed table name
@@ -62,20 +58,19 @@ schema.source('prefixed_gallery');
 schema.primaryKey('uuid');
 ```
 
-> Note: Composite primary keys have not been implemented in Chaos to minimize the [object-relational impedance mismatch](https://en.wikipedia.org/wiki/Object-relational_impedance_mismatch). It would add a extra overhead with non negligible performance impact otherwise.
-
+Note: Composite primary keys have not been implemented in Chaos to minimize the [object-relational impedance mismatch](https://en.wikipedia.org/wiki/Object-relational_impedance_mismatch). It would add a extra overhead with non negligible performance impact otherwise.
 
 ### <a name="schema"></a>Schema
 
-In the previous example you noticed that fields and relations have been defined using the `._define()` method. More informations on [how to define a schema can by found here](schemas.md)
+In the previous example you noticed that fields and relations are defined using the `._define()` method. More informations on [how to define a schema can by found here](schemas.md)
 
-Once done, you can retrieve the model's schema using `.schema()` or defined relations using `.relations()`:
+Once defined, model's schema is available through `.schema()` and relations through `.relations()`:
 
 ```js
 relations = Gallery.relations(); // ['images']
 ```
 
-And to get a specific relation you need to use `.relation()`:
+To get a specific relation use `.relation()`:
 
 ```js
 relation = Gallery.relation('images'); // A `HasMany` instance
@@ -87,11 +82,11 @@ It's also possible to check the availability of a specific relation using `.hasR
 relation = Gallery.hasRelation('images'); // A boolean
 ```
 
-> Note: under the hood, `.relations()`, `.relation()` and `.hasRelation()` are simple shorcuts on `.schema().relations()`, `.schema().relation()` and `.schema().hasRelation()`.
+Note: under the hood, `.relations()`, `.relation()` and `.hasRelation()` are simple shorcuts on `.schema().relations()`, `.schema().relation()` and `.schema().hasRelation()`.
 
 ### <a name="entities"></a>Entities
 
-Once a model has been defined it's possible to create entity instances using the `.create()` method.
+Once a model is defined it's possible to create entity instances using `.create()`.
 
 ```js
 gallery = Gallery.create(['name' => 'MyGallery']);
@@ -100,11 +95,72 @@ gallery.set('name', 'MyAwesomeGallery');
 
 Note: while this method creates a new entity, there is no effect on the datasource until the `.save()` method is called.
 
+### <a name="validations"></a>Validations
+
+Validation rules are defined at the model level using the following syntax:
+
+```js
+import { Model } from 'chaos-orm';
+class Gallery extends Model {
+  ...
+
+  static _rules(validator) {
+    validator.rule('name', 'not:empty');
+  }
+}
+```
+
+You can check the validation documentation for more detail about how rules can be defined.
+
+Then, you can validate entities using `.validate()`:
+
+```js
+var gallery = Gallery.create();
+gallery.set('name', '');
+gallery.validate(); // `false`
+gallery.errors();   // { name: ['must not be a empty']}
+```
+
+### <a name="nested-validations"></a>Nested Validations
+
+Validation also work in a nested way. To illustrate this feature, let's take the following example:
+
+```js
+import { Model } from 'chaos-orm';
+import { Schema } from 'chaos-database';
+import Gallery from './model/gallery';
+
+class Image extends Model {
+  static _define(schema) {
+    schema.set('id', {type: 'serial'});
+    schema.set('name', {type: 'string'});
+
+    schema.belongsTo('gallery', Gallery);
+  }
+
+  static _rules(validator) {
+    validator.rule('name', 'not:empty');
+  }
+}
+Image._schema = Schema
+```
+
+It's then possible to perform the following:
+
+```js
+var gallery = Gallery.create();
+gallery.set('name', 'new gallery');
+gallery.get('images').push(Image.create({name: 'image1'}));
+gallery.get('images').push(Image::create());
+gallery.validate(); // `false`
+gallery.errors();   // {'images' => [ {}, { name: ['must not be a empty'] }] }
+```
+
 ### <a name="querying"></a>Querying
 
-The model `.find()` method is used to perform queries on a datasource. By using the `chaos\database\Schema` implementation, the `.find()` will return a `Query` instance to facilitate the querying.
+The model's `.find()` method is used to perform queries. Using the `chaos-database` implementation, the `.find()` will return a `Query` instance to facilitate the querying.
 
-> Note: Under the hood the `.find()` method call the `.query()` method of the schema's instance. So the querying instance will depends on one implemented by the `Schema` class.
+Note: Under the hood the `.find()` method calls the `.query()` method of the schema's instance. So the query instance depends on the `Schema` class implementation.
 
 Let's start with a simple query for finding all entities:
 
@@ -122,14 +178,14 @@ co(function* () {
 
 With the database schema, it's possible to use the following methods to configure your query on the `Query` instance:
 
-* `where()` or `conditions()` : the `WHERE` conditions
+* `conditions()` or `where()` : the `WHERE` conditions
 * `group()`  : the `GROUP BY` parameter
 * `having()` : the `HAVING` conditions
 * `order()`  : the `ORDER BY` parameter
 * `with()`   : the relations to include
 * `has()`    : some conditions on relations
 
-> Note: `'conditions'` is the generic naming for setting conditions. However for RDBMS databases, you can also use `'where'` which is supported as an alias of `'conditions'` to match more closely the SQL API.
+Note: `'conditions'` is the generic naming for setting conditions. However for RDBMS databases, you can also use `'where'` which is supported as an alias of `'conditions'` to match more closely the SQL API.
 
 So for example, we can write the following query:
 
@@ -137,7 +193,7 @@ So for example, we can write the following query:
 co(function* () {
   var galleries = yield Gallery.find()
                                .where({ name: 'MyGallery' })
-                               .with(['images']) // Eager load images
+                               .embed(['images']) // Eager load images
                                .all();
 
   for(var gallery of galleries) {
@@ -149,11 +205,11 @@ co(function* () {
 });
 ```
 
-The `with()` method allows to eager load relations to minimize the number of queries. In the example above for example, only two queries are executed.
+The `.embed()` method allows to eager load relations to minimize the number of queries. In the example above for example, only two queries are executed.
 
-Isn't `.with()` supposed to take care of all the joins automatically ? I followed this approach in [li3](http://li3.me/). If I was able to achieve something decent, it leads to a lot of problems to solve like table aliases, redundant data, column references disambiguation, raw references disambiguation. Chaos follows a more straightforward approach and performes multiple queries instead of trying to deal with a massive and inadapted `JOIN` result set. It's also the approch choosen by most popular ORM around.
+Note: in Chaos `.embed()` doesn't perform any `JOIN` ? I followed the `JOIN` approach in [li3](http://li3.me/) but if I was able to achieve something decent, this strategy generates to a lot of problems to solve like table aliases, redundant data, column references disambiguation, raw references disambiguation. That's why Chaos follows a more straightforward approach and performes multiple queries instead of trying to deal with a massive and inadapted `JOIN` result set.
 
-To deal with JOINs, the `.has()` method is available to RDBMS compatible `Query` instance.
+To deal with JOINs, the `.has()` method is available for RDBMS compatible `Query` instance.
 
 Example:
 
@@ -175,13 +231,13 @@ co(function* () {
 });
 ```
 
-In the example above three queries are executed. The first one is a `SELECT` on the gallery table with the necessary `JOIN`s to fit the `.has()` condition and return galleries which contain at least an image having the computer tag. The images and the tags will then be embedded using two extra queries.
+In the example above three queries are executed. The first one is a `SELECT` on the gallery table with the necessary `JOIN`s to fit the `.has()` condition and return galleries which contain at least an image having the computer tag. The images and the tags are then embedded using two additionnal queries.
 
-> Note: In the example above, all images' tags will be loaded (i.e not only the `'computer'` tag). The `.has()` method added the constraint at the gallery level only.
+Note: In the example above, all images and tags are loaded for returned galleries (i.e not only the `'computer'` tag). The `.has()` method added a constraint at the gallery level only.
 
 #### <a name="fetching_methods"></a>Fetching methods
 
-On the `Query` instance it's also possible to use some different getter to retreive the records, call:
+On `Query` instances it's also possible to use some different getter to fetch records:
 
 * `.all()`   : to get the full collection.
 * `.first()` : to get the first entity only.
@@ -202,11 +258,11 @@ co(function* () {
 });
 ```
 
-All different representations can be mixed with the `.with()` paremeter to get nested structures.
+All different representations can be mixed with the `.embed()` parameter to get nested structures.
 
 #### <a name="global_scope"></a>Global scope
 
-In cases where you always want finders results to be constrained to some conditions by default, some global query options can be setted at a model level. Default options can be defined by the `static _query` property inside the model class or by using the `.query()` method like the following:
+You can also set some constraints at a model level to have them used in all queries. The default constraints can be defined in the `static _query` property or by using the `.query()` method:
 
 ```js
 Galleries.query({
@@ -215,7 +271,7 @@ Galleries.query({
 });
 ```
 
-This way all finds will now be scoped to `static _query` constraints.
+All futur queries on `Gallery` will be scoped according to `static _query`.
 
 #### <a name="querying_shortcuts"></a>Querying shortcuts
 
@@ -224,10 +280,10 @@ This way all finds will now be scoped to `static _query` constraints.
 Gets the first entity:
 
 ```js
-var promise = galleries.first();
+var promise = Gallery.first();
 
 // Similar to
-var promise = galleries.find().first();
+var promise = Gallery.find().first();
 ```
 
 ##### .all()
@@ -235,10 +291,10 @@ var promise = galleries.find().first();
 Gets all entities:
 
 ```js
-var promise = galleries.all();
+var promise = Gallery.all();
 
 // Similar to
-var promise = galleries.find().all();
+var promise = Gallery.find().all();
 ```
 
 ##### .id()
@@ -246,26 +302,26 @@ var promise = galleries.find().all();
 Gets an entity of a specific id:
 
 ```js
-var promise = galleries.id(123);
+var promise = Gallery.id(123);
 
 // Similar to
-var promise = galleries.find().where(['id' => 123]).first();
+var promise = Gallery.find().where(['id' => 123]).first();
 ```
 
 ### <a name="getters_getters"></a>Getters/Setters
 
 #### .connection()
 
-This method allows you to get/set the model's connection.
+Gets/sets the model's connection.
 
 #### .conventions()
 
-This method allows you to get/set the model's conventions.
+Gets/sets the model's conventions.
 
 #### .schema()
 
-This method allows you to get/set the model's schema.
+Gets/sets the model's schema.
 
 #### .validator()
 
-This method allows you to get/set the model's validator instance used to validate entities.
+Gets/sets the model's validator instance used to validate entities.

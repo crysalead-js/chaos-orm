@@ -7,22 +7,21 @@
 
 ### <a name="creation"></a>Creation
 
-Once a model has been defined it's possible to create entity instances using its `::create()` method.
+Once a model has been defined it's possible to create an entity instance using `.create()`:
 
 ```js
-var gallery = Gallery::create({ name: 'MyGallery' });
+var gallery = Gallery.create({ name: 'MyGallery' });
 gallery.set('name', 'MyGallery');
 ```
 
-The first parameter is the entity's data to set. And the second parameter takes an array of options. Main options are:
+`.create()` first parameter is the entity's data to set. And the second parameter takes an array of options. Main options are:
 
 * `'type'`: can be `'entity'` or `'set'`. `'set'` is used if the passed data represent a collection of entities. Default to `'entity'`.
 * `'exists'`: corresponds whether the entity is present in the datastore or not.
-* `'autoreload'`: sets the specific behavior when exists is `null`. A `'true'` value will perform a reload of the entity from the datasource. Default to `'true'`.
 * `'defaults'`: indicates whether the entity needs to be populated with their defaults values on creation.
 * `'model'`: the model to use for instantiating the entity. Can be useful for implementing [Single Table Inheritance](http://martinfowler.com/eaaCatalog/singleTableInheritance.html)
 
-The meaning of the `'exists'` states can be quite confusing if you don't get its purpose correctly. `'exists'` is used to indicate that the data you are passing is a pre-existing entity from the database, without actually querying the database:
+The meaning of the `'exists'` states can be quite confusing if you don't get its purpose correctly. `'exists'` is used to indicate that the data you are passing is a pre-existing entity (i.e a persisted entity). When the entites are loaded from the database, `exists` is set to `true` by default but it's also possible the manually set the `exists` value:
 
 ```js
 var gallery = Gallery.create({
@@ -38,8 +37,8 @@ So the above example will generate **an update query** instead of an insert one.
 
 The `'exists'` attribute can have three different states:
 
-* `true`: means you provided the whole data of an pre-existing entity.
-* `false`: means you provided the whole data of a new entity. It's the default state.
+* `true`: means that the entity has already been persited at some point.
+* `false`: means that it's a new entity with no existance in the database.
 
 #### Getters/Setters
 
@@ -85,7 +84,7 @@ gallery.set([
 
 In a reciprocal manner using `.get()` will returns the whole entity's data.
 
-Although it have a different purpose `.to()` is also a useful method to get entity's data. The main purpose of `.to()` is to exports entity's data into a different format.
+Although it have a different purpose `.to()` is also a useful method to export entity's data into a different format.
 
 For example `.to('array')` (or the alias `.data()`) exports the entity's data using the schema `'array'` formatters. See the [schema documentation to learn more about formatters & custom types](schemas.md).
 
@@ -97,7 +96,7 @@ The `.find()` method stands for the READ action and it belongs to the model. And
 
 #### Saving an entity
 
-The `.save()` method performs an `INSERT` or an `UPDATE` query depending the entity's exists value and returns a Promise instance.
+The `.save()` method performs an `INSERT` or an `UPDATE` query depending the entity's exists value. It returns either `true` or `false` depending on the success of operation.
 
 Example of usage:
 
@@ -112,14 +111,14 @@ gallery.save().then(function(gallery) {
 });
 ```
 
-Note: the `.save()` method method also validates entity's data by default if you have any validation rules defined at the model level. More information on [validation & errors here](models.md#validations).
+Note: the `.save()` method also validates entity's data by default. More information on [validation & errors here](models.md#validations).
 
 The `.save()` method takes as first argument an array of options. Possible values are:
 
 * `'events'`: A string or array defining one or more validation events. Events are different contexts in which data events can occur, and correspond to the optional 'on' key in validation rules. They will be passed to the `.validate()` method if 'validate' is not `false`.
 * `'whitelist'`: An array of fields that are allowed to be saved. Defaults to the schema fields.
 
-Once an entity has been saved its exists value has been set to `true` which will lead to do `UPDATE` queries the next `.save()` calls.
+Once an entity has been saved its exists value is setted to `true`.
 
 Example:
 
@@ -153,7 +152,7 @@ entity.modified('title'); // true
 entity.modified();        // true
 ```
 
-Also it's also possible to retrieve the persisted data are using `.persisted()` (i.e. the previous state of values):
+It's also possible to retrieve the persisted data with `.persisted()` (i.e. the persisted state of values):
 
 ```js
 var entity = Gallery.create({ name: 'old name' }, { exists: true });
@@ -165,7 +164,7 @@ entity.persisted('name')); // old name
 
 #### Deleting an entity
 
-Deleting entities from a datasource is pretty straightforward and can be accomplished by simply calling the `.delete()` method on entities to delete:
+Deleting entities from a datasource is pretty straightforward and can be accomplished by simply calling the `.delete()` method:
 
 ```js
 co(function* () {
@@ -191,7 +190,7 @@ The `.primaryKey()` method allows to return the ID value of an entity. It's for 
 
 #### parent()
 
-Most of the time, entites will be connected together through relations and the `.parent()` method allows to return the parent instance of an entity which can be either an entity or a collection instance.
+Most of the time, entites will be connected together through relations. In this context `.parent()` allows to return the parent instance of an entity which can be either an entity or a collection instance.
 
 #### rootPath()
 

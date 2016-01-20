@@ -1,6 +1,6 @@
 ## Connections
 
-Connections comes from a datasource library. It need to be configured at a bootstrap level and will be used by the `Schema` instances to communicate with the datasource.
+Connections needs to be configured first at a bootstrap level.
 
 Let's create a PostgreSql connection:
 
@@ -14,7 +14,7 @@ var connection = new PostgreSql({
 });
 ```
 
-The we need to attach it to our models using `::connection()`:
+Then te connection is bindined to our models using `Model.connection()`:
 
 ```js
 import { Model } from 'chaos-orm';
@@ -22,27 +22,27 @@ import { Model } from 'chaos-orm';
 Model.connection($connection);
 ```
 
-In the example above all models extending from `Model` will now use the `PostgreSql` connection instance.
+Now all models extending `Model` will use the `PostgreSql` connection.
 
-> Note: under the hood this connection will be injected to models' schema instances, so when `.schema()` will be called on a specific model, the returned schema will be correctly configured with the connection.
+Note: under the hood the model don't use the connection directly but use it through its attached schema instance. So when `.schema()` is called on a specific model, the returned schema is correctly configured with the model's connection.
 
-Sometimes you will probably need different datasources for your models. To be able to use different connections, you will need to create as many base model as you need different connections.
+To be able to use different connections, you will need to create as many base model as you need different connections.
 
 Let's illustrate this point with an example:
 
 ```js
 import { Model } from 'chaos-orm';
 
-class ModelCustom extends Model {
+class NewBaseModel extends Model {
 }
 /**
  * Re-defining the `_connection` attribute in a base model class will
  * allow to attach a specific connection to it and all its subclasses.
  */
-ModelCustom._connection = null;
+NewBaseModel._connection = null;
 ```
 
-So now all models extending `ModelCustom` can be connected that way:
+So now all models extending `NewBaseModel` can be connected that way:
 
 ```js
 import { Model } from 'chaos-orm';
@@ -56,5 +56,5 @@ var connection = new MyApi({
   password: 'mypassword'
 ]);
 
-ModelCustom.connection(connection);
+NewBaseModel.connection(connection);
 ```
