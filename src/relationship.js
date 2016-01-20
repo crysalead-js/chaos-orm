@@ -58,13 +58,13 @@ class Relationship {
     this._conventions = config.conventions ? config.conventions : new Conventions();
 
     if (!config.keys) {
-      var primaryKey = this._conventions.apply('primaryKey');
+      var key = this._conventions.apply('key');
       config.keys = {};
-      config.keys[primaryKey] = this._conventions.apply('foreignKey', config.from.name);
+      config.keys[key] = this._conventions.apply('reference', config.from.name);
     }
 
     if (!config.name) {
-      config.name = this._conventions.apply('fieldName', config.to.name);
+      config.name = this._conventions.apply('field', config.to.name);
     }
 
     /**

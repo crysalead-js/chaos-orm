@@ -7,7 +7,7 @@ describe("Conventions", function() {
     it("sets up default primary key", function() {
 
       var conventions = new Conventions();
-      expect(conventions.apply('primaryKey')).toBe('id');
+      expect(conventions.apply('key')).toBe('id');
 
     });
 
@@ -16,9 +16,10 @@ describe("Conventions", function() {
       var conventions = new Conventions();
 
       expect(conventions.apply('source', 'MyPost')).toBe('my_post');
-      expect(conventions.apply('foreignKey', 'MyPost')).toBe('my_post_id');
-      expect(conventions.apply('fieldName', 'MyPost')).toBe('my_post');
-      expect(conventions.apply('usingName', 'tag')).toBe('tag');
+      expect(conventions.apply('reference', 'MyPost')).toBe('my_post_id');
+      expect(conventions.apply('field', 'MyPost')).toBe('my_post');
+      expect(conventions.apply('single', 'tag')).toBe('tag');
+      expect(conventions.apply('multiple', 'tag')).toBe('tags');
       expect(conventions.apply('getter', 'hello_world')).toBe('getHelloWorld');
       expect(conventions.apply('setter', 'hello_world')).toBe('setHelloWorld');
 
@@ -28,9 +29,10 @@ describe("Conventions", function() {
 
       var conventions = new Conventions();
       expect(conventions.apply('source', 'MyComments')).toBe('my_comments');
-      expect(conventions.apply('foreignKey', 'MyComments')).toBe('my_comment_id');
-      expect(conventions.apply('fieldName', 'MyComments')).toBe('my_comment');
-      expect(conventions.apply('usingName', 'tags')).toBe('tag');
+      expect(conventions.apply('reference', 'MyComments')).toBe('my_comment_id');
+      expect(conventions.apply('field', 'MyComments')).toBe('my_comment');
+      expect(conventions.apply('single', 'tags')).toBe('tag');
+      expect(conventions.apply('multiple', 'tags')).toBe('tags');
 
     });
 
@@ -58,13 +60,14 @@ describe("Conventions", function() {
       var closures = conventions.get();
       var keys = Object.keys(closures).sort();
       expect(keys).toEqual([
-        'fieldName',
-        'foreignKey',
+        'field',
         'getter',
-        'primaryKey',
+        'key',
+        'multiple',
+        'reference',
         'setter',
-        'source',
-        'usingName'
+        'single',
+        'source'
       ]);
 
     });
@@ -72,7 +75,7 @@ describe("Conventions", function() {
     it("gets a specific convention", function() {
 
       var conventions = new Conventions();
-      var closure = conventions.get('fieldName');
+      var closure = conventions.get('field');
       expect(typeof closure).toBe('function');
 
     });

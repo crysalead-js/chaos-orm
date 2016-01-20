@@ -7,7 +7,7 @@ describe("BelongsTo", function() {
 
   beforeEach(function() {
     this.conventions = new Conventions();
-    this.primaryKey = this.conventions.apply('primaryKey');
+    this.key = this.conventions.apply('key');
   });
 
   describe(".constructor()", function() {
@@ -19,12 +19,12 @@ describe("BelongsTo", function() {
         to: Gallery
       });
 
-      expect(relation.name()).toBe(this.conventions.apply('fieldName', 'Gallery'));
+      expect(relation.name()).toBe(this.conventions.apply('field', 'Gallery'));
 
-      var foreignKey = this.conventions.apply('foreignKey', 'Image');
+      var foreignKey = this.conventions.apply('reference', 'Image');
 
       var expected = {};
-      expected[foreignKey] = this.primaryKey;
+      expected[foreignKey] = this.key;
       expect(relation.keys()).toEqual(expected);
 
       expect(relation.from()).toBe(Image);

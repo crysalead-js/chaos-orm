@@ -55,7 +55,7 @@ By default the schema instance is pre-configured with a source name and a primar
 schema.source('prefixed_gallery');
 
 // Uses 'uuid' as field name for primary key instead of 'id'
-schema.primaryKey('uuid');
+schema.key('uuid');
 ```
 
 Note: Composite primary keys have not been implemented in Chaos to minimize the [object-relational impedance mismatch](https://en.wikipedia.org/wiki/Object-relational_impedance_mismatch). It would add a extra overhead with non negligible performance impact otherwise.
@@ -297,12 +297,12 @@ var promise = Gallery.all();
 var promise = Gallery.find().all();
 ```
 
-##### .id()
+##### .load()
 
 Gets an entity of a specific id:
 
 ```js
-var promise = Gallery.id(123);
+var promise = Gallery.load(123);
 
 // Similar to
 var promise = Gallery.find().where(['id' => 123]).first();

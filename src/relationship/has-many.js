@@ -124,8 +124,8 @@ class HasMany extends Relationship {
       var success = true;
 
       for (var item of collection) {
-        if (item.exists() && indexes[item.primaryKey()] !== undefined) {
-          existing[indexes[item.primaryKey()]] = true;
+        if (item.exists() && indexes[item.id()] !== undefined) {
+          existing[indexes[item.id()]] = true;
         }
         item.set(conditions);
         var ok = yield item.save(options);

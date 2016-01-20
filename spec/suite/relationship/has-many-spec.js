@@ -8,7 +8,7 @@ describe("HasMany", function() {
 
   beforeEach(function() {
     this.conventions = new Conventions();
-    this.primaryKey = this.conventions.apply('primaryKey');
+    this.key = this.conventions.apply('key');
   });
 
   describe(".constructor()", function() {
@@ -20,12 +20,12 @@ describe("HasMany", function() {
         to: Image
       });
 
-      expect(relation.name()).toBe(this.conventions.apply('fieldName', 'Image'));
+      expect(relation.name()).toBe(this.conventions.apply('field', 'Image'));
 
-      var foreignKey = this.conventions.apply('foreignKey', 'Gallery');
+      var foreignKey = this.conventions.apply('reference', 'Gallery');
 
       var expected = {};
-      expected[this.primaryKey] = foreignKey;
+      expected[this.key] = foreignKey;
       expect(relation.keys()).toEqual(expected);
 
       expect(relation.from()).toBe(Gallery);

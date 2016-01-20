@@ -206,9 +206,9 @@ class Model {
    * @param  Object fetchOptions The fecthing options.
    * @return mixed               The result.
    */
-  static id(id, options, fetchOptions) {
+  static load(id, options, fetchOptions) {
     options = extend({}, { conditions: {} }, options);
-    options.conditions[this.schema().primaryKey()] = id;
+    options.conditions[this.schema().key()] = id;
     return this.first(options, fetchOptions);
   }
 
@@ -450,7 +450,7 @@ class Model {
       throw new Error("`" + this.constructor.name + "` has an empty `" + name + "._schema` property.");
     }
 
-    var id = this.primaryKey();
+    var id = this.id();
     if (!id) {
       return;
     }
@@ -527,12 +527,12 @@ class Model {
    *
    * @return mixed     The primary key value.
    */
-  primaryKey() {
-    var id = this.model().schema().primaryKey();
-    if (!id) {
+  id() {
+    var key = this.model().schema().key();
+    if (!key) {
       throw new Error("No primary key has been defined for `" + this.model().name + "`'s schema.");
     }
-    return this.get(id);
+    return this.get(key);
   }
 
   /**
@@ -551,9 +551,9 @@ class Model {
     if (options.exists !== undefined) {
       this._exists = options.exists;
     }
-    var pk = this.model().schema().primaryKey();
-    if (id && pk) {
-      data[pk] = id;
+    var key = this.model().schema().key();
+    if (id && key) {
+      data[key] = id;
     }
     this.set(extend({}, this._data, data));
     this._persisted = extend({}, this._data);
@@ -835,8 +835,8 @@ class Model {
    * @return Promise
    */
   reload() {
-    var id = this.primaryKey();
-    return this.model().id(id).then(function(entity) {
+    var id = this.id();
+    return this.model().load(id).then(function(entity) {
       if (!entity) {
         throw new Error("The entity ID:`" + id + "` doesn't exists.");
       }
@@ -854,12 +854,12 @@ class Model {
    */
   delete(options) {
     var schema = this.model().schema();
-    var id = schema.primaryKey();
-    if (!id || this.exists() === false) {
+    var key = schema.key();
+    if (!key || this.exists() === false) {
       return false;
     }
     var params = {};
-    params[id] = this.primaryKey();
+    params[key] = this.id();
     return schema.delete(params).then(function() {
       this._exists = false;
       this._persisted = {};

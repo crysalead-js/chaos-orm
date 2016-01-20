@@ -18,8 +18,8 @@ class BelongsTo extends Relationship {
 
     if (!hasKeys) {
       this._keys = {};
-      var primaryKey = this.conventions().apply('primaryKey');
-      this._keys[this.conventions().apply('foreignKey', config.from.name)] = primaryKey;
+      var key = this.conventions().apply('key');
+      this._keys[this.conventions().apply('reference', config.from.name)] = key;
     }
   }
 

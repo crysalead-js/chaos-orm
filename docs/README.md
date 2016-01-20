@@ -36,7 +36,7 @@ import Image from './model/Images';
 
 co(function* () {
   // Adding a many-to-many relation
-  var image = yield Image.id(123, { 'embed': 'tags' });
+  var image = yield Image.load(123, { 'embed': 'tags' });
   image.push({ name: 'Landscape' });
   yield image.save();
   image.tags.forEach(function(tag) {

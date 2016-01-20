@@ -12,7 +12,7 @@ describe("Model", function() {
     MyModel.reset();
   });
 
-  describe("::config()", function() {
+  describe(".config()", function() {
 
     it("configures the model", function() {
 
@@ -220,7 +220,7 @@ describe("Model", function() {
 
   });
 
-  describe(".id()", function() {
+  describe(".load()", function() {
 
     beforeEach(function() {
       var schema = MyModel.schema();
@@ -238,7 +238,7 @@ describe("Model", function() {
       var myModelSpy = spyOn(MyModel, 'find').and.callThrough();
       var querySpy = spyOn(this.query, 'first');
 
-      MyModel.id(1, { option: 'value' }, { fetch: 'options' });
+      MyModel.load(1, { option: 'value' }, { fetch: 'options' });
 
       expect(myModelSpy).toHaveBeenCalledWith({
         conditions: { id: 1 },

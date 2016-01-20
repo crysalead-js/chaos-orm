@@ -63,7 +63,7 @@ class Schema {
    *                      - `'source'`      _String_   : The source name (defaults to `undefined`).
    *                      - `'model'`       _Function_ : The fully namespaced model class name (defaults to `undefined`).
    *                      - `'locked'`      _Boolean_  : set the ability to dynamically add/remove fields (defaults to `false`).
-   *                      - `'primaryKey'`  _Object_   : The primary key value (defaults to `id`).
+   *                      - `'key'`         _String_   : The primary key value (defaults to `id`).
    *                      - `'fields'`      _Map_      : array of field definition where keys are field names and values are arrays
    *                                                     with the following keys. All properties are optionnal except the `'type'`:
    *                                                     - `'type'`       _string_ : the type of the field.
@@ -168,8 +168,8 @@ class Schema {
      *
      * @var String
      */
-    config.primaryKey = config.primaryKey !== undefined ? config.primaryKey : this._conventions.apply('primaryKey');
-    this._primaryKey = config.primaryKey;
+    config.key = config.key !== undefined ? config.key : this._conventions.apply('key');
+    this._key = config.key;
 
     /**
      * Relations configuration.
@@ -318,14 +318,14 @@ class Schema {
   /**
    * Gets/sets the primary key field name of the schema.
    *
-   * @param  String primaryKey The name or the primary key field name or none to get the defined one.
+   * @param  String key The name or the primary key field name or none to get the defined one.
    * @return String
    */
-  primaryKey(primaryKey) {
+  key(key) {
     if (!arguments.length) {
-        return this._primaryKey;
+        return this._key;
     }
-    this._primaryKey = primaryKey;
+    this._key = key;
     return this;
   }
 
@@ -625,7 +625,7 @@ class Schema {
         throw new Error("Unexisting `'through'` relation, needed to be created first.");
       }
       this._relations[config.through].junction = true;
-      config.using = this._conventions.apply('usingName', name);
+      config.using = this._conventions.apply('single', name);
       config.type = 'through';
     }
 

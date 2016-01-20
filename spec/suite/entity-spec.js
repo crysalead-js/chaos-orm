@@ -79,7 +79,7 @@ describe("Entity", function() {
 
   });
 
-  describe(".primaryKey()", function() {
+  describe(".id()", function() {
 
     it("returns the entity's primary key value", function() {
 
@@ -88,13 +88,13 @@ describe("Entity", function() {
         title: 'Hello',
         body: 'World'
       });
-      expect(entity.primaryKey()).toBe(123);
+      expect(entity.id()).toBe(123);
 
     });
 
     it("throws an exception if the schema has no primary key defined", function() {
 
-      var schema = new Schema({ primaryKey: null });
+      var schema = new Schema({ key: null });
 
       MyModel.config({ schema: schema });
 
@@ -104,7 +104,7 @@ describe("Entity", function() {
           title: 'Hello',
           body: 'World'
         });
-        entity.primaryKey();
+        entity.id();
       };
       expect(closure).toThrow(new Error("No primary key has been defined for `MyModel`'s schema."));
 
@@ -120,13 +120,13 @@ describe("Entity", function() {
       entity.set('modified', 'modified');
 
       expect(entity.exists()).toBe(false);
-      expect(entity.primaryKey()).toBe(undefined);
+      expect(entity.id()).toBe(undefined);
       expect(entity.modified('modified')).toBe(true);
 
       entity.sync(123, { added: 'added' }, { exists: true });
 
       expect(entity.exists()).toBe(true);
-      expect(entity.primaryKey()).toBe(123);
+      expect(entity.id()).toBe(123);
       expect(entity.modified('modified')).toBe(false);
       expect(entity.modified('added')).toBe(false);
       expect(entity.get('added')).toBe('added');
@@ -141,13 +141,13 @@ describe("Entity", function() {
         entity.set('modified', 'modified');
 
         expect(entity.exists()).toBe(false);
-        expect(entity.primaryKey()).toBe(undefined);
+        expect(entity.id()).toBe(undefined);
         expect(entity.modified('modified')).toBe(true);
 
         entity.sync(undefined, { added: 'added' }, { exists: true });
 
         expect(entity.exists()).toBe(true);
-        expect(entity.primaryKey()).toBe(undefined);
+        expect(entity.id()).toBe(undefined);
         expect(entity.modified('modified')).toBe(false);
         expect(entity.modified('added')).toBe(false);
         expect(entity.get('added')).toBe('added');

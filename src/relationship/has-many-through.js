@@ -86,7 +86,7 @@ class HasManyThrough extends Relationship {
     this._to = relUsing.to();
     this._keys = relUsing.keys();
 
-    this._name = config.name ? config.name : this._conventions.apply('fieldName', this.to().name);
+    this._name = config.name ? config.name : this._conventions.apply('field', this.to().name);
 
     var lower = this.constructor.name.charAt(0).toLowerCase();
     this._type = lower + this.constructor.name.substr(1);

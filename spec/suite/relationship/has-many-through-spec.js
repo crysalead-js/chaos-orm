@@ -8,7 +8,7 @@ describe("HasManyThrough", function() {
 
   beforeEach(function() {
     this.conventions = new Conventions();
-    this.primaryKey = this.conventions.apply('primaryKey');
+    this.key = this.conventions.apply('key');
   });
 
   describe(".constructor()", function() {
@@ -21,21 +21,20 @@ describe("HasManyThrough", function() {
         using: 'tag'
       });
 
-      expect(relation.name()).toBe(this.conventions.apply('fieldName', 'Tag'));
+      expect(relation.name()).toBe(this.conventions.apply('field', 'Tag'));
 
-      var foreignKey = this.conventions.apply('foreignKey', 'tag');
+      var foreignKey = this.conventions.apply('reference', 'tag');
       var expected = {};
-      expected[foreignKey] = this.primaryKey;
+      expected[foreignKey] = this.key;
       expect(relation.keys()).toEqual(expected);
 
       expect(relation.from()).toBe(Image);
       expect(relation.to()).toBe(Tag);
       expect(relation.through()).toBe('images_tags');
       expect(relation.using()).toBe(this.conventions.apply(
-        'usingName',
-        this.conventions.apply('fieldName',
-        'Tag'
-      )));
+        'single',
+        this.conventions.apply('field','Tag')
+      ));
       expect(relation.link()).toBe(Relationship.LINK_KEY);
       expect(relation.fields()).toBe(true);
       expect(relation.conventions() instanceof Conventions).toBe(true);

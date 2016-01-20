@@ -31,16 +31,19 @@ class Conventions {
         source: function(name) {
           return underscore(name);
         },
-        primaryKey: function() {
+        key: function() {
             return 'id';
         },
-        foreignKey: function(name) {
+        reference: function(name) {
             return underscore(inflector.singular(name)) + '_id';
         },
-        fieldName: function(name) {
+        field: function(name) {
             return underscore(inflector.singular(name));
         },
-        usingName: function(name) {
+        multiple: function(name) {
+            return inflector.plural(name);
+        },
+        single: function(name) {
             return inflector.singular(name);
         },
         getter: function(name) {

@@ -7,7 +7,7 @@ describe("HasOne", function() {
 
   beforeEach(function() {
     this.conventions = new Conventions();
-    this.primaryKey = this.conventions.apply('primaryKey');
+    this.key = this.conventions.apply('key');
   });
 
   describe(".constructor()", function() {
@@ -19,12 +19,12 @@ describe("HasOne", function() {
         to: GalleryDetail
       });
 
-      expect(relation.name()).toBe(this.conventions.apply('fieldName', 'GalleryDetail'));
+      expect(relation.name()).toBe(this.conventions.apply('field', 'GalleryDetail'));
 
-      var foreignKey = this.conventions.apply('foreignKey', 'Gallery');
+      var foreignKey = this.conventions.apply('reference', 'Gallery');
 
       var expected = {};
-      expected[this.primaryKey] = foreignKey;
+      expected[this.key] = foreignKey;
       expect(relation.keys()).toEqual(expected);
 
       expect(relation.from()).toBe(Gallery);
