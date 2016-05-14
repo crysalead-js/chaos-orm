@@ -830,7 +830,7 @@ class Schema {
    * @param  Object options Options for the casting.
    * @return Object         The casted data.
    */
-  cast(name, data, options) {
+  cast(field, data, options) {
     var defaults = {
       collector: undefined,
       parent: undefined,
@@ -841,10 +841,10 @@ class Schema {
     options = extend({}, defaults, options);
     options.model = options.model ? options.model : this._model;
 
-    name = Number.isInteger(name) ? undefined : name;
+    var name;
 
-    if (name) {
-      name = options.rootPath ? options.rootPath + '.' + name : name;
+    if (field) {
+      name = options.rootPath ? options.rootPath + '.' + field : field;
     } else {
       name = options.rootPath;
     }
@@ -861,7 +861,10 @@ class Schema {
         options.model = options.to;
       }
       if (options.array) {
-        return this._castArray(name, data, options);
+        if (field) {
+          return this._castArray(name, data, options);
+        }
+        options.type = 'entity';
       }
       return this._cast(data, options);
     }
@@ -871,8 +874,10 @@ class Schema {
         return null;
       }
       if (options.array) {
-        options.type = 'set';
-        return this._castArray(name, data, options);
+        if (field) {
+          return this._castArray(name, data, options);
+        }
+        options.type = 'entity';
       }
       return this.format('cast', name, data);
     }

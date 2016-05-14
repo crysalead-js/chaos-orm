@@ -1,4 +1,5 @@
 import co from 'co';
+import dotpath from 'dotpath-parser';
 import { extend, merge } from 'extend-merge';
 import Collector from "../collector";
 
@@ -91,7 +92,7 @@ class Collection {
     var i, len = config.data.length;
 
     for (i = 0; i < len; i++) {
-      this._set(config.data[i], undefined, { exists: config.exists });
+      this._set(undefined, config.data[i], { exists: config.exists });
     }
 
     /**
@@ -223,7 +224,7 @@ class Collection {
    * @return mixed          Returns the set `Entity` object.
    */
   set(offset, data) {
-    this._set(data, offset);
+    this._set(offset, data);
     return this;
   }
 
@@ -234,7 +235,7 @@ class Collection {
    * @return mixed      Returns the set `Entity` object.
    */
   push(data) {
-    this._set(data);
+    this._set(undefined, data);
     return this;
   }
 
@@ -279,7 +280,7 @@ class Collection {
    * @return array The keys of the items.
    */
   keys() {
-    return [...this._data.keys()];
+    return Array.from(this._data.keys());
   }
 
   /**
@@ -386,7 +387,9 @@ class Collection {
    * @param  Object  options Any additional options to pass to the `Entity`'s constructor.
    * @return mixed           Returns the inserted instance.
    */
-  _set(data, offset, options) {
+  _set(offset, data, options) {
+    var keys = Array.isArray(offset) ? offset : (offset !== undefined ? dotpath(offset) : []);
+
     var defaults = { defaults: false };
     options = extend({}, defaults, {
       collector: this.collector(),
@@ -394,12 +397,23 @@ class Collection {
       rootPath: this._rootPath,
       parent: this
     }, options);
+    offset = keys.shift();
+
+    if (keys.length) {
+      if (!this._data[offset]) {
+        throw new Error("Missing index `" + offset + "` for collection.");
+      }
+      return this._data[offset].set(keys, data, options);
+    }
 
     if (this.model()) {
       data = this.model().schema().cast(undefined, data, options);
     }
 
     if (offset !== undefined) {
+      if (typeof offset !== 'number' ) {
+       throw new Error("Invalid index `" + offset + "` for a collection, must be a numeric value.");
+      }
       this._data[offset] = data;
     } else {
       this._data.push(data);

@@ -66,8 +66,8 @@ describe("HasOne", function() {
       spyOn(GalleryDetail, 'all').and.callFake(function(options, fetchOptions) {
         fetchOptions = fetchOptions || {};
         var details =  GalleryDetail.create([
-          { id: 1, name: 'Foo Gallery Description', gallery_id: 1 },
-          { id: 2, name: 'Bar Gallery Description', gallery_id: 2 }
+          { id: 1, description: 'Foo Gallery Description', gallery_id: 1 },
+          { id: 2, description: 'Bar Gallery Description', gallery_id: 2 }
         ], {
           type: 'set', exists: true, collector: fetchOptions.collector
         });

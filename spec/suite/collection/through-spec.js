@@ -5,9 +5,16 @@ import Image from '../../fixture/model/image';
 import ImageTag from '../../fixture/model/image-tag';
 import Tag from '../../fixture/model/tag';
 
-class MyImageTag extends ImageTag {}
+class MyImageTag extends ImageTag {
+  static _define(schema) {
+    schema.locked(false);
+  }
+}
 
 class MyTag extends Tag {
+  static _define(schema) {
+    schema.locked(false);
+  }
   tagMethod(options) {
     return options
   }
@@ -16,6 +23,9 @@ class MyTag extends Tag {
 describe("Through", function() {
 
   beforeEach(function() {
+
+    MyImageTag.schema().locked(false);
+    MyTag.schema().locked(false);
 
     var image_tag, tag;
 

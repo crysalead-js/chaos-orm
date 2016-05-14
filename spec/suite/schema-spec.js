@@ -616,12 +616,6 @@ describe("Schema", function() {
 
       this.schema = Image.schema();
 
-      this.schema.set('id', { type: 'serial' });
-      this.schema.set('gallery_id', { type: 'integer' });
-      this.schema.set('name', { type: 'string', default: 'Enter The Name Here' });
-      this.schema.set('title', { type: 'string', default: 'Enter The Title Here', length: 50 });
-      this.schema.set('score', { type: 'float' });
-
       this.schema.formatter('cast', 'id',        handlers['integer']);
       this.schema.formatter('cast', 'serial',    handlers['integer']);
       this.schema.formatter('cast', 'integer',   handlers['integer']);
@@ -630,27 +624,9 @@ describe("Schema", function() {
       this.schema.formatter('cast', 'date',      handlers['date']);
       this.schema.formatter('cast', 'datetime',  handlers['datetime']);
       this.schema.formatter('cast', 'boolean',   handlers['boolean']);
-      this.schema.formatter('cast', null,      handlers[null]);
+      this.schema.formatter('cast', null,        handlers[null]);
       this.schema.formatter('cast', 'string',    handlers['string']);
       this.schema.formatter('cast', '_default_', handlers['string']);
-
-      this.schema.bind('gallery', {
-        relation: 'belongsTo',
-        to: Gallery,
-        keys: { gallery_id: 'id' }
-      });
-
-      this.schema.bind('images_tags', {
-        relation: 'hasMany',
-        to: ImageTag,
-        keys: { id: 'image_id' }
-      });
-
-      this.schema.bind('tags', {
-        relation: 'hasManyThrough',
-        through: 'images_tags',
-        using: 'tag'
-      });
 
     });
 
@@ -660,7 +636,7 @@ describe("Schema", function() {
 
     });
 
-    it("gets/sets the conventions", function() {
+    it("casts a nested entity data", function() {
 
       var image = this.schema.cast(null, {
         id: '1',
@@ -682,15 +658,14 @@ describe("Schema", function() {
 
       expect(Number.isInteger(image.get('id'))).toBe(true);
       expect(Number.isInteger(image.get('gallery_id'))).toBe(true);
-      expect(typeof image.get('name')).toBe('string');
-      expect(typeof image.get('title')).toBe('string');
-      expect(typeof image.get('score')).toBe('number');
+      expect(image.get('name')).toBe('image.jpg');
+      expect(image.get('title')).toBe('My Image');
+      expect(image.get('score')).toBe(8.9);
       expect(image.get('tags') instanceof Through).toBe(true);
-      expect(image.get('tags').get(0) instanceof Tag).toBe(true);
-      expect(image.get('tags').get(1) instanceof Tag).toBe(true);
+      expect(image.get('tags.0').data()).toEqual({ id: 1, name: 'landscape' });
+      expect(image.get('tags.1').data()).toEqual({ id: 2, name: 'mountain' });
 
     });
 
   });
-
 });

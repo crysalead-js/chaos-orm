@@ -1,4 +1,5 @@
 import co from 'co';
+import dotpath from 'dotpath-parser';
 import { extend, merge } from "extend-merge";
 import { expand, flatten } from "expand-flatten";
 import { Validator } from "chaos-validator";
@@ -132,7 +133,7 @@ class Model {
    * schema.set('body', { type: 'string' });
    *
    * // Custom object
-   * schema.set('comments',       { type: 'entity', array: true, 'default': [] });
+   * schema.set('comments',       { type: 'object', array: true, 'default': [] });
    * schema.set('comments.id',    { type: 'id' });
    * schema.set('comments.email', { type: 'string' });
    * schema.set('comments.body',  { type: 'string' });
@@ -375,7 +376,7 @@ class Model {
       parent: undefined,
       rootPath: undefined,
       exists: false,
-      data: []
+      data: {}
     };
     config = extend({}, defaults, config);
 
@@ -569,14 +570,16 @@ class Model {
    * @return object        Returns `this`.
    */
   set(name, data, options) {
-    if (typeof name === 'string') {
+    if (arguments.length >= 2) {
       this._set(name, data, options);
       return this;
     }
-    options = data || {};
     data = name || {};
+    if (data === null || typeof data !== 'object' || data.constructor !== Object) {
+      throw new Error('A plain object is required to set data in bulk.');
+    }
     for (var name in data) {
-      this._set(name, data[name], options);
+      this._set(name, data[name]);
     }
     return this;
   }
@@ -633,9 +636,25 @@ class Model {
    * @param Array  options An options array.
    */
   _set(name, data, options) {
-    if (!name) {
+    var keys = Array.isArray(name) ? name : dotpath(name);
+    if (!keys.length) {
       throw new Error("Field name can't be empty.");
     }
+
+    name = keys.shift();
+    if (keys.length) {
+      if (this.get(name) === undefined) {
+        this._set(name, Model.create({}, extend({}, {
+          parent: this,
+          model: this.model(),
+          rootPath: this._rootPath,
+          defaults: true,
+          exists: this.exists()
+        }, options)));
+      }
+      return this._data[name].set(keys, data, options);
+    }
+
     var defaults = {
       parent: this,
       model: this.model(),
@@ -644,11 +663,17 @@ class Model {
       exists: false
     };
     options = extend({}, defaults, options);
+    var schema = this.model().schema();
+
+    if (schema.locked() && !schema.has(name) && !schema.hasRelation(name)) {
+      throw new Error("Missing schema definition for field: `" + name + "`.");
+    }
+
     var method = this.model().conventions().apply('setter', name);
     if (this[method] instanceof Function) {
       data = this[method](data);
     }
-    return this._data[name] = this.model().schema().cast(name, data, options);
+    return this._data[name] = schema.cast(name, data, options);
   }
 
   /**
@@ -661,9 +686,20 @@ class Model {
     if (!arguments.length) {
       return this._data;
     }
-    if (!name) {
+    var keys = Array.isArray(name) ? name : dotpath(name);
+    if (!keys.length) {
       throw new Error("Field name can't be empty.");
     }
+
+    name = keys.shift();
+    if (keys.length) {
+      var value = this.get(name);
+      if (value === undefined) {
+        throw new Error("Unexisting field: `" + name + "`.");
+      }
+      return value.get(keys);
+    }
+
     var method = this.model().conventions().apply('getter', name);
     if (typeof this[method] === 'function') {
       return this[method](this._data[name]);
@@ -672,11 +708,10 @@ class Model {
       return this._data[name];
     }
     if (this.model().hasRelation(name)) {
-      this.set(name, this.model().schema().cast(name, undefined, {
+      return this._data[name] = this.model().schema().cast(name, undefined, {
         collector: this.collector(),
         parent: this
-      }))
-      return this._data[name];
+      });
     }
   }
 

@@ -1,6 +1,10 @@
 import { Collection, Conventions, Source, Schema, Model } from '../../src';
 
-class MyModel extends Model {}
+class MyModel extends Model {
+  static _define(schema) {
+    schema.locked(false);
+  }
+}
 
 class MySchema extends Schema {};
 

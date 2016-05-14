@@ -1,7 +1,11 @@
 import Collection from '../../../src/collection/collection';
 import { Model } from '../../../src';
 
-class MyModel extends Model {};
+class MyModel extends Model {
+  static _define(schema) {
+    schema.locked(false);
+  }
+};
 
 describe("Collection", function() {
 

@@ -9,6 +9,7 @@ class Image extends Model {
     schema.set('gallery_id', { type: 'integer' });
     schema.set('name', { type: 'string' });
     schema.set('title', { type: 'string', length: 50 });
+    schema.set('score', { type: 'float' });
 
     schema.belongsTo('gallery', 'Gallery', { keys: { gallery_id: 'id' } });
     schema.hasMany('images_tags', 'ImageTag', { keys: { id: 'image_id' } });

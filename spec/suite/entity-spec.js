@@ -1,8 +1,10 @@
 import co from 'co';
-import { Schema, Model, HasOne } from '../../src';
+import { Schema, Model, HasOne, Collection, Through } from '../../src';
 
 import Gallery from '../fixture/model/gallery';
 import Image from '../fixture/model/image';
+import ImageTag from '../fixture/model/image-tag';
+import Tag from '../fixture/model/tag';
 
 class MyModel extends Model {}
 
@@ -11,6 +13,7 @@ describe("Entity", function() {
   beforeEach(function() {
     var schema = MyModel.schema();
     schema.set('id', { type: 'serial' });
+    schema.locked(false);
   });
 
   afterEach(function() {
@@ -95,7 +98,7 @@ describe("Entity", function() {
     it("throws an exception if the schema has no primary key defined", function() {
 
       var schema = new Schema({ key: null });
-
+      schema.locked(false);
       MyModel.config({ schema: schema });
 
       var closure = function() {
@@ -160,6 +163,12 @@ describe("Entity", function() {
 
   describe(".get()/.set()", function() {
 
+    afterEach(function() {
+
+      Image.reset();
+
+    });
+
     it("sets values", function() {
 
       var date = new Date('2014-10-26 00:25:15');
@@ -172,6 +181,107 @@ describe("Entity", function() {
       expect(entity.get('title')).toBe('Hello');
       expect(entity.get('body')).toBe('World');
       expect(entity.get('created')).toBe(date);
+
+    });
+
+    it("sets nested arbitraty value in cascade when locked is `false`", function() {
+
+      Image.schema().locked(false);
+
+      var image = Image.create();
+      image.set('a.nested.value', 'hello');
+
+      expect(image.data()).toEqual({
+        a: {
+          nested: {
+            value: 'hello'
+          }
+        }
+      });
+
+    });
+
+    it("sets a single belongsTo relation", function() {
+
+      var image = Image.create();
+      image.set('gallery', { id: '1', name: 'MyGallery' });
+
+      expect(image.get('gallery') instanceof Gallery).toBe(true);
+      expect(image.get('gallery').data()).toEqual({ id: 1, name: 'MyGallery' });
+
+    });
+
+    it("sets a single hasMany relation", function() {
+
+      var image = Image.create();
+      image.set('images_tags.0', { id: '1', image_id: '1', tag_id: '1' });
+
+      expect(image.get('images_tags') instanceof Collection).toBe(true);
+      expect(image.get('images_tags.0') instanceof ImageTag).toBe(true);
+      expect(image.get('images_tags.0').data()).toEqual({ id: 1, image_id: 1, tag_id: 1 });
+
+    });
+
+    it("sets a hasMany array", function() {
+
+      var image = Image.create();
+      image.set('images_tags', [
+        {
+          id: '1',
+          image_id: '1',
+          tag_id: '1'
+        },
+        {
+          id: '2',
+          image_id: '1',
+          tag_id: '2'
+        }
+      ]);
+      expect(image.get('images_tags') instanceof Collection).toBe(true);
+      expect(image.get('images_tags.0').data()).toEqual({ id: 1, image_id: 1, tag_id: 1 });
+      expect(image.get('images_tags.1').data()).toEqual({ id: 2, image_id: 1, tag_id: 2 });
+
+    });
+
+    it("sets a single hasManyThrough relation", function() {
+
+      var image = Image.create();
+
+      image.set('tags.0', { id: '1', name: 'landscape' });
+
+      expect(image.get('tags') instanceof Through).toBe(true);
+      expect(image.get('tags.0') instanceof Tag).toBe(true);
+      expect(image.get('tags.0').data()).toEqual({ id: 1, name: 'landscape' });
+
+    });
+
+    it("sets a hasManyThrough array", function() {
+
+      var image = Image.create();
+      image.set('tags', [
+        {
+          id: '1',
+          name: 'landscape'
+        },
+        {
+          id: '2',
+          name: 'mountain'
+        }
+      ]);
+      expect(image.get('tags') instanceof Through).toBe(true);
+      expect(image.get('tags.0').data()).toEqual({ id: 1, name: 'landscape' });
+      expect(image.get('tags.1').data()).toEqual({ id: 2, name: 'mountain' });
+
+    });
+
+    it("throws an exception when trying to set nested arbitraty value in cascade when locked is `true`", function() {
+
+      var closure = function() {
+        var image = Image.create();
+        image.set('a.nested.value', 'hello');
+      };
+
+      expect(closure).toThrow(new Error('Missing schema definition for field: `a`.'));
 
     });
 
@@ -244,7 +354,11 @@ describe("Entity", function() {
 
       it("autoboxes setted data", function() {
 
-        class MyModelChild extends MyModel {};
+        class MyModelChild extends MyModel {
+          static _define(schema) {
+            schema.locked(false);
+          }
+        };
 
         MyModel.schema().set('child', {
           type: 'object',
@@ -388,7 +502,7 @@ describe("Entity", function() {
 
     it("returns `true` when an unexisting field has been added", function() {
 
-      var entity = MyModel.create([], { exists: true });
+      var entity = MyModel.create({}, { exists: true });
 
       entity.set('modified', 'modified');
 
@@ -409,7 +523,7 @@ describe("Entity", function() {
 
     it("returns `false` when an unexisting field is checked", function() {
 
-      var entity = MyModel.create([], { exists: true });
+      var entity = MyModel.create({}, { exists: true });
       expect(entity.modified('unexisting')).toBe(false);
 
     });
@@ -569,8 +683,8 @@ describe("Entity", function() {
         });
 
         gallery.set('name', '');
-        gallery.get('images').get(0).set('name', '');
-        gallery.get('images').get(1).set('name', '');
+        gallery.get('images.0').set('name', '');
+        gallery.get('images.1').set('name', '');
         expect(yield gallery.validate()).toBe(false);
         expect(gallery.errors()).toEqual({
           name: ['must not be a empty'],
@@ -581,8 +695,8 @@ describe("Entity", function() {
         });
 
         gallery.set('name', 'new gallery');
-        gallery.get('images').get(0).set('name', 'image1');
-        gallery.get('images').get(1).set('name', 'image2');
+        gallery.get('images.0').set('name', 'image1');
+        gallery.get('images.1').set('name', 'image2');
         expect(yield gallery.validate()).toBe(true);
         expect(gallery.errors()).toEqual({
             images: [
@@ -672,6 +786,7 @@ describe("Entity", function() {
       image.get('tags').forEach(function(tag) {
         tag.get('images').push(image);
       });
+
       expect(image.data()).toEqual({
         name: 'amiga_1200.jpg',
         title: 'Amiga 1200',
