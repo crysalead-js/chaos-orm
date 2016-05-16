@@ -1,4 +1,3 @@
-process.env.TZ = 'UTC';
 Promise = require('bluebird');
 
 require('./conventions-spec');

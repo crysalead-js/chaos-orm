@@ -36,7 +36,6 @@ class Source {
     this.formatter('cast', 'boolean',   handlers.cast['boolean']);
     this.formatter('cast', 'null',      handlers.cast['null']);
     this.formatter('cast', 'string',    handlers.cast['string']);
-    this.formatter('cast', '_default_', handlers.cast['string']);
 
     this.formatter('datasource', '_default_', handlers.datasource['string']);
   }

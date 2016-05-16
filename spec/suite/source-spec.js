@@ -18,7 +18,8 @@ describe("Source", function() {
 
     it("returns the `'_default_'` handler if no handler found", function() {
 
-      var dflt = this.source.formatter('cast', '_default_');
+      var dflt = function() {}
+      this.source.formatter('cast', '_default_', dflt);
       expect(this.source.formatter('cast', 'mytype')).toBe(dflt);
 
     });
@@ -60,8 +61,8 @@ describe("Source", function() {
       expect(this.source.format('datasource', 'boolean', true)).toBe('true');
       expect(this.source.format('datasource', 'null', null)).toBe('null');
       expect(this.source.format('datasource', 'string', 'abc')).toBe('abc');
-      expect(this.source.format('datasource', '_default_', 'abc')).toBe('abc');
-      expect(this.source.format('datasource', '_undefined_', 'abc')).toBe('abc');
+      expect(this.source.format('datasource', '_default_', 123)).toBe('123');
+      expect(this.source.format('datasource', '_undefined_', 123)).toBe('123');
 
     });
 
@@ -72,18 +73,35 @@ describe("Source", function() {
       expect(this.source.format('cast', 'integer', '123')).toBe(123);
       expect(this.source.format('cast', 'float', '12.3')).toBe(12.3);
       expect(this.source.format('cast', 'decimal', '12.3')).toBe(12.3);
-      var date = new Date('2014-11-21');
+      var date = new Date(Date.UTC(2014, 10, 21, 0, 0, 0));
       expect(this.source.format('cast', 'date', date)).toEqual(date);
       expect(this.source.format('cast', 'date', '2014-11-21')).toEqual(date);
-      var datetime = new Date('2014-11-21 10:20:45');
+      var datetime = new Date(Date.UTC(2014, 10, 21, 10, 20, 45));
       expect(this.source.format('cast', 'datetime', datetime)).toEqual(datetime);
-      expect(this.source.format('cast', 'datetime', '2014-11-21 10:20:45')).toEqual(datetime);
+      expect(this.source.format('cast', 'datetime', datetime.toISOString())).toEqual(datetime);
       expect(this.source.format('cast', 'datetime', 1416565245 * 1000)).toEqual(datetime);
       expect(this.source.format('cast', 'boolean', 'TRUE')).toBe(true);
       expect(this.source.format('cast', 'null', 'NULL')).toBe(null);
       expect(this.source.format('cast', 'string', 'abc')).toBe('abc');
-      expect(this.source.format('cast', '_default_', 'abc')).toBe('abc');
-      expect(this.source.format('cast', '_undefined_', 'abc')).toBe('abc');
+      expect(this.source.format('cast', '_default_', 123)).toBe(123);
+      expect(this.source.format('cast', '_undefined_', 123)).toBe(123);
+
+    });
+
+  });
+
+  describe(".getType()", function() {
+
+    it("returns data type", function() {
+
+      expect(Source.getType(123)).toBe('integer');
+      expect(Source.getType(12.3)).toBe('double');
+      expect(Source.getType(true)).toBe('boolean');
+      expect(Source.getType(false)).toBe('boolean');
+      expect(Source.getType('hello')).toBe('string');
+      expect(Source.getType({})).toBe('object');
+      expect(Source.getType([])).toBe('array');
+      expect(Source.getType(null)).toBe('null');
 
     });
 

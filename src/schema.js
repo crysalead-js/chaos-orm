@@ -202,10 +202,6 @@ class Schema {
 
     handlers = this._handlers;
 
-    if (this._connection) {
-      this._formatters = this._connection.formatters() || {};
-    }
-
     this.formatter('array', 'id',        handlers['array']['integer']);
     this.formatter('array', 'serial',    handlers['array']['integer']);
     this.formatter('array', 'integer',   handlers['array']['integer']);
@@ -217,11 +213,18 @@ class Schema {
     this.formatter('array', 'null',      handlers['array']['null']);
     this.formatter('array', '_default_', handlers['array']['string']);
 
-    this.formatter('cast', 'integer',   handlers['array']['integer']);
-    this.formatter('cast', 'float',     handlers['array']['float']);
-    this.formatter('cast', 'decimal',   handlers['array']['float']);
-    this.formatter('cast', 'boolean',   handlers['array']['boolean']);
-    this.formatter('cast', 'null',      handlers['array']['null']);
+    this.formatter('cast', 'integer',  handlers['cast']['integer']);
+    this.formatter('cast', 'float',    handlers['cast']['float']);
+    this.formatter('cast', 'decimal',  handlers['cast']['float']);
+    this.formatter('cast', 'date',     handlers['cast']['datetime']);
+    this.formatter('cast', 'datetime', handlers['cast']['datetime']);
+    this.formatter('cast', 'boolean',  handlers['cast']['boolean']);
+    this.formatter('cast', 'null',     handlers['cast']['null']);
+    this.formatter('cast', 'string',   handlers['cast']['string']);
+
+    if (this._connection) {
+      this._formatters = merge({}, this._connection.formatters(), this._formatters);
+    }
   }
 
   /**
@@ -961,6 +964,32 @@ class Schema {
             value = new Date(value);
           }
           return dateformat.asString(options.format, value);
+        },
+        'boolean': function(value, options) {
+          return !!value;
+        },
+        'null': function(value, options) {
+          return null;
+        }
+      },
+      cast: {
+        'string': function(value, options) {
+          return String(value);
+        },
+        'integer': function(value, options) {
+          return Number.parseInt(value);
+        },
+        'float': function(value, options) {
+          return Number.parseFloat(value);
+        },
+        'decimal': function(value, options) {
+          return Number.parseFloat(value);
+        },
+        'date':function(value, options) {
+          return new Date(value);
+        },
+        'datetime': function(value, options) {
+          return new Date(value);
         },
         'boolean': function(value, options) {
           return !!value;
