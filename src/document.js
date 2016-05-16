@@ -157,6 +157,11 @@ class Document {
     };
     config = extend({}, defaults, config);
 
+    /**
+     * The conventions instance.
+     *
+     * @var Object
+     */
     this._conventions = config.conventions;
 
     /**
@@ -166,15 +171,12 @@ class Document {
      */
     this._collector = config.collector;
 
-    if (!config.schema || this.constructor !== Document) {
-      this._schema = this.constructor.schema();
-    } else {
-      this._schema = config.schema;
-    }
-
-    if (config.defaults && !config.rootPath) {
-      config.data = extend(this._schema.defaults(), config.data);
-    }
+    /**
+     * The schema instance.
+     *
+     * @var Object
+     */
+    this._schema = config.schema;
 
     /**
      * Contains the values of updated fields. These values will be persisted to the backend data
@@ -221,6 +223,14 @@ class Document {
      * @var String
      */
     this._rootPath = config.rootPath;
+
+    if (!this._schema || this.constructor !== Document) {
+      this._schema = this.constructor.schema();
+    }
+
+    if (config.defaults && !config.rootPath) {
+      config.data = extend(this._schema.defaults(), config.data);
+    }
 
     this.set(config.data);
 
@@ -439,8 +449,9 @@ class Document {
     if (keys.length) {
       if (this.get(name) === undefined) {
         this._set(name, Document.create({}, {
+          collector: this.collector(),
           parent: this,
-          model: this.model(),
+          schema: this.schema(),
           rootPath: this.rootPath() ? this.rootPath() + '.' + name : name,
           defaults: true,
           exists: this.exists()
@@ -459,8 +470,8 @@ class Document {
 
     var previous = this._data[name];
     var value = schema.cast(name, data, {
+      collector: this.collector(),
       parent: this,
-      model: this.model(),
       rootPath: this.rootPath(),
       defaults: true,
       exists: this.exists()
@@ -664,6 +675,7 @@ class Document {
  * @var Object
  */
 Document._classes = {
+  collector: Collector,
   set: Collection,
   through: Through,
   conventions: Conventions

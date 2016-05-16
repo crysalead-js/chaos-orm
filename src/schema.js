@@ -850,11 +850,8 @@ class Schema {
 
     options = extend({}, defaults, options);
 
-    options.model = options.model ? options.model : this.model();
-
-    if (options.model === Document) {
-      options.schema = this;
-    }
+    options.model = this.model();
+    options.schema = this;
 
     var name;
 
@@ -912,6 +909,9 @@ class Schema {
    */
   _cast(data, options) {
     if (data instanceof options.model) {
+      data.collector(options.collector);
+      data.parent(options.parent);
+      data.rootPath(options.rootPath);
       return data;
     }
     options.type = 'entity';
@@ -930,6 +930,9 @@ class Schema {
     options.type = options.relation === 'hasManyThrough' ? 'through' : 'set';
     var collection = this.classes()[options.type];
     if (data instanceof collection) {
+      data.collector(options.collector);
+      data.parent(options.parent);
+      data.rootPath(options.rootPath);
       return data;
     }
     return options.model.create(data ? data : [], options);
