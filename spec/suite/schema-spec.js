@@ -8,33 +8,12 @@ import Tag from '../fixture/model/tag';
 describe("Schema", function() {
 
   beforeEach(function() {
-
-    this.schema = new Schema({ model: Image });
-
-    this.schema.set('id', { type: 'serial' });
-    this.schema.set('gallery_id', { type: 'integer' });
-    this.schema.set('name', { type: 'string', default: 'Enter The Name Here' });
-    this.schema.set('title', { type: 'string', default: 'Enter The Title Here', length: 50 });
-
-    this.schema.bind('gallery', {
-      relation: 'belongsTo',
-      to: Gallery,
-      keys: { gallery_id: 'id' }
-    });
-
-    this.schema.bind('images_tags', {
-      relation: 'hasMany',
-      to: ImageTag,
-      keys: { id: 'image_id' }
-    });
-
-    this.schema.bind('tags', {
-      relation: 'hasManyThrough',
-      through: 'images_tags',
-      using: 'tag'
-    });
-
+    this.schema = Image.schema();
   });
+
+  afterEach(function() {
+    Image.reset();
+  })
 
   describe(".constructor()", function() {
 
@@ -167,7 +146,7 @@ describe("Schema", function() {
 
       var names = this.schema.names();
       names.sort();
-      expect(names).toEqual(['gallery_id', 'id', 'name', 'title']);
+      expect(names).toEqual(['gallery_id', 'id', 'name', 'score', 'title']);
 
     });
 
@@ -195,7 +174,6 @@ describe("Schema", function() {
         {
           name: {
             type: 'string',
-            default: 'Enter The Name Here',
             array: false,
             null: true
           }
@@ -203,10 +181,16 @@ describe("Schema", function() {
         {
           title: {
             type: 'string',
-            default: 'Enter The Title Here',
             length: 50,
             array: false,
             null: true
+          }
+        },
+        {
+          score: {
+            array: false,
+            null: true,
+            type: 'float'
           }
         }
       ]);
@@ -218,15 +202,17 @@ describe("Schema", function() {
       expect(this.schema.fields('default')).toEqual([
         { id: undefined },
         { gallery_id: undefined },
-        { name: 'Enter The Name Here' },
-        { title: 'Enter The Title Here' }
+        { name: undefined },
+        { title: undefined },
+        { score: undefined }
       ]);
 
       expect(this.schema.fields('type')).toEqual([
         { id: 'serial' },
         { gallery_id: 'integer' },
         { name: 'string' },
-        { title: 'string' }
+        { title: 'string' },
+        { score: 'float' }
       ]);
 
     });
@@ -234,6 +220,9 @@ describe("Schema", function() {
   });
 
   it("returns defaults", function() {
+
+    this.schema.set('name', { type: 'string', default: 'Enter The Name Here' });
+    this.schema.set('title', { type: 'string', default: 'Enter The Title Here', length: 50 });
 
     expect(this.schema.defaults()).toEqual({
       name: 'Enter The Name Here',
@@ -326,6 +315,34 @@ describe("Schema", function() {
         array: false,
         null: true
       });
+
+    });
+
+    it("sets nested fields", function() {
+
+      var schema = new Schema();
+      schema.set('preferences', { type: 'object' });
+      schema.set('preferences.blacklist', { type: 'object' });
+      schema.set('preferences.blacklist.projects', { type: 'id', array: true, 'default': [] });
+      schema.set('preferences.mail', { type: 'object' });
+      schema.set('preferences.mail.enabled', { type: 'boolean', 'default': true });
+      schema.set('preferences.mail.frequency', { type: 'integer', 'default': 24 });
+
+      var document = schema.cast(undefined, {});
+      expect(document.data()).toEqual({
+        preferences: {
+          blacklist: {
+            projects: []
+          },
+          mail: {
+            enabled: true,
+            frequency: 24
+          }
+        }
+      });
+
+      document.set('preferences.mail.enabled', 0);
+      expect(document.get('preferences.mail.enabled')).toBe(false);
 
     });
 
@@ -614,8 +631,6 @@ describe("Schema", function() {
         }
       };
 
-      this.schema = Image.schema();
-
       this.schema.formatter('cast', 'id',        handlers['integer']);
       this.schema.formatter('cast', 'serial',    handlers['integer']);
       this.schema.formatter('cast', 'integer',   handlers['integer']);
@@ -627,12 +642,6 @@ describe("Schema", function() {
       this.schema.formatter('cast', null,        handlers[null]);
       this.schema.formatter('cast', 'string',    handlers['string']);
       this.schema.formatter('cast', '_default_', handlers['string']);
-
-    });
-
-    afterEach(function() {
-
-      Image.reset();
 
     });
 

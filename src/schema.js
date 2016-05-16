@@ -3,6 +3,7 @@ import { extend, merge } from 'extend-merge';
 import { expand, flatten } from 'expand-flatten';
 import intersect from 'intersect';
 import dateformat from 'date-format';
+import Document from './document';
 import Conventions from './conventions';
 import Relationship from './relationship';
 import BelongsTo from './relationship/belongs-to';
@@ -89,7 +90,7 @@ class Schema {
     var defaults = {
       connection: undefined,
       source: undefined,
-      model: undefined,
+      model: Document,
       locked: true,
       fields: [],
       meta: {},
@@ -215,6 +216,12 @@ class Schema {
     this.formatter('array', 'boolean',   handlers['array']['boolean']);
     this.formatter('array', 'null',      handlers['array']['null']);
     this.formatter('array', '_default_', handlers['array']['string']);
+
+    this.formatter('cast', 'integer',   handlers['array']['integer']);
+    this.formatter('cast', 'float',     handlers['array']['float']);
+    this.formatter('cast', 'decimal',   handlers['array']['float']);
+    this.formatter('cast', 'boolean',   handlers['array']['boolean']);
+    this.formatter('cast', 'null',      handlers['array']['null']);
   }
 
   /**
@@ -291,7 +298,7 @@ class Schema {
   }
 
   /**
-   * Gets/Sets the meta data associated to a field is some exists.
+   * Gets/Sets the meta data associated to a field if some exists.
    *
    * @param  mixed name The field name. If `undefined` returns all meta. If it's an Object,
    *                    set it as the meta datas.
@@ -839,7 +846,12 @@ class Schema {
     };
 
     options = extend({}, defaults, options);
-    options.model = options.model ? options.model : this._model;
+
+    options.model = options.model ? options.model : this.model();
+
+    if (options.model === Document) {
+      options.schema = this;
+    }
 
     var name;
 
@@ -852,6 +864,7 @@ class Schema {
     if (!name) {
       return this._cast(data, options);
     }
+
     if (this._relations[name]) {
       options = extend({}, this._relations[name], options);
       if (options.embedded) {
@@ -860,11 +873,8 @@ class Schema {
       if (options.relation !== 'hasManyThrough') {
         options.model = options.to;
       }
-      if (options.array) {
-        if (field) {
-          return this._castArray(name, data, options);
-        }
-        options.type = 'entity';
+      if (options.array && field) {
+        return this._castArray(name, data, options);
       }
       return this._cast(data, options);
     }
@@ -873,15 +883,20 @@ class Schema {
       if (data === null && options['null']) {
         return null;
       }
-      if (options.array) {
-        if (field) {
-          return this._castArray(name, data, options);
-        }
-        options.type = 'entity';
+      if (options.array && field) {
+        return this._castArray(name, data, options);
       }
       return this.format('cast', name, data);
     }
-
+    if (this.locked()) {
+      throw new Error("Missing schema definition for field: `" + name + "`.");
+    }
+    if (Array.isArray(data)) {
+      return this._castArray(name, data, options);
+    }
+    if (data !== null && typeof data === 'object' && data.constructor === Object) {
+      return this._cast(data, options);
+    }
     return data;
   }
 
@@ -896,6 +911,7 @@ class Schema {
     if (data instanceof options.model) {
       return data;
     }
+    options.type = 'entity';
     return options.model.create(data ? data : {}, options);
   }
 
@@ -908,6 +924,7 @@ class Schema {
    * @return mixed             The casted data.
    */
   _castArray(name, data, options) {
+    options.type = options.relation === 'hasManyThrough' ? 'through' : 'set';
     var collection = this.classes()[options.type];
     if (data instanceof collection) {
       return data;

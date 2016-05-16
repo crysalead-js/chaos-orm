@@ -60,6 +60,15 @@ class Collection {
     this._parent = config.parent;
 
     /**
+     * Cached value indicating whether or not this instance exists somehow. If this instance has been loaded
+     * from the database, or has been created and subsequently saved this value should be automatically
+     * setted to `true`.
+     *
+     * @var Boolean
+     */
+    this._exists = config.exists;
+
+    /**
      * If this `Collection` instance has a parent document (see `$_parent`), this value indicates
      * the key name of the parent document that contains it.
      *
@@ -92,7 +101,7 @@ class Collection {
     var i, len = config.data.length;
 
     for (i = 0; i < len; i++) {
-      this._set(undefined, config.data[i], { exists: config.exists });
+      this._set(undefined, config.data[i]);
     }
 
     /**
@@ -133,6 +142,19 @@ class Collection {
     }
     this._parent = parent;
     return this;
+  }
+
+  /**
+   * Indicating whether or not this instance has been persisted somehow.
+   *
+   * @return Boolean Retruns `true` if the record was read from or saved to the data-source, `false` otherwise.
+   */
+  exists() {
+    if (arguments.length) {
+      this._exists = exists;
+      return this;
+    }
+    return this._exists;
   }
 
   /**
@@ -246,6 +268,16 @@ class Collection {
    * @return Boolean        Result.
    */
   isset(offset) {
+    var keys = Array.isArray(offset) ? name : dotpath(offset);
+    if (!keys.length) {
+      return;
+    }
+
+    var name = keys.shift();
+    if (keys.length) {
+      var value = this.get(name);
+      return typeof value.isset === 'function' ? value.isset(keys) : false;
+    }
     return this._data[offset] !== undefined;
   }
 
@@ -255,6 +287,19 @@ class Collection {
    * @param integer $offset The offset to unset.
    */
   unset(offset) {
+    var keys = Array.isArray(offset) ? name : dotpath(offset);
+    if (!keys.length) {
+      return;
+    }
+
+    var name = keys.shift();
+    if (keys.length) {
+      var value = this.get(name);
+      if (typeof value.unset === 'function') {
+        value.unset(keys);
+      }
+      return;
+    }
     this._data.splice(offset, 1);
   }
 
@@ -384,30 +429,27 @@ class Collection {
    *
    * @param  mixed   data    An array or an entity instance to set.
    * @param  integer offset  The offset. If offset is empty data will simply be appended to the set.
-   * @param  Object  options Any additional options to pass to the `Entity`'s constructor.
    * @return mixed           Returns the inserted instance.
    */
-  _set(offset, data, options) {
+  _set(offset, data) {
     var keys = Array.isArray(offset) ? offset : (offset !== undefined ? dotpath(offset) : []);
-
-    var defaults = { defaults: false };
-    options = extend({}, defaults, {
-      collector: this.collector(),
-      model: this.model(),
-      rootPath: this._rootPath,
-      parent: this
-    }, options);
     offset = keys.shift();
 
     if (keys.length) {
       if (!this._data[offset]) {
         throw new Error("Missing index `" + offset + "` for collection.");
       }
-      return this._data[offset].set(keys, data, options);
+      this._data[offset].set(keys, data);
     }
 
     if (this.model()) {
-      data = this.model().schema().cast(undefined, data, options);
+      data = this.model().schema().cast(undefined, data, {
+        collector: this.collector(),
+        parent: this,
+        rootPath: this.rootPath(),
+        exists: this.exists(),
+        defaults: true
+      });
     }
 
     if (offset !== undefined) {

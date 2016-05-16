@@ -216,6 +216,19 @@ describe("Collection", function() {
 
     });
 
+    it("checks if a value has been setted using a dotted notation", function() {
+
+      var collection = MyModel.create([
+        { 'name': 'hello' },
+        { 'name': 'world', 'item': { a: 'b'} }
+      ], {type: 'set'});
+
+      expect(collection.isset('0.name')).toBe(true);
+      expect(collection.isset('1.name')).toBe(true);
+      expect(collection.isset('1.item.a')).toBe(true);
+
+    });
+
   });
 
   describe(".push()", function() {
@@ -304,6 +317,20 @@ describe("Collection", function() {
       expect(collection.count()).toBe(3);
       expect(collection.data()).toEqual([5, 1, 2]);
       expect(collection.keys()).toEqual([0, 1, 2]);
+
+    });
+
+    it("unsets items using a dotted notation", function() {
+
+      var collection = MyModel.create([
+        { 'name': 'hello' },
+        { 'name': 'world' }
+      ], {type: 'set'});
+
+      collection.unset('1.name');
+
+      expect(collection.isset('0.name')).toBe(true);
+      expect(collection.isset('1.name')).toBe(false);
 
     });
 

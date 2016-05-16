@@ -4,6 +4,7 @@ import Collection from './collection/collection';
 import Through from './collection/through';
 import Source from './source';
 import Schema from './schema';
+import Document from './document';
 import Model from './model';
 import Relationship from './relationship';
 import BelongsTo from './relationship/belongs-to';
@@ -15,6 +16,7 @@ import HasManyThrough from './relationship/has-many-through';
  * Populates circular dependencies below since they are not supported by Babel yet.
  */
 Model.schema(Schema);
+Document.classes({ schema: Schema });
 
 export {
   Conventions,
@@ -24,6 +26,7 @@ export {
   Source,
   Schema,
   Model,
+  Document,
   Relationship,
   BelongsTo,
   HasOne,

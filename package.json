@@ -24,6 +24,7 @@
     "camel-case": "^1.2.2",
     "chaos-validator": "^1.0",
     "co": "^4.6.0",
+    "component-emitter": "^1.2.1",
     "date-format": "0.0.2",
     "dotpath-parser": "0.0.2",
     "expand-flatten": "^1.0.0",

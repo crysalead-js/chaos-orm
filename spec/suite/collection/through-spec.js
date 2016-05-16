@@ -34,7 +34,7 @@ describe("Through", function() {
     for (var i = 0; i < 5; i++) {
       image_tag = new MyImageTag();
       tag = new MyTag();
-      tag.set('name', i);
+      tag.set('name', String(i));
       image_tag.set('tag', tag);
       this.images_tags.push(image_tag);
     }
@@ -186,7 +186,7 @@ describe("Through", function() {
     it("reduces a collection down to a single value", function() {
 
       var filter = function(memo, item) {
-        return memo + item.get('name');
+        return memo + parseInt(item.get('name'));
       };
 
       expect(this.through.reduce(filter, 0)).toBe(10);

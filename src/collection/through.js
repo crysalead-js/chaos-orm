@@ -82,6 +82,19 @@ class Through {
   }
 
   /**
+   * Indicating whether or not this instance has been persisted somehow.
+   *
+   * @return Boolean Retruns `true` if the record was read from or saved to the data-source, `false` otherwise.
+   */
+  exists(exists) {
+    if (!arguments.length) {
+      return this._parent.get(this._through).exists();
+    }
+    this._parent.get(this._through).exists(exists);
+    return this;
+  }
+
+  /**
    * Gets the base rootPath.
    *
    * @return String
