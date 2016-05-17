@@ -686,7 +686,6 @@ class Document {
     var result = {};
     var rootPath = options.rootPath;
     for (var field in this._data) {
-      var value = this._data[field];
       if (schema.hasRelation(field)) {
         var rel = schema.relation(field);
         if (embed[field] === undefined && !rel.embedded()) {
@@ -694,6 +693,7 @@ class Document {
         }
         options.embed = embed[field];
       }
+      var value = this._data[field];
       if (value instanceof Document) {
         options.rootPath = value.rootPath();
         result[field] = value.to(format, options);
