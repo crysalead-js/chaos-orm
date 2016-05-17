@@ -10,6 +10,11 @@ describe("BelongsTo", function() {
     this.key = this.conventions.apply('key');
   });
 
+  afterEach(function() {
+    Gallery.reset();
+    Image.reset();
+  });
+
   describe(".constructor()", function() {
 
     it("creates a belongsTo relationship", function() {

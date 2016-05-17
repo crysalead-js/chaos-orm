@@ -2,6 +2,7 @@ import co from 'co';
 import { Schema, Model, HasOne, Collection, Through } from '../../src';
 
 import Gallery from '../fixture/model/gallery';
+import GalleryDetail from '../fixture/model/gallery-detail';
 import Image from '../fixture/model/image';
 import ImageTag from '../fixture/model/image-tag';
 import Tag from '../fixture/model/tag';
@@ -464,6 +465,35 @@ describe("Entity", function() {
         expect(image.exists()).toBe(false);
         done();
       }.bind(this));
+
+    });
+
+  });
+
+  describe(".hierarchy()", function() {
+
+    it("returns all included relations and sub-relations with non empty data", function() {
+
+      var gallery = Gallery.create({ name: 'Gallery1' });
+
+      gallery.set('detail', { description: 'Tech' });
+
+      var image = Image.create({
+          title: 'Amiga 1200'
+      });
+
+      image.get('tags').push({ name: 'Computer' });
+      image.get('tags').push({ name: 'Science' });
+
+      image.set('gallery', gallery);
+
+      gallery.get('images').push(image);
+
+      expect(gallery.hierarchy()).toEqual([
+          'detail',
+          'images_tags.tag',
+          'images.tags'
+      ]);
 
     });
 

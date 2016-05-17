@@ -799,9 +799,6 @@ class Schema {
     if (!embed) {
       return {};
     }
-    if (embed === true) {
-      embed = this.relations();
-    }
 
     var i, len, keys, relations = {}
 

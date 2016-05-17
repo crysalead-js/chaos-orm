@@ -610,6 +610,48 @@ class Document {
   }
 
   /**
+   * Returns all included relations accessible through this entity.
+   *
+   * @param  String prefix The parent relation path.
+   * @param  Map    ignore The already processed entities to ignore (address circular dependencies).
+   * @return Array         The included relations.
+   */
+  hierarchy(prefix, ignore)
+  {
+      prefix = prefix || '';
+      ignore = ignore || new Map();
+
+      if (ignore.has(this)) {
+          return false;
+      } else {
+          ignore.set(this, true);
+      }
+
+      var tree = this.model().relations();
+      var result = [];
+
+      for (var field of tree) {
+        if (!this.isset(field)) {
+            continue;
+        }
+        var rel = this.model().relation(field);
+        if (rel.type() === 'hasManyThrough') {
+            result.push(prefix ? prefix + '.' + field : field);
+            continue;
+        }
+        var childs = this.get(field).hierarchy(field, ignore);
+        if (childs.length) {
+          for (var value of childs) {
+            result.push(value);
+          }
+        } else if (childs !== false) {
+          result.push(prefix ? prefix + '.' + field : field);
+        }
+      }
+      return result;
+  }
+
+  /**
    * Returns a string representation of the instance.
    *
    * @return String Returns the generated title of the object.
@@ -634,6 +676,10 @@ class Document {
       rootPath: undefined
     };
     options = extend({}, defaults, options);
+
+    if (options.embed === true) {
+      options.embed = this.hierarchy();
+    }
 
     var schema = this.schema();
     var embed = schema.treeify(options.embed);

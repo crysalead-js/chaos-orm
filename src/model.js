@@ -470,15 +470,21 @@ class Model extends Document{
       var defaults = { embed: true };
       options = extend({}, defaults, options);
 
+      if (options.embed === true) {
+        options.embed = this.hierarchy();
+      }
+
       var schema = this.model().schema();
       var embed = schema.treeify(options.embed);
       var success = true;
 
       for (var name in embed) {
-        var value = embed[name];
-        var rel = schema.relation(name);
-        var ok = yield rel.validate(this, extend({}, options, { embed: value }));
-        var success = success && ok;
+        if (this.isset(name)) {
+          var value = embed[name];
+          var rel = schema.relation(name);
+          var ok = yield rel.validate(this, extend({}, options, { embed: value }));
+          var success = success && ok;
+        }
       }
       return success;
     }.bind(this));
@@ -492,16 +498,19 @@ class Model extends Document{
   errors(options) {
     var defaults = { embed: true };
     options = extend({}, defaults, options);
+
+    if (options.embed === true) {
+      options.embed = this.hierarchy();
+    }
+
     var schema = this.model().schema();
     var embed = schema.treeify(options.embed);
     var errors = extend({}, this._errors);
 
     for (var name in embed) {
-      var value = embed[name];
-      var relation = schema.relation(name);
-      var fieldname = relation.name();
-      if (this._data[fieldname]) {
-        errors[fieldname] = this._data[fieldname].errors(extend({}, options, { embed: value }));
+      if (this.isset(name)) {
+        var value = embed[name];
+        errors[name] = this.get(name).errors(extend({}, options, { embed: value }));
       }
     }
     return errors;
