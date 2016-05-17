@@ -66,6 +66,17 @@ describe("Document", function() {
 
   });
 
+  describe(".model()", function() {
+
+    it("returns the model class name", function() {
+
+      var document = new Document();
+      expect(document.model()).toBe(Document);
+
+    });
+
+  });
+
   describe(".get()/.set()", function() {
 
     it("sets values", function() {

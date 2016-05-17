@@ -40,6 +40,17 @@ describe("Entity", function() {
 
   });
 
+  describe(".model()", function() {
+
+    it("returns the model class name", function() {
+
+      var entity = new MyModel();
+      expect(entity.model()).toBe(MyModel);
+
+    });
+
+  });
+
   describe(".id()", function() {
 
     it("returns the entity's primary key value", function() {
