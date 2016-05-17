@@ -11,6 +11,12 @@ describe("HasMany", function() {
     this.key = this.conventions.apply('key');
   });
 
+  afterEach(function() {
+    Image.reset();
+    ImageTag.reset();
+    Gallery.reset();
+  });
+
   describe(".constructor()", function() {
 
     it("creates a hasMany relationship", function() {

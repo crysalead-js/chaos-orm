@@ -10,6 +10,11 @@ describe("HasOne", function() {
     this.key = this.conventions.apply('key');
   });
 
+  afterEach(function() {
+    Gallery.reset();
+    GalleryDetail.reset();
+  });
+
   describe(".constructor()", function() {
 
     it("creates a belongsTo relationship", function() {

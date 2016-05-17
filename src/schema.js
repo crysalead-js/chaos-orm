@@ -637,9 +637,14 @@ class Schema {
       this._relations[config.through].junction = true;
       config.using = this._conventions.apply('single', name);
       config.type = 'through';
+      this._relations[config.through].junction = true;
     }
 
     this._relations[name] = config;
+    if (this._relations[name].junction !== undefined) {
+      this._relations[name].junction = this._relations[name].junction;
+    }
+
     this._relationships[name] = undefined;
     return true;
   }
