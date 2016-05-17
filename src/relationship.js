@@ -27,6 +27,7 @@ class Relationship {
    *                      - `'fields'`      _mixed_  : An array of the subset of fields that should be selected
    *                                                   from the related object(s) by default. If set to `true` (the default), all
    *                                                   fields are selected.
+   *                      - `'embedded'`    _boolean_: Indicates if the relation is embedded or not.
    *                      - `'conventions'` _object_ : The naming conventions instance to use.
    */
   constructor(config) {
@@ -37,6 +38,7 @@ class Relationship {
       to: undefined,
       link: this.constructor.LINK_KEY,
       fields: true,
+      embedded: false,
       conventions: undefined
     };
 
@@ -108,6 +110,13 @@ class Relationship {
      * @var mixed
      */
     this._fields = config.fields;
+
+    /**
+     * The embedded mode.
+     *
+     * @var boolean
+     */
+    this._embedded = config.embedded;
 
     /**
      * The counterpart relation.
@@ -228,6 +237,15 @@ class Relationship {
    */
   fields() {
     return this._fields;
+  }
+
+  /**
+   * Returns the embedded value.
+   *
+   * @return boolean
+   */
+  embedded() {
+    return this._embedded;
   }
 
   /**

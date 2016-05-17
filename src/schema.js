@@ -691,7 +691,7 @@ class Schema {
    * Returns an array of external relation names.
    *
    * @param  Boolean embedded Include or not embedded relations.
-   * @return Array             Returns an array of relation names.
+   * @return Array            Returns an array of relation names.
    */
   relations(embedded) {
     var result = [];

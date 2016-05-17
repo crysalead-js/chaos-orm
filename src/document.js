@@ -688,7 +688,8 @@ class Document {
     for (var field in this._data) {
       var value = this._data[field];
       if (schema.hasRelation(field)) {
-        if (embed[field] === undefined) {
+        var rel = schema.relation(field);
+        if (embed[field] === undefined && !rel.embedded()) {
           continue;
         }
         options.embed = embed[field];
