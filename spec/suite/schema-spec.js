@@ -514,8 +514,8 @@ describe("Schema", function() {
         model: MyModel
       });
 
-      expect(schema.relations()).toEqual(['embedded']);
-      expect(schema.relations(false)).toEqual([]);
+      expect(schema.relations()).toEqual([]);
+      expect(schema.relations(true)).toEqual(['embedded']);
 
     });
 

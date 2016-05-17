@@ -690,7 +690,7 @@ class Schema {
    */
   relations(embedded) {
     var result = [];
-    embedded = embedded === undefined ? true : false;
+    embedded = embedded === undefined ? false : !!embedded;
     for (var field in this._relations) {
       if (!this._relations[field].embedded || embedded) {
         result.push(field);
