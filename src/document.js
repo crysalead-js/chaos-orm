@@ -145,7 +145,6 @@ class Document {
    */
   constructor(config) {
     var defaults = {
-      conventions: undefined,
       schema: undefined,
       validator: undefined,
       collector: undefined,
@@ -158,25 +157,41 @@ class Document {
     config = extend({}, defaults, config);
 
     /**
-     * The conventions instance.
-     *
-     * @var Object
-     */
-    this._conventions = config.conventions;
-
-    /**
      * The collector instance.
      *
      * @var Object
      */
-    this._collector = config.collector;
+    this.collector(config.collector);
+
+    /**
+     * If this record is chained off of another, contains the origin object.
+     *
+     * @var Object
+     */
+    this.parent(config.parent);
+
+    /**
+     * Cached value indicating whether or not this instance exists somehow. If this instance has been loaded
+     * from the database, or has been created and subsequently saved this value should be automatically
+     * setted to `true`.
+     *
+     * @var Boolean
+     */
+    this.exists(config.exists);
+
+    /**
+     * If this instance has a parent, this value indicates the parent field path.
+     *
+     * @var String
+     */
+    this.rootPath(config.rootPath);
 
     /**
      * The schema instance.
      *
      * @var Object
      */
-    this._schema = config.schema;
+    this.schema(config.schema);
 
     /**
      * Contains the values of updated fields. These values will be persisted to the backend data
@@ -200,29 +215,6 @@ class Document {
      * @var array
      */
     this._errors = {};
-
-    /**
-     * If this record is chained off of another, contains the origin object.
-     *
-     * @var Object
-     */
-    this._parent = config.parent;
-
-    /**
-     * Cached value indicating whether or not this instance exists somehow. If this instance has been loaded
-     * from the database, or has been created and subsequently saved this value should be automatically
-     * setted to `true`.
-     *
-     * @var Boolean
-     */
-    this._exists = config.exists;
-
-    /**
-     * If this instance has a parent, this value indicates the parent field path.
-     *
-     * @var String
-     */
-    this._rootPath = config.rootPath;
 
     if (!this._schema || this.constructor !== Document) {
       this._schema = this.constructor.schema();
@@ -321,7 +313,7 @@ class Document {
    *
    * @return Boolean Retruns `true` if the record was read from or saved to the data-source, `false` otherwise.
    */
-  exists() {
+  exists(exists) {
     if (arguments.length) {
       this._exists = exists;
       return this;
