@@ -13,7 +13,7 @@ class Relationship {
    * @param Object config The relationship's configuration, which defines how the two models in
    *                      question are bound. The available options are:
    *                      - `'name'`        _string_ : The field name used for accessing the related data.
-   *                                                   For example, in the case of `Post` hasMany `Comment`, the name defaults to `'comments'`.
+   *                                                   For example, in the case of `Post` hasMany `Comment`, the name could be `'comments'`.
    *                      - `'keys'`        _mixed_  : Mathing keys definition, where the key is the key in the originating model,
    *                                                   and the value is the key in the target model (i.e. `['fromId' => 'toId']`).
    *                      - `'from'`        _string_ : The fully namespaced class name this relationship originates.
@@ -68,7 +68,7 @@ class Relationship {
     }
 
     /**
-     * The field name used for accessing the related data.
+     * The relation/field name.
      *
      * @var String
      */
@@ -108,6 +108,13 @@ class Relationship {
      * @var mixed
      */
     this._fields = config.fields;
+
+    /**
+     * The counterpart relation.
+     *
+     * @var String
+     */
+    this._counterpart = undefined;
 
     /**
      * The type of relationship.
@@ -152,6 +159,37 @@ class Relationship {
    */
   to() {
     return this._to;
+  }
+
+  /**
+   * Returns the counterpart relation.
+   *
+   * @return object
+   */
+  counterpart() {
+      if (this._counterpart) {
+          return this._counterpart;
+      }
+
+      var rel;
+      var to = this.to();
+
+      var from = this.from();
+      var relations = to.relations();
+      var result = [];
+
+      for(var relation of relations) {
+        rel = to.relation(relation);
+        if (rel.to() === this.from()) {
+          result.push(rel);
+        }
+      }
+      if (result.length === 1) {
+        return this._counterpart = result[0];
+      } else if (result.length > 1) {
+          throw new Error('Ambiguous ' + this.type() + ' counterpart relationship for `' + from.name + '`. Apply the Single Table Inheritance pattern to get unique models.');
+      }
+      throw new Error('Missing ' + this.type() + ' counterpart relationship for `' + from.name + '`. Add one in the `' + to.name + '` model.');
   }
 
   /**
@@ -360,7 +398,7 @@ class Relationship {
    * @param  mixed  $collection An collection to extract index from.
    * @param  String $name       The field name to build index for.
    * @return Object             An array of indexes where keys are `$name` values and
-   *                            values the correcponding index in the collection.
+   *                            values the corresponding index in the collection.
    */
   _index(collection, name) {
     var indexes = {}, value;
