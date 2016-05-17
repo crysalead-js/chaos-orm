@@ -869,6 +869,9 @@ class Schema {
       }
       if (options.relation !== 'hasManyThrough') {
         options.model = options.to;
+      } else {
+        var through = this.relation(name);
+        options.model = through.to();
       }
       if (options.array && field) {
         return this._castArray(name, data, options);
