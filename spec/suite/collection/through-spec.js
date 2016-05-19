@@ -24,9 +24,6 @@ describe("Through", function() {
 
   beforeEach(function() {
 
-    MyImageTag.schema().locked(false);
-    MyTag.schema().locked(false);
-
     var image_tag, tag;
 
     this.images_tags = [];
@@ -48,11 +45,16 @@ describe("Through", function() {
 
     this.through = new Through({
       parent: this.image,
-      model: MyTag,
+      schema: MyTag.definition(),
       through: 'images_tags',
       using: 'tag'
     });
 
+  });
+
+  afterEach(function() {
+    MyImageTag.reset();
+    MyTag.reset();
   });
 
   describe(".parent()", function() {
@@ -83,11 +85,11 @@ describe("Through", function() {
 
   });
 
-  describe(".model()", function() {
+  describe(".schema()", function() {
 
-    it("returns the model", function() {
+    it("returns the schema", function() {
 
-      expect(this.through.model()).toBe(MyTag);
+      expect(this.through.schema()).toBe(MyTag.definition());
 
     });
 
@@ -355,12 +357,10 @@ describe("Through", function() {
 
   describe(".embed()", function() {
 
-    it("deletages the call up to the schema instance", function() {
+    it("delegates the call up to the schema instance", function() {
 
-      var schema = new Schema();
+      var schema = MyTag.definition();
       var stub = spyOn(schema, 'embed');
-
-      MyTag.config({ schema: schema });
 
       this.through.embed(['relation1.relation2']);
       expect(stub).toHaveBeenCalledWith(this.through, ['relation1.relation2']);

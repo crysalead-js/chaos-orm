@@ -91,7 +91,7 @@ describe("HasMany", function() {
 
     it("embeds a hasMany relationship", function(done) {
 
-      var hasMany = Gallery.relation('images');
+      var hasMany = Gallery.definition().relation('images');
 
       var galleries = Gallery.create([
         { id: 1, name: 'Foo Gallery' },
@@ -119,7 +119,7 @@ describe("HasMany", function() {
 
     it("embeds a hasMany relationship using object hydration", function(done) {
 
-      var hasMany = Gallery.relation('images');
+      var hasMany = Gallery.definition().relation('images');
 
       var galleries = Gallery.create([
         { id: 1, name: 'Foo Gallery' },
@@ -153,7 +153,7 @@ describe("HasMany", function() {
 
     it("bails out if no relation data hasn't been setted", function(done) {
 
-      var hasMany = Gallery.relation('images');
+      var hasMany = Gallery.definition().relation('images');
       var gallery = Gallery.create({ id: 1, name: 'Foo Gallery' },  { exists: true });
       hasMany.save(gallery).then(function() {
         expect(gallery.isset('images')).toBe(false);
@@ -168,7 +168,7 @@ describe("HasMany", function() {
         return Promise.resolve(Image.create([], { type: 'set' }));
       });
 
-      var hasMany = Gallery.relation('images');
+      var hasMany = Gallery.definition().relation('images');
 
       var gallery = Gallery.create({ id: 1, name: 'Foo Gallery' }, { exists: true });
       gallery.set('images', [{ name: 'Foo Image' }]);
@@ -195,7 +195,7 @@ describe("HasMany", function() {
         return Promise.resolve(Image.create([toUnset, toKeep], { type: 'set' }));
       });
 
-      var hasMany = Gallery.relation('images');
+      var hasMany = Gallery.definition().relation('images');
 
       var gallery = Gallery.create({ id: 1, name: 'Foo Gallery' }, { exists: true });
       gallery.set('images', [{ title: 'Amiga 1200' }, toKeep]);
@@ -230,7 +230,7 @@ describe("HasMany", function() {
         return Promise.resolve(ImageTag.create([toDelete, toKeep], { type: 'set' }));
       });
 
-      var hasMany = Image.relation('images_tags');
+      var hasMany = Image.definition().relation('images_tags');
 
       var image = Image.create({ id: 4, gallery_id: 2, title: 'Silicon Valley' }, { exists: true });
       image.set('images_tags', [{ tag_id: 1 }, toKeep]);
@@ -240,7 +240,7 @@ describe("HasMany", function() {
         return Promise.resolve(image);
       });
 
-      var schema = ImageTag.schema();
+      var schema = ImageTag.definition();
       spyOn(toKeep, 'save').and.returnValue(Promise.resolve(toKeep));
       spyOn(schema, 'delete').and.returnValue(Promise.resolve());
 

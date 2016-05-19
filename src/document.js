@@ -25,6 +25,39 @@ class Document {
   }
 
   /**
+   * Gets/sets the conventions object to which this class is bound.
+   *
+   * @param  Object conventions The conventions instance to set or none to get it.
+   * @return mixed              The conventions instance.
+   */
+  static conventions(conventions) {
+    if (arguments.length) {
+      this._conventions = conventions;
+      return this;
+    }
+    if (!this._conventions) {
+      conventions = this.classes().conventions;
+      this._conventions = new conventions();
+    }
+    return this._conventions;
+  }
+
+  /**
+   * Gets the Document schema definition.
+   *
+   * @return Object The schema instance.
+   */
+  static definition() {
+    var schema = new this._definition({
+      classes: extend({}, this.classes(), { entity: Document }),
+      conventions: this.conventions(),
+      model: Document
+    });
+    schema.locked(false);
+    return schema;
+  }
+
+  /**
    * Instantiates a new record or document object, initialized with any data passed in. For example:
    *
    * ```php
@@ -60,9 +93,9 @@ class Document {
   static create(data, options)
   {
     var defaults = {
-      type:  'entity',
+      type: 'entity',
       exists: false,
-      model:  this
+      model: this
     };
 
     options = extend({}, defaults, options);
@@ -73,7 +106,9 @@ class Document {
 
     if (type === 'entity') {
       classname = options.model;
+      options.schema = options.model === Document ? options.schema : undefined;
     } else {
+      options.schema = options.model.definition();
       classname = this._classes[type];
     }
 
@@ -82,49 +117,24 @@ class Document {
   }
 
   /**
-   * Gets the Document default schema instance.
+   * Gets/sets the validator instance.
    *
-   * @return Object The schema instance.
+   * @param  Object validator The validator instance to set or none to get it.
+   * @return mixed            The validator instance on get.
    */
-  static schema() {
-    if (this._schema) {
-      return this._schema;
+  static validator(validator) {
+    if (arguments.length) {
+      this._validators[this.name] = validator;
+      return;
     }
-    var schema = this.classes().schema;
-    this._schema = new schema({
-      classes: extend({}, this.classes(), { entity: Document }),
-      model: Document
-    });
-    this._schema.locked(false);
-    return this._schema;
-  }
 
-  /**
-   * Returns a relationship instance (shortcut).
-   *
-   * @param  String name The name of a relation.
-   * @return Object      Returns a relationship intance or nothing if it doesn't exists.
-   */
-  static relation(name) {
-    return this.schema().relation(name);
-  }
-  /**
-   * Returns a relationship instance (shortcut).
-   *
-   * @param  String  name The name of a relation.
-   * @return Boolean      Returns `true` if the relation exists, `false` otherwise.
-   */
-  static hasRelation(name) {
-    return this.schema().hasRelation(name);
-  }
-  /**
-   * Returns an array of relation names (shortcut).
-   *
-   * @param  String type A relation type name.
-   * @return Array       Returns an array of relation names.
-   */
-  static relations(type) {
-    return this.schema().relations(type);
+    if (this._validators[this.name]) {
+      return this._validators[this.name];
+    }
+    var classname = this.classes().validator;
+    var validator = this._validators[this.name] = new classname();
+    this._rules(validator);
+    return validator;
   }
 
   /***************************
@@ -186,13 +196,6 @@ class Document {
     this.rootPath(config.rootPath);
 
     /**
-     * The schema instance.
-     *
-     * @var Object
-     */
-    this._schema = config.schema;
-
-    /**
      * Contains the values of updated fields. These values will be persisted to the backend data
      * store when the document is saved.
      *
@@ -215,12 +218,10 @@ class Document {
      */
     this._errors = {};
 
-    if (!this._schema || this.constructor !== Document) {
-      this._schema = this.constructor.schema();
-    }
+    this.schema(config.schema);
 
     if (config.defaults && !config.rootPath) {
-      config.data = extend(this._schema.defaults(), config.data);
+      config.data = extend(this.schema().defaults(), config.data);
     }
 
     this.set(config.data);
@@ -237,21 +238,20 @@ class Document {
   }
 
   /**
-   * Gets/sets the conventions object to which this model is bound.
+   * Gets/sets the schema instance.
    *
-   * @param  Object conventions The conventions instance to set or none to get it.
-   * @return mixed              The conventions instance.
+   * @param  Object schema The schema instance to set or none to get it.
+   * @return Object        The schema instance or `this` on set.
    */
-  static conventions(conventions) {
+  schema(schema) {
     if (arguments.length) {
-      this._conventions = conventions;
+       this._schema = schema;
       return this;
     }
-    if (!this._conventions) {
-      conventions = this.classes().conventions;
-      this._conventions = new conventions();
+    if (!this._schema) {
+      this._schema = this.constructor.definition();
     }
-    return this._conventions;
+    return this._schema;
   }
 
   /**
@@ -380,16 +380,13 @@ class Document {
 
     if (keys.length) {
       if (this.get(name) === undefined) {
-        this._set(name, Document.create({}, {
-          collector: this.collector(),
-          parent: this,
-          schema: this._schema,
-          rootPath: this.rootPath() ? this.rootPath() + '.' + name : name,
-          defaults: true,
-          exists: this.exists()
-        }));
+        this._set(name, {});
       }
-      this._data[name].set(keys, data);
+      var value = this._data[name];
+      if (value.set === undefined) {
+        throw new Error("The field: `" + name + "` is not a valid document or entity.");
+      }
+      value.set(keys, data);
       return;
     }
 
@@ -399,7 +396,7 @@ class Document {
     }
 
     var previous = this._data[name];
-    var value = this._schema.cast(name, data, {
+    var value = this.schema().cast(name, data, {
       collector: this.collector(),
       parent: this,
       rootPath: this.rootPath(),
@@ -430,7 +427,7 @@ class Document {
 
     if (keys.length) {
       var value = this.get(name);
-      if (!value instanceof Document) {
+      if (value.set === undefined) {
         throw new Error("The field: `" + name + "` is not a valid document or entity.");
       }
       return value.get(keys);
@@ -443,20 +440,21 @@ class Document {
     if (this._data[name] !== undefined) {
       return this._data[name];
     }
-    if (this.model().hasRelation(name)) {
-      return this._data[name] = this._schema.cast(name, undefined, {
+    var schema = this.schema();
+    if (schema.hasRelation(name)) {
+      return this._data[name] = schema.cast(name, undefined, {
         collector: this.collector(),
         parent: this
       });
     }
     var fieldname = this.rootPath() ? this.rootPath() + '.' + name : name;
-    if (!this._schema.has(fieldname)) {
+    if (!schema.has(fieldname)) {
       return;
     }
-    if (this._schema.field(fieldname, 'type') === 'object') {
-      return this._data[name] = this._schema.cast(name, undefined, {
+    if (schema.field(fieldname, 'type') === 'object') {
+      return this._data[name] = schema.cast(name, undefined, {
+        collector: this.collector(),
         parent: this,
-        model: this.model(),
         rootPath: this.rootPath(),
         defaults: true,
         exists: this.exists()
@@ -550,7 +548,7 @@ class Document {
     if (!this.exists()) {
         return true;
     }
-    var schema = this._schema;
+    var schema = this.schema();
     var updated = {};
     var fields = field ? [field] : Object.keys(extend({}, this._persisted, this._data));
 
@@ -589,6 +587,99 @@ class Document {
   }
 
   /**
+   * Validates the entity data.
+   *
+   * @param  array   options Available options:
+   *                         - `'events'` _mixed_    : A string or array defining one or more validation
+   *                           events. Events are different contexts in which data events can occur, and
+   *                           correspond to the optional `'on'` key in validation rules. For example, by
+   *                           default, `'events'` is set to either `'create'` or `'update'`, depending on
+   *                           whether the entity already exists. Then, individual rules can specify
+   *                           `'on' => 'create'` or `'on' => 'update'` to only be applied at certain times.
+   *                           You can also set up custom events in your rules as well, such as `'on' => 'login'`.
+   *                           Note that when defining validation rules, the `'on'` key can also be an array of
+   *                           multiple events.
+   *                         - `'required'` _boolean_ : Sets the validation rules `'required'` default value.
+   *                         - `'embed'`    _array_   : List of relations to validate.
+   * @return Promise         Returns a promise.
+   */
+  validate(options) {
+    return co(function* () {
+      var defaults = {
+        events: this.exists() !== false ? 'update' : 'create',
+        required: this.exists() !== false ? false : true,
+        embed: true
+      };
+      options = extend({}, defaults, options);
+      var validator = this.model().validator();
+
+      var valid = yield this._validate(options);
+
+      var success = yield validator.validate(this.get(), options);
+      this._errors = validator.errors();
+      return success && valid;
+    }.bind(this));
+  }
+
+  /**
+   * Validates a relation.
+   *
+   * @param  array   $options Available options:
+   *                          - `'embed'` _array_ : List of relations to validate.
+   * @return boolean          Returns `true` if all validation rules on all fields succeed, otherwise `false`.
+   */
+  _validate(options) {
+    return co(function* () {
+      var defaults = { embed: true };
+      options = extend({}, defaults, options);
+
+      if (options.embed === true) {
+        options.embed = this.hierarchy();
+      }
+
+      var schema = this.schema();
+      var embed = schema.treeify(options.embed);
+      var success = true;
+
+      for (var name in embed) {
+        if (this.isset(name)) {
+          var value = embed[name];
+          var rel = schema.relation(name);
+          var ok = yield rel.validate(this, extend({}, options, { embed: value }));
+          var success = success && ok;
+        }
+      }
+      return success;
+    }.bind(this));
+  }
+
+  /**
+   * Returns the errors from the last `.validate()` call.
+   *
+   * @return Object The occured errors.
+   */
+  errors(options) {
+    var defaults = { embed: true };
+    options = extend({}, defaults, options);
+
+    if (options.embed === true) {
+      options.embed = this.hierarchy();
+    }
+
+    var schema = this.schema();
+    var embed = schema.treeify(options.embed);
+    var errors = extend({}, this._errors);
+
+    for (var name in embed) {
+      if (this.isset(name)) {
+        var value = embed[name];
+        errors[name] = this.get(name).errors(extend({}, options, { embed: value }));
+      }
+    }
+    return errors;
+  }
+
+  /**
    * Returns all included relations accessible through this entity.
    *
    * @param  String prefix The parent relation path.
@@ -606,14 +697,14 @@ class Document {
           ignore.set(this, true);
       }
 
-      var tree = this.model().relations();
+      var tree = this.schema().relations();
       var result = [];
 
       for (var field of tree) {
         if (!this.isset(field)) {
             continue;
         }
-        var rel = this.model().relation(field);
+        var rel = this.schema().relation(field);
         if (rel.type() === 'hasManyThrough') {
             result.push(prefix ? prefix + '.' + field : field);
             continue;
@@ -660,17 +751,20 @@ class Document {
       options.embed = this.hierarchy();
     }
 
-    var schema = this._schema;
+    var schema = this.schema();
     var embed = schema.treeify(options.embed);
     var result = {};
     var rootPath = options.rootPath;
+
     for (var field in this._data) {
       if (schema.hasRelation(field)) {
         var rel = schema.relation(field);
-        if (embed[field] === undefined && !rel.embedded()) {
-          continue;
+        if (!rel.embedded()) {
+          if (embed[field] === undefined) {
+            continue;
+          }
+          options.embed = embed[field];
         }
-        options.embed = embed[field];
       }
       var value = this._data[field];
       if (value instanceof Document) {
@@ -696,7 +790,29 @@ Document._classes = {
   collector: Collector,
   set: Collection,
   through: Through,
-  conventions: Conventions
+  conventions: Conventions,
+  validator: Validator
 };
+
+/**
+ * Stores validator instances.
+ *
+ * @var Object
+ */
+Document._validators = {};
+
+/**
+ * MUST BE re-defined in sub-classes which require some different conventions.
+ *
+ * @var Object A naming conventions.
+ */
+Document._conventions = undefined;
+
+/**
+ * MUST BE re-defined in sub-classes which require a different schema.
+ *
+ * @var Function
+ */
+Document._definition = undefined;
 
 export default Document;

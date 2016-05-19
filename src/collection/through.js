@@ -18,7 +18,7 @@ class Through {
   constructor(config) {
     var defaults = {
       parent: undefined,
-      model: undefined,
+      schema: undefined,
       through: undefined,
       using: undefined,
       data: []
@@ -34,12 +34,12 @@ class Through {
     this._parent = config.parent;
 
     /**
-     * The fully-namespaced class name of the model object to which this entity set is bound. This
-     * is usually the model that executed the query which created this object.
+     * The schema to which this collection is bound. This
+     * is usually the schema that executed the query which created this object.
      *
-     * @var Function
+     * @var Object
      */
-    this._model = config.model;
+    this._schema = config.schema;
 
     /**
      * A the pivot relation name.
@@ -55,7 +55,7 @@ class Through {
      */
     this._using = config.using;
 
-    for (var name of ['parent', 'model', 'through', 'using']) {
+    for (var name of ['parent', 'schema', 'through', 'using']) {
       if (!config[name]) {
         throw new Error("Invalid through collection, `'" + name + "'` is empty.");
       }
@@ -68,9 +68,23 @@ class Through {
   }
 
   /**
+   * Gets/sets the collector.
+   *
+   * @param  Object collector The collector instance to set or none to get the current one.
+   * @return Object           A collector instance on get or `this` otherwise.
+   */
+  collector(collector) {
+    if (!arguments.length) {
+      return this._parent.get(this._through).collector();
+    }
+    this._parent.get(this._through).collector(collector);
+    return this;
+  }
+
+  /**
    * Gets/sets the parent.
    *
-   * @param  Object parent The parent instance to set or `null` to get it.
+   * @param  Object parent The parent instance to set or none to get it.
    * @return mixed         Returns the parent value on get or `this` otherwise.
    */
   parent(parent) {
@@ -84,7 +98,7 @@ class Through {
   /**
    * Gets/sets whether or not this instance has been persisted somehow.
    *
-   * @param  Boolean exists The exists value to set or `null` to get the current one.
+   * @param  Boolean exists The exists value to set or noen to get the current one.
    * @return mixed          Returns the exists value on get or `this` otherwise.
    */
   exists(exists) {
@@ -96,21 +110,22 @@ class Through {
   }
 
   /**
+   * Gets/sets the schema instance.
+   *
+   * @param  Object schema The schema instance to set or none to get it.
+   * @return Object        The schema instance or `this` on set.
+   */
+  schema() {
+    return this._schema;
+  }
+
+  /**
    * Gets the base rootPath.
    *
    * @return String
    */
   rootPath() {
     return '';
-  }
-
-  /**
-   * Returns the model on which this particular collection is based.
-   *
-   * @return Function The model.
-   */
-  model() {
-    return this._model;
   }
 
   /**
@@ -224,7 +239,7 @@ class Through {
   _item(data) {
     var name = this._through;
     var parent = this.parent();
-    var relThrough = this._parent.model().relation(name);
+    var relThrough = this._parent.schema().relation(name);
     var through = relThrough.to();
     var item = through.create(this._parent.exists() ? relThrough.match(this._parent) : {});
     item.set(this._using, data);
@@ -367,7 +382,7 @@ class Through {
    * @param Array relations The relations to eager load.
    */
   embed(relations) {
-    return this._model.schema().embed(this, relations);
+    return this.schema().embed(this, relations);
   }
 
   /**

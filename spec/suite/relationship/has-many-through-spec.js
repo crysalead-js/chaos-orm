@@ -129,7 +129,7 @@ describe("HasManyThrough", function() {
 
     it("embeds a hasManyThrough relationship", function(done) {
 
-      var hasManyThrough = Image.relation('tags');
+      var hasManyThrough = Image.definition().relation('tags');
 
       var images = Image.create([
         { id: 1, gallery_id: 1, title: 'Amiga 1200' },
@@ -167,7 +167,7 @@ describe("HasManyThrough", function() {
 
     it("embeds a hasManyThrough relationship using object hydration", function(done) {
 
-      var hasManyThrough = Image.relation('tags');
+      var hasManyThrough = Image.definition().relation('tags');
 
       var images = Image.create([
         { id: 1, gallery_id: 1, title: 'Amiga 1200' },
@@ -207,7 +207,7 @@ describe("HasManyThrough", function() {
 
     it("bails out on save since it's just an alias", function(done) {
 
-      var hasManyThrough = Image.relation('tags');
+      var hasManyThrough = Image.definition().relation('tags');
       hasManyThrough.save().then(function() {
         done();
       });

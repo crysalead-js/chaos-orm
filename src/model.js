@@ -58,7 +58,7 @@ class Model extends Document{
     this.classes(config.classes);
     this.conventions(config.conventions);
     this.connection(config.connection);
-    this.schema(config.schema);
+    this.definition(config.schema);
     this.validator(config.validator);
     this.query(config.query);
   }
@@ -72,7 +72,7 @@ class Model extends Document{
   static connection(connection) {
     if (arguments.length) {
       this._connection = connection;
-      delete this._schemas[this.name];
+      this._definitions.delete(this);
       return this;
     }
     return this._connection;
@@ -89,6 +89,42 @@ class Model extends Document{
       this._query[this.name] = query || {};
     }
     return this._query[this.name] ? this._query[this.name] : {};
+  }
+
+  /**
+   * Gets/sets the schema definition of the model.
+   *
+   * @param  Object schema The schema instance to set or none to get it.
+   * @return Object        The schema instance.
+   */
+  static definition(schema) {
+    if (arguments.length) {
+      if (typeof schema === 'function') {
+        this._definition = schema;
+      } else if (schema) {
+        this._definitions.set(this, schema);
+      } else {
+        this._definitions.delete(this);
+      }
+      return this;
+    }
+    if (this._definitions.has(this)) {
+      return this._definitions.get(this);
+    }
+
+    var config = {
+      classes: extend({}, this.classes(), { entity: this }),
+      conventions: this.conventions(),
+      connection: this._connection,
+      model: this
+    };
+
+    config.source = this.conventions().apply('source', config.classes.entity.name);
+
+    var schema = new this._definition(config);
+    this._definitions.set(this, schema);
+    this._define(schema);
+    return schema;
   }
 
   /**
@@ -145,7 +181,7 @@ class Model extends Document{
    */
   static find(options) {
     options = extend({}, this.query(), options);
-    return this.schema().query({ query: options });
+    return this.definition().query({ query: options });
   }
 
   /**
@@ -179,61 +215,8 @@ class Model extends Document{
    */
   static load(id, options, fetchOptions) {
     options = extend({}, { conditions: {} }, options);
-    options.conditions[this.schema().key()] = id;
+    options.conditions[this.definition().key()] = id;
     return this.first(options, fetchOptions);
-  }
-
-  /**
-   * Gets/sets the schema instance.
-   *
-   * @param  Object schema The schema instance to set or none to get it.
-   * @return Object        The schema instance.
-   */
-  static schema(schema) {
-    if (arguments.length) {
-      if (typeof schema === 'function') {
-        this._schema = schema;
-      } else {
-        this._schemas[this.name] = schema;
-      }
-      return this;
-    }
-    if (this._schemas[this.name] !== undefined) {
-      return this._schemas[this.name];
-    }
-
-    var config = {
-      classes: extend({}, this.classes(), { entity: this }),
-      connection: this._connection,
-      conventions: this.conventions(),
-      model: this
-    };
-    config.source = this.conventions().apply('source', config.classes.entity.name);
-
-    schema = this._schemas[this.name] = new this._schema(config);
-    this._define(schema);
-    return schema;
-  }
-
-  /**
-   * Gets/sets the validator instance.
-   *
-   * @param  Object validator The validator instance to set or none to get it.
-   * @return mixed            The validator instance on get.
-   */
-  static validator(validator) {
-    if (arguments.length) {
-      this._validators[this.name] = validator;
-      return;
-    }
-
-    if (this._validators[this.name]) {
-      return this._validators[this.name];
-    }
-    var classname = this.classes().validator;
-    var validator = this._validators[this.name] = new classname();
-    this._rules(validator);
-    return validator;
   }
 
   /**
@@ -242,6 +225,7 @@ class Model extends Document{
   static reset() {
     this.config();
   }
+
   /***************************
    *
    *  Entity related methods
@@ -259,11 +243,9 @@ class Model extends Document{
    *
    */
   constructor(config) {
-    config = config || {};
-    config.rootPath = undefined;
     super(config);
 
-    if (!this._collector) {
+    if (this.exists() === false) {
       return;
     }
 
@@ -272,8 +254,7 @@ class Model extends Document{
       return;
     }
 
-    var schema = this.model().schema();
-    var source = schema.source();
+    var source = this.schema().source();
 
     if (!this._collector.exists(source, id)) {
       this._collector.set(source, id, this);
@@ -286,7 +267,7 @@ class Model extends Document{
    * @return mixed     The primary key value.
    */
   id() {
-    var key = this.model().schema().key();
+    var key = this.schema().key();
     if (!key) {
       throw new Error("No primary key has been defined for `" + this.model().name + "`'s schema.");
     }
@@ -309,7 +290,7 @@ class Model extends Document{
     if (options.exists !== undefined) {
       this._exists = options.exists;
     }
-    var key = this.model().schema().key();
+    var key = this.schema().key();
     if (id && key) {
       data[key] = id;
     }
@@ -354,8 +335,8 @@ class Model extends Document{
    * }}}
    *
    * @param  Object  options Options:
-   *                          - `'validate'`  _Boolean_       : If `false`, validation will be skipped, and the record will
-   *                                                            be immediately saved. Defaults to `true`.
+   *                          - `'validate'`  _Boolean_ : If `false`, validation will be skipped, and the record will
+   *                                                      be immediately saved. Defaults to `true`.
    * @return Promise
    */
   save(options) {
@@ -370,7 +351,7 @@ class Model extends Document{
           return false;
         }
       }
-      return yield this.model().schema().save(this, options);
+      return yield this.schema().save(this, options);
     }.bind(this));
   }
 
@@ -408,7 +389,7 @@ class Model extends Document{
    * @return Promise
    */
   delete(options) {
-    var schema = this.model().schema();
+    var schema = this.schema();
     var key = schema.key();
     if (!key || this.exists() === false) {
       return false;
@@ -420,133 +401,12 @@ class Model extends Document{
       this._persisted = {};
     }.bind(this));
   }
-
-  /**
-   * Validates the entity data.
-   *
-   * @param  array   options Available options:
-   *                         - `'events'` _mixed_    : A string or array defining one or more validation
-   *                           events. Events are different contexts in which data events can occur, and
-   *                           correspond to the optional `'on'` key in validation rules. For example, by
-   *                           default, `'events'` is set to either `'create'` or `'update'`, depending on
-   *                           whether the entity already exists. Then, individual rules can specify
-   *                           `'on' => 'create'` or `'on' => 'update'` to only be applied at certain times.
-   *                           You can also set up custom events in your rules as well, such as `'on' => 'login'`.
-   *                           Note that when defining validation rules, the `'on'` key can also be an array of
-   *                           multiple events.
-   *                         - `'required'` _boolean_ : Sets the validation rules `'required'` default value.
-   *                         - `'embed'`    _array_   : List of relations to validate.
-   * @return Promise         Returns a promise.
-   */
-  validate(options) {
-    return co(function* () {
-      var defaults = {
-        events: this.exists() !== false ? 'update' : 'create',
-        required: this.exists() !== false ? false : true,
-        embed: true
-      };
-      options = extend({}, defaults, options);
-      var validator = this.model().validator();
-
-      var valid = yield this._validate(options);
-
-      var success = yield validator.validate(this.get(), options);
-      this._errors = validator.errors();
-      return success && valid;
-    }.bind(this));
-  }
-
-  /**
-   * Validates a relation.
-   *
-   * @param  array   $options Available options:
-   *                          - `'embed'` _array_ : List of relations to validate.
-   * @return boolean          Returns `true` if all validation rules on all fields succeed, otherwise `false`.
-   */
-  _validate(options) {
-    return co(function* () {
-      var defaults = { embed: true };
-      options = extend({}, defaults, options);
-
-      if (options.embed === true) {
-        options.embed = this.hierarchy();
-      }
-
-      var schema = this.model().schema();
-      var embed = schema.treeify(options.embed);
-      var success = true;
-
-      for (var name in embed) {
-        if (this.isset(name)) {
-          var value = embed[name];
-          var rel = schema.relation(name);
-          var ok = yield rel.validate(this, extend({}, options, { embed: value }));
-          var success = success && ok;
-        }
-      }
-      return success;
-    }.bind(this));
-  }
-
-  /**
-   * Returns the errors from the last `.validate()` call.
-   *
-   * @return Object The occured errors.
-   */
-  errors(options) {
-    var defaults = { embed: true };
-    options = extend({}, defaults, options);
-
-    if (options.embed === true) {
-      options.embed = this.hierarchy();
-    }
-
-    var schema = this.model().schema();
-    var embed = schema.treeify(options.embed);
-    var errors = extend({}, this._errors);
-
-    for (var name in embed) {
-      if (this.isset(name)) {
-        var value = embed[name];
-        errors[name] = this.get(name).errors(extend({}, options, { embed: value }));
-      }
-    }
-    return errors;
-  }
-
 }
-
-/**
- * Class dependencies.
- *
- * @var Object
- */
-Model._classes = {
-  collector: Collector,
-  set: Collection,
-  through: Through,
-  conventions: Conventions,
-  validator: Validator
-};
 
 /**
  * Registered models
  */
 Model._models = {};
-
-/**
- * Stores model's schema.
- *
- * @var Object
- */
-Model._schemas = {};
-
-/**
- * Stores validator instances.
- *
- * @var Object
- */
-Model._validators = {};
 
 /**
  * Default query parameters for the model finders.
@@ -556,11 +416,11 @@ Model._validators = {};
 Model._query = {};
 
 /**
- * MUST BE re-defined in sub-classes which require a different connection.
+ * Stores model's schema.
  *
- * @var Object The connection instance.
+ * @var Object
  */
-Model._connection = undefined;
+Model._definitions = new Map();
 
 /**
  * MUST BE re-defined in sub-classes which require some different conventions.
@@ -570,10 +430,10 @@ Model._connection = undefined;
 Model._conventions = undefined;
 
 /**
- * MUST BE re-defined in sub-classes which require a different schema.
+ * MUST BE re-defined in sub-classes which require a different connection.
  *
- * @var Function
+ * @var Object The connection instance.
  */
-Model._schema = undefined;
+Model._connection = undefined;
 
 export default Model;

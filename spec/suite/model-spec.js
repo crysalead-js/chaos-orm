@@ -8,7 +8,7 @@ class MyModel extends Model {
 
 class MySchema extends Schema {};
 
-MyModel._schema = MySchema;
+MyModel._definition = MySchema;
 
 describe("Model", function() {
 
@@ -31,10 +31,10 @@ describe("Model", function() {
         conventions: conventions
       });
 
-      var schema = MyModel.schema();
+      var schema = MyModel.definition();
 
       expect(schema instanceof MySchema).toBe(true);
-      expect(MyModel.schema().source()).toBe('my_model');
+      expect(MyModel.definition().source()).toBe('my_model');
 
       expect(MyModel.query()).toBe(query);
       expect(MyModel.connection()).toBe(connection);
@@ -42,7 +42,7 @@ describe("Model", function() {
 
       MyModel.reset();
 
-      expect(MyModel.schema()).not.toBe(schema);
+      expect(MyModel.definition()).not.toBe(schema);
       expect(MyModel.query()).toEqual({});
       expect(MyModel.connection()).toBe(undefined);
       expect(MyModel.conventions()).not.toBe(conventions);
@@ -153,7 +153,7 @@ describe("Model", function() {
   describe(".find()", function() {
 
     beforeEach(function() {
-      var schema = MyModel.schema();
+      var schema = MyModel.definition();
       var query = this.query = {
         method1: function() {},
         method2: function() {}
@@ -172,7 +172,7 @@ describe("Model", function() {
 
     it("merges default query parameters on find", function() {
 
-      var schema = MyModel.schema();
+      var schema = MyModel.definition();
 
       MyModel.query({ method1: 'param1' });
 
@@ -197,7 +197,7 @@ describe("Model", function() {
 
     beforeEach(function() {
 
-      var schema = MyModel.schema();
+      var schema = MyModel.definition();
       var query = this.query = {
         first: function() {}
       };
@@ -210,7 +210,7 @@ describe("Model", function() {
 
     it("delegates to `.find`", function() {
 
-      var schema = MyModel.schema();
+      var schema = MyModel.definition();
 
       var schemaSpy = spyOn(schema, 'query').and.callThrough();
       var querySpy = spyOn(this.query, 'first');
@@ -227,7 +227,7 @@ describe("Model", function() {
   describe(".load()", function() {
 
     beforeEach(function() {
-      var schema = MyModel.schema();
+      var schema = MyModel.definition();
       var query = this.query = {
         first: function() {}
       };
@@ -257,7 +257,7 @@ describe("Model", function() {
   describe(".all()", function() {
 
     beforeEach(function() {
-      var schema = MyModel.schema();
+      var schema = MyModel.definition();
       var query = this.query = {
         all: function() {}
       };
@@ -281,57 +281,21 @@ describe("Model", function() {
 
   });
 
-  describe(".schema()", function() {
+  describe(".definition()", function() {
 
     it("returns the model", function() {
 
-      var schema = MyModel.schema();
+      var schema = MyModel.definition();
       expect(schema instanceof Schema).toBe(true);
-      expect(schema).toBe(MyModel.schema());
+      expect(schema).toBe(MyModel.definition());
 
     });
 
     it("gets/sets a schema", function() {
 
       var schema = {};
-      MyModel.schema(schema);
-      expect(MyModel.schema()).toBe(schema);
-
-    });
-
-  });
-
-  describe(".relations()", function() {
-
-    it("delegates calls to schema", function() {
-
-      var schema = MyModel.schema();
-
-      var spy = spyOn(schema, 'relations');
-
-      MyModel.relations('hasMany');
-
-      expect(spy).toHaveBeenCalledWith('hasMany');
-
-    });
-
-  });
-
-  describe(".relation()", function() {
-
-    it("delegates calls to schema", function() {
-
-      var schema = MyModel.schema();
-      schema.bind('abc', {
-        relation: 'hasOne',
-        to: function TargetModel() {}
-      });
-
-      var spy = spyOn(schema, 'relation');
-
-      MyModel.relation('abc');
-
-      expect(spy).toHaveBeenCalledWith('abc');
+      MyModel.definition(schema);
+      expect(MyModel.definition()).toBe(schema);
 
     });
 

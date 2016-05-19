@@ -86,7 +86,7 @@ describe("HasOne", function() {
 
     it("embeds a hasOne relationship", function(done) {
 
-      var hasOne = Gallery.relation('detail');
+      var hasOne = Gallery.definition().relation('detail');
 
       var galleries = Gallery.create([
         { id: 1, name: 'Foo Gallery' },
@@ -113,7 +113,7 @@ describe("HasOne", function() {
 
     it("embeds a hasOne relationship using object hydration", function(done) {
 
-      var hasOne = Gallery.relation('detail');
+      var hasOne = Gallery.definition().relation('detail');
 
       var galleries = Gallery.create([
         { id: 1, name: 'Foo Gallery' },
@@ -146,7 +146,7 @@ describe("HasOne", function() {
 
     it("bails out if no relation data hasn't been setted", function(done) {
 
-      var hasOne = Gallery.relation('detail');
+      var hasOne = Gallery.definition().relation('detail');
       var gallery = Gallery.create({ id: 1, name: 'Foo Gallery' }, { exists: true });
       hasOne.save(gallery).then(function() {
         expect(gallery.isset('detail')).toBe(false);
@@ -156,7 +156,7 @@ describe("HasOne", function() {
 
     it("saves a hasOne relationship", function(done) {
 
-      var hasOne = Gallery.relation('detail');
+      var hasOne = Gallery.definition().relation('detail');
 
       var gallery = Gallery.create({ id: 1, name: 'Foo Gallery' }, { exists: true });
       gallery.set('detail', { description: 'Foo GalleryDetail' });

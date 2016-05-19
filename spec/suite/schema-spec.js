@@ -8,7 +8,7 @@ import Tag from '../fixture/model/tag';
 describe("Schema", function() {
 
   beforeEach(function() {
-    this.schema = Image.schema();
+    this.schema = Image.definition();
   });
 
   afterEach(function() {
@@ -671,11 +671,12 @@ describe("Schema", function() {
       expect(image.get('title')).toBe('My Image');
       expect(image.get('score')).toBe(8.9);
       expect(image.get('tags') instanceof Through).toBe(true);
-      expect(image.get('tags').model()).toBe(Tag);
+      expect(image.get('tags').schema()).toBe(Tag.definition());
       expect(image.get('tags.0').data()).toEqual({ id: 1, name: 'landscape' });
       expect(image.get('tags.1').data()).toEqual({ id: 2, name: 'mountain' });
 
     });
 
   });
+
 });

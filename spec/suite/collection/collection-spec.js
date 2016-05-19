@@ -54,13 +54,13 @@ describe("Collection", function() {
 
   });
 
-  describe(".model()", function() {
+  describe(".schema()", function() {
 
-    it("returns the model", function() {
+    it("returns the schema", function() {
 
-      var model = new Function();
-      var collection = new Collection({ model: model });
-      expect(collection.model()).toBe(model);
+      var schema = new Function();
+      var collection = new Collection({ schema: schema });
+      expect(collection.schema()).toBe(schema);
 
     });
 
@@ -269,12 +269,12 @@ describe("Collection", function() {
 
     });
 
-    context("when a model is defined", function() {
+    context("when a schema is defined", function() {
 
       it("autoboxes setted data", function() {
 
         var collection = new Collection({
-          model: MyModel
+          schema: MyModel.definition()
         });
 
         collection.push({
@@ -383,7 +383,7 @@ describe("Collection", function() {
 
   describe(".embed()", function() {
 
-    it("deletages the call up to the schema instance", function() {
+    it("delegates the call up to the schema instance", function() {
 
       var schema = { embed: function() {} };
       var spy = spyOn(schema, 'embed');

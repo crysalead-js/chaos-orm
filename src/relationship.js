@@ -184,11 +184,11 @@ class Relationship {
       var to = this.to();
 
       var from = this.from();
-      var relations = to.relations();
+      var relations = to.definition().relations();
       var result = [];
 
       for(var relation of relations) {
-        rel = to.relation(relation);
+        rel = to.definition().relation(relation);
         if (rel.to() === this.from()) {
           result.push(rel);
         }
@@ -288,7 +288,7 @@ class Relationship {
   //   var model = entity.model();
 
   //   if (!entity.exists()) {
-  //     entity.set(name, model.schema().cast(name, undefined, { parent: entity }));
+  //     entity.set(name, model.definition().cast(name, undefined, { parent: entity }));
   //     return Promise.resolve(entity.get(name));
   //   }
 

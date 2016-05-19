@@ -78,10 +78,10 @@ class HasManyThrough extends Relationship {
     this._using = config.using;
 
     var from = this.from();
-    var relThrough = from.relation(this.through());
+    var relThrough = from.definition().relation(this.through());
     relThrough.junction(true);
     var pivot = relThrough.to();
-    var relUsing = pivot.relation(this.using());
+    var relUsing = pivot.definition().relation(this.using());
 
     this._to = relUsing.to();
     this._keys = relUsing.keys();
@@ -126,14 +126,14 @@ class HasManyThrough extends Relationship {
       var using = this.using();
 
       var from = this.from();
-      var relThrough = from.relation(through);
+      var relThrough = from.definition().relation(through);
 
       this._cleanup(collection);
 
       var middle = yield relThrough.embed(collection, options);
 
       var pivot = relThrough.to();
-      var relUsing = pivot.schema().relation(using);
+      var relUsing = pivot.definition().relation(using);
 
       var related = yield relUsing.embed(middle, options);
 

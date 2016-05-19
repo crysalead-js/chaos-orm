@@ -86,7 +86,7 @@ describe("BelongsTo", function() {
 
     it("embeds a belongsTo relationship", function(done) {
 
-      var belongsTo = Image.relation('gallery');
+      var belongsTo = Image.definition().relation('gallery');
 
       var images = Image.create([
         { gallery_id: 1, title: 'Amiga 1200' },
@@ -115,7 +115,7 @@ describe("BelongsTo", function() {
 
     it("embeds a belongsTo relationship using object hydration", function(done) {
 
-      var belongsTo = Image.relation('gallery');
+      var belongsTo = Image.definition().relation('gallery');
 
       var images = Image.create([
         { gallery_id: 1, title: 'Amiga 1200' },
@@ -151,7 +151,7 @@ describe("BelongsTo", function() {
 
     it("bails out if no relation data hasn't been setted", function(done) {
 
-      var belongsTo = Image.relation('gallery');
+      var belongsTo = Image.definition().relation('gallery');
       var image = Image.create({ id: 1, gallery_id: 1, title: 'Amiga 1200' });
       belongsTo.save(image).then(function() {
         expect(image.isset('gallery')).toBe(false);
@@ -162,7 +162,7 @@ describe("BelongsTo", function() {
 
     it("saves a belongsTo relationship", function(done) {
 
-      var belongsTo = Image.relation('gallery');
+      var belongsTo = Image.definition().relation('gallery');
 
       var image = Image.create({ id: 1, title: 'Amiga 1200' }, { exists: true });
       image.set('gallery', { name: 'Foo Gallery' });
@@ -182,7 +182,7 @@ describe("BelongsTo", function() {
 
     it("throws an exception if the saves relation didn't populate any ID", function(done) {
 
-      var belongsTo = Image.relation('gallery');
+      var belongsTo = Image.definition().relation('gallery');
 
       var image = Image.create({ id: 1, gallery_id: 1, title: 'Amiga 1200' }, { exists: true });
       image.set('gallery', { name: 'Foo Gallery' });

@@ -12,7 +12,7 @@ class MyModel extends Model {}
 describe("Entity", function() {
 
   beforeEach(function() {
-    var schema = MyModel.schema();
+    var schema = MyModel.definition();
     schema.set('id', { type: 'serial' });
     schema.locked(false);
   });
@@ -169,7 +169,7 @@ describe("Entity", function() {
 
     it("sets nested arbitraty value in cascade when locked is `false`", function() {
 
-      Image.schema().locked(false);
+      Image.definition().locked(false);
 
       var image = Image.create();
       image.set('a.nested.value', 'hello');
@@ -303,7 +303,7 @@ describe("Entity", function() {
           }
         };
 
-        MyModel.schema().set('child', {
+        MyModel.definition().set('child', {
           type: 'object',
           model: MyModelChild
         });
@@ -319,7 +319,7 @@ describe("Entity", function() {
         var child = entity.get('child');
         expect(child instanceof MyModelChild).toBe(true);
         expect(child.parent()).toBe(entity);
-        expect(child.rootPath()).toBe(undefined);
+        expect(child.rootPath()).toBe('child');
 
       });
 
@@ -478,7 +478,7 @@ describe("Entity", function() {
 
     it("exports data using `'array'` formatter handlers", function() {
 
-      var schema = MyModel.schema();
+      var schema = MyModel.definition();
       schema.set('created', { type: 'date' });
 
       var entity = new MyModel({ data: {

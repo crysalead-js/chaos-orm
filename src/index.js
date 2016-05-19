@@ -15,8 +15,7 @@ import HasManyThrough from './relationship/has-many-through';
 /**
  * Populates circular dependencies below since they are not supported by Babel yet.
  */
-Model.schema(Schema);
-Document.classes({ schema: Schema });
+Document._definition = Schema;
 
 export {
   Conventions,

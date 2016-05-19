@@ -28,7 +28,7 @@ class Collection {
    *                      - `'collector'` _object_ : A collector instance.
    *                      - `'parent'`    _object_ : The parent instance.
    *                      - `'rootPath'`  _string_ : A dotted string field path.
-   *                      - `'model'`     _string_ : The attached model class name.
+   *                      - `'schema'`    _string_ : The attached schema.
    *                      - `'meta'`      _array_  : Some meta data.
    *                      - `'data'`      _array_  : The collection data.
    */
@@ -37,7 +37,7 @@ class Collection {
       collector: undefined,
       parent: undefined,
       rootPath: undefined,
-      model: undefined,
+      schema: undefined,
       meta: {},
       data: [],
       exists: false
@@ -50,14 +50,14 @@ class Collection {
      *
      * @var Object
      */
-    this._collector = config.collector;
+    this.collector(config.collector);
 
     /**
      * A reference to this object's parent `Document` object.
      *
      * @var object
      */
-    this._parent = config.parent;
+    this.parent(config.parent);
 
     /**
      * Cached value indicating whether or not this instance exists somehow. If this instance has been loaded
@@ -66,7 +66,7 @@ class Collection {
      *
      * @var Boolean
      */
-    this._exists = config.exists;
+    this.exists(config.exists);
 
     /**
      * If this `Collection` instance has a parent document (see `$_parent`), this value indicates
@@ -74,22 +74,22 @@ class Collection {
      *
      * @var string
      */
-    this._rootPath = config.rootPath;
+    this.rootPath(config.rootPath);
 
     /**
-     * The model to which this entity set is bound. This
-     * is usually the model that executed the query which created this object.
+     * The schema to which this collection is bound. This
+     * is usually the schema that executed the query which created this object.
      *
-     * @var Function
+     * @var Object
      */
-    this._model = config.model;
+    this.schema(config.schema);
 
     /**
      * Contains an array of backend-specific meta datas (like pagination datas)
      *
      * @var Object
      */
-    this._meta = config.meta;
+    this.meta(config.meta);
 
     /**
      * The items contained in the collection.
@@ -101,7 +101,7 @@ class Collection {
     var i, len = config.data.length;
 
     for (i = 0; i < len; i++) {
-      this._set(undefined, config.data[i]);
+      this.set(undefined, config.data[i]);
     }
 
     /**
@@ -116,7 +116,7 @@ class Collection {
    * Gets/sets the collector.
    *
    * @param  Object collector The collector instance to set or none to get the current one.
-   * @return Object           A collector instance on get otherwise `this`.
+   * @return Object           A collector instance on get or `this` otherwise.
    */
   collector(collector) {
     if (arguments.length) {
@@ -133,7 +133,7 @@ class Collection {
   /**
    * Gets/sets the parent.
    *
-   * @param  Object parent The parent instance to set or `null` to get it.
+   * @param  Object parent The parent instance to set or none to get it.
    * @return mixed         Returns the parent value on get or `this` otherwise.
    */
   parent(parent) {
@@ -147,10 +147,10 @@ class Collection {
   /**
    * Gets/sets whether or not this instance has been persisted somehow.
    *
-   * @param  Boolean exists The exists value to set or `null` to get the current one.
+   * @param  Boolean exists The exists value to set or none to get the current one.
    * @return mixed          Returns the exists value on get or `this` otherwise.
    */
-  exists() {
+  exists(exists) {
     if (arguments.length) {
       this._exists = exists;
       return this;
@@ -159,30 +159,44 @@ class Collection {
   }
 
   /**
+   * Gets/sets the schema instance.
+   *
+   * @param  Object schema The schema instance to set or none to get it.
+   * @return Object        The schema instance or `this` on set.
+   */
+  schema(schema) {
+    if (!arguments.length) {
+      return this._schema;
+    }
+    this._schema = schema;
+    return this;
+  }
+
+  /**
    * Gets/sets the rootPath (embedded entities).
    *
-   * @param  String rootPath The rootPath value to set or `null` to get the current one.
+   * @param  String rootPath The rootPath value to set or none to get the current one.
    * @return mixed           Returns the rootPath value on get or `this` otherwise.
    */
-  rootPath() {
+  rootPath(rootPath) {
+    if (arguments.length) {
+      this._rootPath = rootPath;
+      return this;
+    }
     return this._rootPath;
   }
 
   /**
-   * Returns the model on which this particular collection is based.
+   * Gets/sets the meta data.
    *
-   * @return Function The model.
+   * @param  String meta The meta value to set or none to get the current one.
+   * @return mixed       Returns the meta value on get or `this` otherwise.
    */
-  model() {
-    return this._model;
-  }
-
-  /**
-   * Gets the meta data.
-   *
-   * @return Object
-   */
-  meta() {
+  meta(meta) {
+    if (arguments.length) {
+      this._meta = meta;
+      return this;
+    }
     return this._meta;
   }
 
@@ -237,18 +251,65 @@ class Collection {
     if (!arguments.length) {
       return this._data;
     }
-    return this._data[offset];
+    var keys = Array.isArray(offset) ? offset : dotpath(offset);
+    if (!keys.length) {
+      throw new Error("Invalid empty index `" + offset + "` for collection.");
+    }
+
+    var name = keys.shift();
+    if (keys.length) {
+      if (this._data[name] === undefined) {
+        throw new Error("Missing index `" + name + "` for collection.");
+      }
+      var value = this._data[name];
+
+      if (!value instanceof Document) {
+        throw new Error("The field: `" + name + "` is not a valid document or entity.");
+      }
+      return value.get(keys);
+    }
+    if (this._data[name] === undefined) {
+      throw new Error("Missing index `" + name + "` for collection.");
+    }
+    return this._data[name];
   }
 
   /**
    * Sets data inside the `Collection` instance.
    *
-   * @param  integer offset The offset.
-   * @param  mixed   data   The entity object to add.
-   * @return mixed          Returns the set `Entity` object.
+   * @param  mixed offset The offset.
+   * @param  mixed data   The entity object or data to set.
+   * @return mixed        Returns `this`.
    */
   set(offset, data) {
-    this._set(offset, data);
+    var keys = Array.isArray(offset) ? offset : (offset !== undefined ? dotpath(offset) : []);
+    var name = keys.shift();
+
+    if (keys.length) {
+      if (this._data[name] === undefined) {
+        throw new Error("Missing index `" + name + "` for collection.");
+      }
+      this._data[name].set(keys, data);
+    }
+
+    if (this.schema()) {
+      data = this.schema().cast(undefined, data, {
+        collector: this.collector(),
+        parent: this,
+        rootPath: this.rootPath(),
+        exists: this.exists(),
+        defaults: true
+      });
+    }
+
+    if (name !== undefined) {
+      if (typeof name !== 'number' ) {
+       throw new Error("Invalid index `" + name + "` for a collection, must be a numeric value.");
+      }
+      this._data[name] = data;
+    } else {
+      this._data.push(data);
+    }
     return this;
   }
 
@@ -259,7 +320,7 @@ class Collection {
    * @return mixed      Returns the set `Entity` object.
    */
   push(data) {
-    this._set(undefined, data);
+    this.set(undefined, data);
     return this;
   }
 
@@ -270,14 +331,14 @@ class Collection {
    * @return Boolean        Result.
    */
   isset(offset) {
-    var keys = Array.isArray(offset) ? name : dotpath(offset);
+    var keys = Array.isArray(offset) ? offset : dotpath(offset);
     if (!keys.length) {
       return;
     }
 
     var name = keys.shift();
     if (keys.length) {
-      var value = this.get(name);
+      var value = this._data[name];
       return typeof value.isset === 'function' ? value.isset(keys) : false;
     }
     return this._data[offset] !== undefined;
@@ -289,14 +350,14 @@ class Collection {
    * @param integer $offset The offset to unset.
    */
   unset(offset) {
-    var keys = Array.isArray(offset) ? name : dotpath(offset);
+    var keys = Array.isArray(offset) ? offset : dotpath(offset);
     if (!keys.length) {
       return;
     }
 
     var name = keys.shift();
     if (keys.length) {
-      var value = this.get(name);
+      var value = this._data[name];
       if (typeof value.unset === 'function') {
         value.unset(keys);
       }
@@ -426,44 +487,6 @@ class Collection {
     return this;
   }
 
-  /**
-   * Sets data to a specified offset and wraps all data array in its appropriate object type.
-   *
-   * @param  mixed   data    An array or an entity instance to set.
-   * @param  integer offset  The offset. If offset is empty data will simply be appended to the set.
-   * @return mixed           Returns the inserted instance.
-   */
-  _set(offset, data) {
-    var keys = Array.isArray(offset) ? offset : (offset !== undefined ? dotpath(offset) : []);
-    offset = keys.shift();
-
-    if (keys.length) {
-      if (!this._data[offset]) {
-        throw new Error("Missing index `" + offset + "` for collection.");
-      }
-      this._data[offset].set(keys, data);
-    }
-
-    if (this.model()) {
-      data = this.model().schema().cast(undefined, data, {
-        collector: this.collector(),
-        parent: this,
-        rootPath: this.rootPath(),
-        exists: this.exists(),
-        defaults: true
-      });
-    }
-
-    if (offset !== undefined) {
-      if (typeof offset !== 'number' ) {
-       throw new Error("Invalid index `" + offset + "` for a collection, must be a numeric value.");
-      }
-      this._data[offset] = data;
-    } else {
-      this._data.push(data);
-    }
-    return data;
-  }
 
   /**
    * Eager loads relations.
@@ -471,7 +494,7 @@ class Collection {
    * @param array $relations The relations to eager load.
    */
   embed(relations) {
-    return this.model().schema().embed(this, relations);
+    return this.schema().embed(this, relations);
   }
 
   /**

@@ -754,7 +754,7 @@ class Schema {
           }
         }
         if (Object.keys(subrelations).length) {
-          yield to.schema().embed(related, subrelations, options);
+          yield to.definition().embed(related, subrelations, options);
         }
       }
 
@@ -851,7 +851,6 @@ class Schema {
     };
 
     options = extend({}, defaults, options);
-
     options.model = this.model();
     options.schema = this;
 
@@ -869,9 +868,8 @@ class Schema {
 
     if (this._relations[name]) {
       options = extend({}, this._relations[name], options);
-      if (options.embedded) {
-        options.rootPath = name;
-      }
+      options.rootPath = options.embedded ? name : undefined;
+
       if (options.relation !== 'hasManyThrough') {
         options.model = options.to;
       } else {
@@ -913,7 +911,7 @@ class Schema {
    * @return mixed             The casted data.
    */
   _cast(data, options) {
-    if (data instanceof options.model) {
+    if (data instanceof Document) {
       data.collector(options.collector);
       data.parent(options.parent);
       data.rootPath(options.rootPath);
