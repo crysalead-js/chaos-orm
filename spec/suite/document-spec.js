@@ -9,58 +9,15 @@ describe("Document", function() {
 
       var date = new Date('2014-10-26 00:25:15');
 
-      var entity = new Document({ data: {
+      var document = new Document({ data: {
         title: 'Hello',
         body: 'World',
         created: date
       }});
 
-      expect(entity.get('title')).toBe('Hello');
-      expect(entity.get('body')).toBe('World');
-      expect(entity.get('created')).toBe(date);
-
-    });
-
-  });
-
-  describe(".exists()", function() {
-
-    it("returns the exists value", function() {
-
-      var entity = Document.create({}, { exists: true });
-      expect(entity.exists()).toBe(true);
-
-    });
-
-  });
-
-  describe(".parent()", function() {
-
-    it("sets a parent", function() {
-
-      var parent = {};
-      var entity = new Document();
-      entity.parent(parent);
-      expect(entity.parent()).toBe(parent);
-
-    });
-
-    it("returns the parent", function() {
-
-      var parent = {};
-      var entity = Document.create({}, { parent: parent });
-      expect(entity.parent()).toBe(parent);
-
-    });
-
-  });
-
-  describe(".rootPath()", function() {
-
-    it("returns the root path", function() {
-
-      var entity = Document.create({}, { rootPath: 'items' });
-      expect(entity.rootPath()).toBe('items');
+      expect(document.get('title')).toBe('Hello');
+      expect(document.get('body')).toBe('World');
+      expect(document.get('created')).toBe(date);
 
     });
 
@@ -77,20 +34,64 @@ describe("Document", function() {
 
   });
 
+
+  describe(".exists()", function() {
+
+    it("returns the exists value", function() {
+
+      var document = Document.create({}, { exists: true });
+      expect(document.exists()).toBe(true);
+
+    });
+
+  });
+
+  describe(".parent()", function() {
+
+    it("sets a parent", function() {
+
+      var parent = {};
+      var document = new Document();
+      document.parent(parent);
+      expect(document.parent()).toBe(parent);
+
+    });
+
+    it("returns the parent", function() {
+
+      var parent = {};
+      var document = Document.create({}, { parent: parent });
+      expect(document.parent()).toBe(parent);
+
+    });
+
+  });
+
+  describe(".rootPath()", function() {
+
+    it("returns the root path", function() {
+
+      var document = Document.create({}, { rootPath: 'items' });
+      expect(document.rootPath()).toBe('items');
+
+    });
+
+  });
+
   describe(".get()/.set()", function() {
 
     it("sets values", function() {
 
       var date = new Date('2014-10-26 00:25:15');
 
-      var entity = new Document();
-      expect(entity.set('title', 'Hello')).toBe(entity);
-      expect(entity.set('body', 'World')).toBe(entity);
-      expect(entity.set('created', date)).toBe(entity);
+      var document = new Document();
+      expect(document.set('title', 'Hello')).toBe(document);
+      expect(document.set('body', 'World')).toBe(document);
+      expect(document.set('created', date)).toBe(document);
 
-      expect(entity.get('title')).toBe('Hello');
-      expect(entity.get('body')).toBe('World');
-      expect(entity.get('created')).toBe(date);
+      expect(document.get('title')).toBe('Hello');
+      expect(document.get('body')).toBe('World');
+      expect(document.get('created')).toBe(date);
 
     });
 
@@ -111,8 +112,8 @@ describe("Document", function() {
 
     it("returns `null` for undefined fields", function() {
 
-      var entity = new Document();
-      expect(entity.get('foo')).toBe(undefined);
+      var document = new Document();
+      expect(document.get('foo')).toBe(undefined);
 
     });
 
@@ -120,15 +121,15 @@ describe("Document", function() {
 
       var date = new Date('2014-10-26 00:25:15');
 
-      var entity = new Document();
-      expect(entity.set({
+      var document = new Document();
+      expect(document.set({
         title: 'Hello',
         body: 'World',
         created: date
-      })).toBe(entity);
-      expect(entity.get('title')).toBe('Hello');
-      expect(entity.get('body')).toBe('World');
-      expect(entity.get('created')).toBe(date);
+      })).toBe(document);
+      expect(document.get('title')).toBe('Hello');
+      expect(document.get('body')).toBe('World');
+      expect(document.get('created')).toBe(date);
 
     });
 
@@ -136,12 +137,12 @@ describe("Document", function() {
 
       var timestamp = 1446208769;
 
-      var entity = Document.create({
+      var document = Document.create({
         title: 'Hello',
         body: 'World',
         created: timestamp
       });
-      expect(entity.get()).toEqual({
+      expect(document.get()).toEqual({
         title: 'Hello',
         body: 'World',
         created: timestamp
@@ -152,139 +153,10 @@ describe("Document", function() {
     it("throws an exception if the field name is not valid", function() {
 
        var closure = function() {
-        var entity = new Document();
-        entity.get('');
+        var document = new Document();
+        document.get('');
       };
       expect(closure).toThrow(new Error("Field name can't be empty."));
-
-    });
-
-  });
-
-  describe(".persisted()", function() {
-
-    it("returns persisted data", function() {
-
-      var entity = Document.create({
-        id: 1,
-        title: 'Hello',
-        body: 'World'
-      }, { exists: true });
-
-      entity.set({
-        id: 1,
-        title: 'Good Bye',
-        body: 'Folks'
-      });
-
-      expect(entity.persisted('title')).toBe('Hello');
-      expect(entity.persisted('body')).toBe('World');
-
-      expect(entity.get('title')).toBe('Good Bye');
-      expect(entity.get('body')).toBe('Folks');
-
-      expect(entity.modified('title')).toBe(true);
-      expect(entity.modified('body')).toBe(true);
-
-    });
-
-    it("returns all persisted data with no parameter", function() {
-
-      var entity = Document.create({
-        id: 1,
-        title: 'Hello',
-        body: 'World'
-      }, { exists: true });
-
-      entity.set({
-        id: 1,
-        title: 'Good Bye',
-        body: 'Folks'
-      });
-
-      expect(entity.persisted()).toEqual({
-        id: 1,
-        title: 'Hello',
-        body: 'World'
-      });
-
-    });
-
-  });
-
-  describe(".modified()", function() {
-
-    it("returns a boolean indicating if a field has been modified", function() {
-
-      var entity = Document.create({ title: 'original' }, { exists: true });
-
-      expect(entity.modified('title')).toBe(false);
-
-      entity.set('title', 'modified');
-      expect(entity.modified('title')).toBe(true);
-
-    });
-
-    it("returns `false` if a field has been updated with a same scalar value", function() {
-
-      var entity = Document.create({ title: 'original' }, { exists: true });
-
-      expect(entity.modified('title')).toBe(false);
-
-      entity.set('title', 'original');
-      expect(entity.modified('title')).toBe(false);
-
-    });
-
-    it("returns `false` if a field has been updated with a similar object value", function() {
-
-      var entity = Document.create({ 'body': {} }, { exists: true });
-
-      expect(entity.modified('body')).toBe(false);
-
-      entity.set('body', entity.get('body'));
-      expect(entity.modified('body')).toBe(false);
-
-    });
-
-    it("delegates the job for values which has a `modified()` method", function() {
-
-      var childEntity = Document.create({ field: 'value' }, { exists: true });
-
-      var entity = Document.create({ child: childEntity }, { exists: true });
-
-      expect(entity.modified()).toBe(false);
-
-      entity.get('child').set('field', 'modified');
-      expect(entity.modified()).toBe(true);
-
-    });
-
-    it("returns `true` when an unexisting field has been added", function() {
-
-      var entity = Document.create({}, { exists: true });
-
-      entity.set('modified', 'modified');
-
-      expect(entity.modified()).toBe(true);
-
-    });
-
-    it("returns `true` when a field is removed", function() {
-
-      var entity = Document.create({ title: 'original' }, { exists: true });
-
-      expect(entity.modified('title')).toBe(false);
-
-      entity.unset('title');
-      expect(entity.modified('title')).toBe(true);
-
-    });
-
-    it("returns `false` when an unexisting field is checked", function() {
-
-      var entity = Document.create({}, { exists: true });
-      expect(entity.modified('unexisting')).toBe(false);
 
     });
 
@@ -294,30 +166,30 @@ describe("Document", function() {
 
     it("returns `true` if a element has been setted", function() {
 
-      var entity = new Document();
-      entity.set('field1', 'foo');
-      entity.set('field2', null);
+      var document = new Document();
+      document.set('field1', 'foo');
+      document.set('field2', null);
 
-      expect(entity.isset('field1')).toBe(true);
-      expect(entity.isset('field2')).toBe(true);
+      expect(document.isset('field1')).toBe(true);
+      expect(document.isset('field2')).toBe(true);
 
     });
 
     it("returns `true` if a element has been setted using a dotted notation", function() {
 
-      var entity = new Document();
-      entity.set('field1.field1', 'foo');
-      entity.set('field2.field2', null);
+      var document = new Document();
+      document.set('field1.field1', 'foo');
+      document.set('field2.field2', null);
 
-      expect(entity.isset('field1.field1')).toBe(true);
-      expect(entity.isset('field2.field2')).toBe(true);
+      expect(document.isset('field1.field1')).toBe(true);
+      expect(document.isset('field2.field2')).toBe(true);
 
     });
 
     it("returns false if a element doesn't exist", function() {
 
-      var entity = new Document();
-      expect(entity.isset('undefined')).toBe(false);
+      var document = new Document();
+      expect(document.isset('undefined')).toBe(false);
 
     });
 
@@ -334,11 +206,11 @@ describe("Document", function() {
         enabled: true
       };
 
-      var entity = Document.create(data);
-      entity.unset('body');
-      entity.unset('enabled');
+      var document = Document.create(data);
+      document.unset('body');
+      document.unset('enabled');
 
-      expect(entity.data()).toEqual({
+      expect(document.data()).toEqual({
         id: 1,
         title: 'test record'
       });
@@ -347,20 +219,149 @@ describe("Document", function() {
 
     it("unsets items using a dotted notation", function() {
 
-      var entity = new Document();
-      entity.set('field1.field1', 'foo');
-      entity.set('field2.field2', null);
-      entity.unset('field1.field1');
-      entity.unset('field2.field2');
+      var document = new Document();
+      document.set('field1.field1', 'foo');
+      document.set('field2.field2', null);
+      document.unset('field1.field1');
+      document.unset('field2.field2');
 
-      expect(entity.isset('field1.field1')).toBe(false);
-      expect(entity.isset('field2.field2')).toBe(false);
+      expect(document.isset('field1.field1')).toBe(false);
+      expect(document.isset('field2.field2')).toBe(false);
 
     });
 
   });
 
-  describe(".to()", function() {
+  describe(".persisted()", function() {
+
+    it("returns persisted data", function() {
+
+      var document = Document.create({
+        id: 1,
+        title: 'Hello',
+        body: 'World'
+      }, { exists: true });
+
+      document.set({
+        id: 1,
+        title: 'Good Bye',
+        body: 'Folks'
+      });
+
+      expect(document.persisted('title')).toBe('Hello');
+      expect(document.persisted('body')).toBe('World');
+
+      expect(document.get('title')).toBe('Good Bye');
+      expect(document.get('body')).toBe('Folks');
+
+      expect(document.modified('title')).toBe(true);
+      expect(document.modified('body')).toBe(true);
+
+    });
+
+    it("returns all persisted data with no parameter", function() {
+
+      var document = Document.create({
+        id: 1,
+        title: 'Hello',
+        body: 'World'
+      }, { exists: true });
+
+      document.set({
+        id: 1,
+        title: 'Good Bye',
+        body: 'Folks'
+      });
+
+      expect(document.persisted()).toEqual({
+        id: 1,
+        title: 'Hello',
+        body: 'World'
+      });
+
+    });
+
+  });
+
+  describe(".modified()", function() {
+
+    it("returns a boolean indicating if a field has been modified", function() {
+
+      var document = Document.create({ title: 'original' }, { exists: true });
+
+      expect(document.modified('title')).toBe(false);
+
+      document.set('title', 'modified');
+      expect(document.modified('title')).toBe(true);
+
+    });
+
+    it("returns `false` if a field has been updated with a same scalar value", function() {
+
+      var document = Document.create({ title: 'original' }, { exists: true });
+
+      expect(document.modified('title')).toBe(false);
+
+      document.set('title', 'original');
+      expect(document.modified('title')).toBe(false);
+
+    });
+
+    it("returns `false` if a field has been updated with a similar object value", function() {
+
+      var document = Document.create({ 'body': {} }, { exists: true });
+
+      expect(document.modified('body')).toBe(false);
+
+      document.set('body', document.get('body'));
+      expect(document.modified('body')).toBe(false);
+
+    });
+
+    it("delegates the job for values which has a `modified()` method", function() {
+
+      var childDocument = Document.create({ field: 'value' }, { exists: true });
+
+      var document = Document.create({ child: childDocument }, { exists: true });
+
+      expect(document.modified()).toBe(false);
+
+      document.get('child').set('field', 'modified');
+      expect(document.modified()).toBe(true);
+
+    });
+
+    it("returns `true` when an unexisting field has been added", function() {
+
+      var document = Document.create({}, { exists: true });
+
+      document.set('modified', 'modified');
+
+      expect(document.modified()).toBe(true);
+
+    });
+
+    it("returns `true` when a field is removed", function() {
+
+      var document = Document.create({ title: 'original' }, { exists: true });
+
+      expect(document.modified('title')).toBe(false);
+
+      document.unset('title');
+      expect(document.modified('title')).toBe(true);
+
+    });
+
+    it("returns `false` when an unexisting field is checked", function() {
+
+      var document = Document.create({}, { exists: true });
+      expect(document.modified('unexisting')).toBe(false);
+
+    });
+
+  });
+
+  describe(".to('array')", function() {
 
     it("exports into an array", function() {
 
@@ -369,8 +370,8 @@ describe("Document", function() {
         title: 'test record'
       };
 
-      var entity = Document.create(data);
-      expect(entity.to('array')).toEqual(data);
+      var document = Document.create(data);
+      expect(document.to('array')).toEqual(data);
 
     });
 
@@ -385,13 +386,7 @@ describe("Document", function() {
       };
 
       var image = Document.create(data);
-      expect(image.data()).toEqual({
-        name: 'amiga_1200.jpg',
-        title: 'Amiga 1200',
-        tags: [
-          { name: 'tag1' }
-        ]
-      });
+      expect(image.data()).toEqual(data);
 
     });
 
@@ -406,8 +401,8 @@ describe("Document", function() {
         title: 'test record'
       };
 
-      var entity = Document.create(data);
-      expect(entity.toString()).toBe('test record');
+      var document = Document.create(data);
+      expect(document.toString()).toBe('test record');
 
     });
 

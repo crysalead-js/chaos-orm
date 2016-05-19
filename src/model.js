@@ -259,11 +259,9 @@ class Model extends Document{
    *
    */
   constructor(config) {
+    config = config || {};
+    config.rootPath = undefined;
     super(config);
-    var defaults = {
-      rootPath: undefined
-    };
-    config = extend({}, defaults, config);
 
     if (!this._collector) {
       return;

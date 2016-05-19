@@ -145,10 +145,9 @@ class Document {
    */
   constructor(config) {
     var defaults = {
-      schema: undefined,
-      validator: undefined,
       collector: undefined,
       parent: undefined,
+      schema: undefined,
       rootPath: undefined,
       exists: false,
       defaults: false,
@@ -191,7 +190,7 @@ class Document {
      *
      * @var Object
      */
-    this.schema(config.schema);
+    this._schema = config.schema;
 
     /**
      * Contains the values of updated fields. These values will be persisted to the backend data
@@ -225,16 +224,11 @@ class Document {
     }
 
     this.set(config.data);
-
-    if (this.exists() === false) {
-      return;
-    }
-    this.set(config.data);
     this._persisted = extend({}, this._data);
   }
 
   /**
-   * Returns the entity's model.
+   * Returns the document's model.
    *
    * @return Function
    */
@@ -279,26 +273,10 @@ class Document {
   }
 
   /**
-   * Returns the document's schema.
-   *
-   * @return Object
-   */
-  schema(schema) {
-    if (!arguments.length) {
-      if (!this._schema) {
-        this._schema = this.constructor.schema();
-      }
-      return this._schema;
-    }
-    this._schema = schema;
-    return this;
-  }
-
-  /**
    * Gets/sets the parent.
    *
-   * @param  Object parent The parent instance to set or nothing to get it.
-   * @return Object        The parent instance on get and this on set.
+   * @param  Object parent The parent instance to set or `null` to get it.
+   * @return mixed         Returns the parent value on get or `this` otherwise.
    */
   parent(parent) {
     if (arguments.length) {
@@ -309,9 +287,10 @@ class Document {
   }
 
   /**
-   * Indicating whether or not this instance has been persisted somehow.
+   * Gets/sets whether or not this instance has been persisted somehow.
    *
-   * @return Boolean Retruns `true` if the record was read from or saved to the data-source, `false` otherwise.
+   * @param  Boolean exists The exists value to set or `null` to get the current one.
+   * @return mixed          Returns the exists value on get or `this` otherwise.
    */
   exists(exists) {
     if (arguments.length) {
@@ -322,9 +301,10 @@ class Document {
   }
 
   /**
-   * Gets the rootPath (embedded entities).
+   * Gets/sets the rootPath (embedded entities).
    *
-   * @return String
+   * @param  String rootPath The rootPath value to set or `null` to get the current one.
+   * @return mixed           Returns the rootPath value on get or `this` otherwise.
    */
   rootPath(rootPath) {
     if (arguments.length) {
@@ -355,6 +335,133 @@ class Document {
       this._set(name, data[name]);
     }
     return this;
+  }
+
+  /**
+   * Helper for the `set()` method.
+   *
+   * Ps: it allow to use scalar datas for relations. Indeed, on form submission relations datas are
+   * provided by a select input which generally provide such kind of array:
+   *
+   * ```php
+   * $array = [
+   *     'id' => 3
+   *     'comments' => [
+   *         '5', '6', '9
+   *     ]
+   * ];
+   * ```
+   *
+   * To avoid painfull pre-processing, this function will automagically manage such relation
+   * array by reformating it into the following on autoboxing:
+   *
+   * ```php
+   * $array = [
+   *     'id' => 3
+   *     'comments' => [
+   *         ['id' => '5'],
+   *         ['id' => '6'],
+   *         ['id' => '9']
+   *     ],
+   * ];
+   * ```
+   *
+   * @param String offset  The field name.
+   * @param mixed  data    The value to set.
+   * @param Array  options An options array.
+   */
+  _set(name, data) {
+    var keys = Array.isArray(name) ? name : dotpath(name);
+    var name = keys.shift();
+
+    if (!name) {
+      throw new Error("Field name can't be empty.");
+    }
+
+    if (keys.length) {
+      if (this.get(name) === undefined) {
+        this._set(name, Document.create({}, {
+          collector: this.collector(),
+          parent: this,
+          schema: this._schema,
+          rootPath: this.rootPath() ? this.rootPath() + '.' + name : name,
+          defaults: true,
+          exists: this.exists()
+        }));
+      }
+      this._data[name].set(keys, data);
+      return;
+    }
+
+    var method = this.model().conventions().apply('setter', name);
+    if (this[method] instanceof Function) {
+      data = this[method](data);
+    }
+
+    var previous = this._data[name];
+    var value = this._schema.cast(name, data, {
+      collector: this.collector(),
+      parent: this,
+      rootPath: this.rootPath(),
+      defaults: true,
+      exists: this.exists()
+    });
+    if (previous === value) {
+      return;
+    }
+    this._data[name] = value;
+  }
+
+  /**
+   * Returns the current data.
+   *
+   * @param  String name If name is defined, it'll only return the field value.
+   * @return mixed.
+   */
+  get(name) {
+    if (!arguments.length) {
+      return this._data;
+    }
+    var keys = Array.isArray(name) ? name : dotpath(name);
+    name = keys.shift();
+    if (!name) {
+      throw new Error("Field name can't be empty.");
+    }
+
+    if (keys.length) {
+      var value = this.get(name);
+      if (!value instanceof Document) {
+        throw new Error("The field: `" + name + "` is not a valid document or entity.");
+      }
+      return value.get(keys);
+    }
+
+    var method = this.model().conventions().apply('getter', name);
+    if (typeof this[method] === 'function') {
+      return this[method](this._data[name]);
+    }
+    if (this._data[name] !== undefined) {
+      return this._data[name];
+    }
+    if (this.model().hasRelation(name)) {
+      return this._data[name] = this._schema.cast(name, undefined, {
+        collector: this.collector(),
+        parent: this
+      });
+    }
+    var fieldname = this.rootPath() ? this.rootPath() + '.' + name : name;
+    if (!this._schema.has(fieldname)) {
+      return;
+    }
+    if (this._schema.field(fieldname, 'type') === 'object') {
+      return this._data[name] = this._schema.cast(name, undefined, {
+        parent: this,
+        model: this.model(),
+        rootPath: this.rootPath(),
+        defaults: true,
+        exists: this.exists()
+      });
+    }
   }
 
   /**
@@ -396,134 +503,6 @@ class Document {
       return;
     }
     delete this._data[name];
-  }
-
-  /**
-   * Helper for the `set()` method.
-   *
-   * Ps: it allow to use scalar datas for relations. Indeed, on form submission relations datas are
-   * provided by a select input which generally provide such kind of array:
-   *
-   * ```php
-   * $array = [
-   *     'id' => 3
-   *     'comments' => [
-   *         '5', '6', '9
-   *     ]
-   * ];
-   * ```
-   *
-   * To avoid painfull pre-processing, this function will automagically manage such relation
-   * array by reformating it into the following on autoboxing:
-   *
-   * ```php
-   * $array = [
-   *     'id' => 3
-   *     'comments' => [
-   *         ['id' => '5'],
-   *         ['id' => '6'],
-   *         ['id' => '9']
-   *     ],
-   * ];
-   * ```
-   *
-   * @param String offset  The field name.
-   * @param mixed  data    The value to set.
-   * @param Array  options An options array.
-   */
-  _set(name, data) {
-    var keys = Array.isArray(name) ? name : dotpath(name);
-    if (!keys.length) {
-      throw new Error("Field name can't be empty.");
-    }
-
-    var name = keys.shift();
-    if (keys.length) {
-      if (this.get(name) === undefined) {
-        this._set(name, Document.create({}, {
-          collector: this.collector(),
-          parent: this,
-          schema: this.schema(),
-          rootPath: this.rootPath() ? this.rootPath() + '.' + name : name,
-          defaults: true,
-          exists: this.exists()
-        }));
-      }
-      this._data[name].set(keys, data);
-      return;
-    }
-
-    var schema = this.schema();
-
-    var method = this.model().conventions().apply('setter', name);
-    if (this[method] instanceof Function) {
-      data = this[method](data);
-    }
-
-    var previous = this._data[name];
-    var value = schema.cast(name, data, {
-      collector: this.collector(),
-      parent: this,
-      rootPath: this.rootPath(),
-      defaults: true,
-      exists: this.exists()
-    });
-    if (previous === value) {
-      return;
-    }
-    this._data[name] = value;
-  }
-
-  /**
-   * Returns the current data.
-   *
-   * @param  String name If name is defined, it'll only return the field value.
-   * @return mixed.
-   */
-  get(name) {
-    if (!arguments.length) {
-      return this._data;
-    }
-    var keys = Array.isArray(name) ? name : dotpath(name);
-    if (!keys.length) {
-      throw new Error("Field name can't be empty.");
-    }
-
-    name = keys.shift();
-    if (keys.length) {
-      var value = this.get(name);
-      if (value === undefined) {
-        throw new Error("Unexisting field: `" + name + "`.");
-      }
-      return value.get(keys);
-    }
-
-    var method = this.model().conventions().apply('getter', name);
-    if (typeof this[method] === 'function') {
-      return this[method](this._data[name]);
-    }
-    if (this._data[name] !== undefined) {
-      return this._data[name];
-    }
-    if (this.model().hasRelation(name)) {
-      return this._data[name] = this.schema().cast(name, undefined, {
-        collector: this.collector(),
-        parent: this
-      });
-    }
-    var fieldname = this.rootPath() ? this.rootPath() + '.' + name : name;
-    if (!this.schema().has(fieldname)) {
-      return;
-    }
-    if (this.schema().field(fieldname, 'type') === 'object') {
-      return this._data[name] = this.schema().cast(name, undefined, {
-        parent: this,
-        model: this.model(),
-        rootPath: this.rootPath(),
-        defaults: true,
-        exists: this.exists()
-      });
-    }
   }
 
   /**
@@ -571,7 +550,7 @@ class Document {
     if (!this.exists()) {
         return true;
     }
-    var schema = this.schema();
+    var schema = this._schema;
     var updated = {};
     var fields = field ? [field] : Object.keys(extend({}, this._persisted, this._data));
 
@@ -681,7 +660,7 @@ class Document {
       options.embed = this.hierarchy();
     }
 
-    var schema = this.schema();
+    var schema = this._schema;
     var embed = schema.treeify(options.embed);
     var result = {};
     var rootPath = options.rootPath;

@@ -131,10 +131,10 @@ class Collection {
   }
 
   /**
-   * Gets/sets the parent instance.
+   * Gets/sets the parent.
    *
-   * @param  Object parent The parent instance to set or none to get the current one.
-   * @return Object
+   * @param  Object parent The parent instance to set or `null` to get it.
+   * @return mixed         Returns the parent value on get or `this` otherwise.
    */
   parent(parent) {
     if (!arguments.length) {
@@ -145,9 +145,10 @@ class Collection {
   }
 
   /**
-   * Indicating whether or not this instance has been persisted somehow.
+   * Gets/sets whether or not this instance has been persisted somehow.
    *
-   * @return Boolean Retruns `true` if the record was read from or saved to the data-source, `false` otherwise.
+   * @param  Boolean exists The exists value to set or `null` to get the current one.
+   * @return mixed          Returns the exists value on get or `this` otherwise.
    */
   exists() {
     if (arguments.length) {
@@ -158,9 +159,10 @@ class Collection {
   }
 
   /**
-   * Gets the rootPath.
+   * Gets/sets the rootPath (embedded entities).
    *
-   * @return string
+   * @param  String rootPath The rootPath value to set or `null` to get the current one.
+   * @return mixed           Returns the rootPath value on get or `this` otherwise.
    */
   rootPath() {
     return this._rootPath;

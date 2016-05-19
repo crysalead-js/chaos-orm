@@ -219,8 +219,8 @@ describe("Collection", function() {
     it("checks if a value has been setted using a dotted notation", function() {
 
       var collection = MyModel.create([
-        { 'name': 'hello' },
-        { 'name': 'world', 'item': { a: 'b'} }
+        { name: 'hello' },
+        { name: 'world', item: { a: 'b'} }
       ], {type: 'set'});
 
       expect(collection.isset('0.name')).toBe(true);
@@ -323,8 +323,8 @@ describe("Collection", function() {
     it("unsets items using a dotted notation", function() {
 
       var collection = MyModel.create([
-        { 'name': 'hello' },
-        { 'name': 'world' }
+        { name: 'hello' },
+        { name: 'world' }
       ], {type: 'set'});
 
       collection.unset('1.name');

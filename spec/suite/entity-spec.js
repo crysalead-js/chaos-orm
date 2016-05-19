@@ -133,9 +133,7 @@ describe("Entity", function() {
   describe(".get()/.set()", function() {
 
     afterEach(function() {
-
       Image.reset();
-
     });
 
     it("sets values", function() {
@@ -147,6 +145,22 @@ describe("Entity", function() {
       expect(entity.set('body', 'World')).toBe(entity);
       expect(entity.set('created', date)).toBe(entity);
 
+      expect(entity.get('title')).toBe('Hello');
+      expect(entity.get('body')).toBe('World');
+      expect(entity.get('created')).toBe(date);
+
+    });
+
+    it("sets an array of values", function() {
+
+      var date = new Date('2014-10-26 00:25:15');
+
+      var entity = new MyModel();
+      expect(entity.set({
+        title: 'Hello',
+        body: 'World',
+        created: date
+      })).toBe(entity);
       expect(entity.get('title')).toBe('Hello');
       expect(entity.get('body')).toBe('World');
       expect(entity.get('created')).toBe(date);
@@ -254,29 +268,6 @@ describe("Entity", function() {
 
     });
 
-    it("returns `null` for undefined fields", function() {
-
-      var entity = new MyModel();
-      expect(entity.get('foo')).toBe(undefined);
-
-    });
-
-    it("sets an array of values", function() {
-
-      var date = new Date('2014-10-26 00:25:15');
-
-      var entity = new MyModel();
-      expect(entity.set({
-        title: 'Hello',
-        body: 'World',
-        created: date
-      })).toBe(entity);
-      expect(entity.get('title')).toBe('Hello');
-      expect(entity.get('body')).toBe('World');
-      expect(entity.get('created')).toBe(date);
-
-    });
-
     it("sets a value using a dedicated method", function() {
 
       var entity = new MyModel();
@@ -287,23 +278,6 @@ describe("Entity", function() {
 
       entity.set('hello_boy', 'boy');
       expect(entity.get('hello_boy')).toBe('Hi boy');
-
-    });
-
-    it("returns all raw datas with no parameter", function() {
-
-      var timestamp = 1446208769;
-
-      var entity = MyModel.create({
-        title: 'Hello',
-        body: 'World',
-        created: timestamp
-      });
-      expect(entity.get()).toEqual({
-        title: 'Hello',
-        body: 'World',
-        created: timestamp
-      });
 
     });
 
@@ -345,19 +319,9 @@ describe("Entity", function() {
         var child = entity.get('child');
         expect(child instanceof MyModelChild).toBe(true);
         expect(child.parent()).toBe(entity);
-        expect(child.rootPath()).toBe('child');
+        expect(child.rootPath()).toBe(undefined);
 
       });
-
-    });
-
-    it("throws an exception if the field name is not valid", function() {
-
-       var closure = function() {
-        var entity = new MyModel();
-        entity.get('');
-      };
-      expect(closure).toThrow(new Error("Field name can't be empty."));
 
     });
 
@@ -556,6 +520,40 @@ describe("Entity", function() {
         tags: [
           { name: 'tag1' }
         ]
+      });
+
+    });
+
+    it("supports the `'embed'` option", function() {
+
+      var image = Image.create({
+        title: 'Amiga 1200'
+      });
+      image.get('tags').push({ name: 'Computer' });
+      image.get('tags').push({ name: 'Science' });
+
+      image.set('gallery', { name: 'Gallery 1' });
+
+      expect(image.to('array')).toEqual({
+        title: 'Amiga 1200',
+        tags: [
+          { name: 'Computer' },
+          { name: 'Science' }
+        ],
+        images_tags: [
+          { tag: { name: 'Computer' } },
+          { tag: { name: 'Science' } }
+        ],
+        gallery: { name: 'Gallery 1' }
+      });
+
+      expect(image.to('array', { embed: ['gallery'] })).toEqual({
+        title: 'Amiga 1200',
+        gallery: { name: 'Gallery 1' }
+      });
+
+      expect(image.to('array', { embed: false })).toEqual({
+        title: 'Amiga 1200'
       });
 
     });
