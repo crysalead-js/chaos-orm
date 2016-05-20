@@ -5,6 +5,8 @@ import intersect from 'intersect';
 import dateformat from 'date-format';
 import Document from './document';
 import Conventions from './conventions';
+import Collection from "./collection/collection";
+import Through from "./collection/through";
 import Relationship from './relationship';
 import BelongsTo from './relationship/belongs-to';
 import HasOne from './relationship/has-one';
@@ -96,7 +98,7 @@ class Schema {
       meta: {},
       handlers: {},
       conventions: undefined,
-      classes: this.constructor.classes()
+      classes: extend({}, this.constructor.classes())
     };
 
     config = merge({}, defaults, config);
@@ -1171,6 +1173,8 @@ class Schema {
  * @var array
  */
 Schema._classes = {
+  set: Collection,
+  through: Through,
   relationship: Relationship,
   belongsTo: BelongsTo,
   hasOne: HasOne,
