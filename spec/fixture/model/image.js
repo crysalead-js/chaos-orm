@@ -5,11 +5,11 @@ import Gallery from './gallery';
 class Image extends Model {
 
   static _define(schema) {
-    schema.set('id', { type: 'serial' });
-    schema.set('gallery_id', { type: 'integer' });
-    schema.set('name', { type: 'string' });
-    schema.set('title', { type: 'string', length: 50 });
-    schema.set('score', { type: 'float' });
+    schema.column('id', { type: 'serial' });
+    schema.column('gallery_id', { type: 'integer' });
+    schema.column('name', { type: 'string' });
+    schema.column('title', { type: 'string', length: 50 });
+    schema.column('score', { type: 'float' });
 
     schema.belongsTo('gallery', 'Gallery', { keys: { gallery_id: 'id' } });
     schema.hasMany('images_tags', 'ImageTag', { keys: { id: 'image_id' } });

@@ -28,7 +28,7 @@ describe("Schema", function() {
         model: Image,
         key: 'key',
         locked: false,
-        fields: [{ id: 'serial' }, { age: 'integer' }],
+        columns: [{ id: 'serial' }, { age: 'integer' }],
         meta: { some: 'meta'},
         conventions: conventions
       });
@@ -147,7 +147,7 @@ describe("Schema", function() {
 
     it("filters out virtual fields", function() {
 
-      this.schema.set('virtualField', { virtual: true });
+      this.schema.column('virtualField', { virtual: true });
       var fields = this.schema.fields();
       expect(fields['virtualField']).toBe(undefined);
 
@@ -204,51 +204,12 @@ describe("Schema", function() {
 
   it("returns defaults", function() {
 
-    this.schema.set('name', { type: 'string', default: 'Enter The Name Here' });
-    this.schema.set('title', { type: 'string', default: 'Enter The Title Here', length: 50 });
+    this.schema.column('name', { type: 'string', default: 'Enter The Name Here' });
+    this.schema.column('title', { type: 'string', default: 'Enter The Title Here', length: 50 });
 
     expect(this.schema.defaults()).toEqual({
       name: 'Enter The Name Here',
       title: 'Enter The Title Here'
-    });
-
-  });
-
-  describe(".field()", function() {
-
-    it("gets the type of a field", function() {
-
-      expect(this.schema.field('id')).toEqual({
-        type: 'serial',
-        array: false,
-        null: false
-      });
-
-      expect(this.schema.field('gallery_id')).toEqual({
-        type: 'integer',
-        array: false,
-        null: true
-      });
-
-      expect(this.schema.field('name')).toEqual({
-        type: 'string',
-        array: false,
-        null: true
-      });
-
-      expect(this.schema.field('title')).toEqual({
-        type: 'string',
-        length: 50,
-        array: false,
-        null: true
-      });
-
-      expect(this.schema.field('score')).toEqual({
-        type: 'float',
-        array: false,
-        null: true
-      });
-
     });
 
   });
@@ -263,17 +224,43 @@ describe("Schema", function() {
 
   });
 
-  describe(".set()", function() {
+  describe(".column()", function() {
 
     beforeEach(function() {
       this.schema = new Schema();
     });
 
-    it("sets a field with default values", function() {
+    it("gets the type of a field", function() {
 
-      this.schema.set('name');
-      expect(this.schema.field('name')).toEqual({
+      var schema = Image.definition();
+
+      expect(schema.column('id')).toEqual({
+        type: 'serial',
+        array: false,
+        null: false
+      });
+
+      expect(schema.column('gallery_id')).toEqual({
+        type: 'integer',
+        array: false,
+        null: true
+      });
+
+      expect(schema.column('name')).toEqual({
         type: 'string',
+        array: false,
+        null: true
+      });
+
+      expect(schema.column('title')).toEqual({
+        type: 'string',
+        length: 50,
+        array: false,
+        null: true
+      });
+
+      expect(schema.column('score')).toEqual({
+        type: 'float',
         array: false,
         null: true
       });
@@ -282,8 +269,8 @@ describe("Schema", function() {
 
     it("sets a field with a specific type", function() {
 
-      this.schema.set('age', { type: 'integer' });
-      expect(this.schema.field('age')).toEqual({
+      this.schema.column('age', { type: 'integer' });
+      expect(this.schema.column('age')).toEqual({
         type: 'integer',
         array: false,
         null: true
@@ -293,8 +280,8 @@ describe("Schema", function() {
 
     it("sets a field with a specific type using the string syntax", function() {
 
-      this.schema.set('age', 'integer');
-      expect(this.schema.field('age')).toEqual({
+      this.schema.column('age', 'integer');
+      expect(this.schema.column('age')).toEqual({
         type: 'integer',
         array: false,
         null: true
@@ -304,8 +291,8 @@ describe("Schema", function() {
 
     it("sets a field as an array", function() {
 
-      this.schema.set('ids', { type: 'integer', array: true });
-      expect(this.schema.field('ids')).toEqual({
+      this.schema.column('ids', { type: 'integer', array: true });
+      expect(this.schema.column('ids')).toEqual({
         type: 'integer',
         array: true,
         null: true
@@ -315,8 +302,8 @@ describe("Schema", function() {
 
     it("sets a field with custom options", function() {
 
-      this.schema.set('name', { type: 'integer', length: 11, use: 'bigint' });
-      expect(this.schema.field('name')).toEqual({
+      this.schema.column('name', { type: 'integer', length: 11, use: 'bigint' });
+      expect(this.schema.column('name')).toEqual({
         type: 'integer',
         length: 11,
         use: 'bigint',
@@ -329,12 +316,12 @@ describe("Schema", function() {
     it("sets nested fields", function() {
 
       var schema = new Schema();
-      schema.set('preferences', { type: 'object' });
-      schema.set('preferences.blacklist', { type: 'object' });
-      schema.set('preferences.blacklist.projects', { type: 'id', array: true, 'default': [] });
-      schema.set('preferences.mail', { type: 'object' });
-      schema.set('preferences.mail.enabled', { type: 'boolean', 'default': true });
-      schema.set('preferences.mail.frequency', { type: 'integer', 'default': 24 });
+      schema.column('preferences', { type: 'object' });
+      schema.column('preferences.blacklist', { type: 'object' });
+      schema.column('preferences.blacklist.projects', { type: 'id', array: true, 'default': [] });
+      schema.column('preferences.mail', { type: 'object' });
+      schema.column('preferences.mail.enabled', { type: 'boolean', 'default': true });
+      schema.column('preferences.mail.frequency', { type: 'integer', 'default': 24 });
 
       var document = schema.cast(undefined, {});
       expect(document.data()).toEqual({
@@ -361,9 +348,9 @@ describe("Schema", function() {
         beforeEach(function() {
 
           this.schema = new Schema();
-          this.schema.set('date', { type: 'string' });
-          this.schema.set('time', { type: 'string' });
-          this.schema.set('datetime', {
+          this.schema.column('date', { type: 'string' });
+          this.schema.column('time', { type: 'string' });
+          this.schema.column('datetime', {
             type: 'datetime',
             getter: function(entity, data, name) {
               return entity.get('date') + ' ' + entity.get('time') + ' UTC';
@@ -404,9 +391,9 @@ describe("Schema", function() {
         beforeEach(function() {
 
           this.schema = new Schema();
-          this.schema.set('date', { type: 'string' });
-          this.schema.set('time', { type: 'string' });
-          this.schema.set('datetime', {
+          this.schema.column('date', { type: 'string' });
+          this.schema.column('time', { type: 'string' });
+          this.schema.column('datetime', {
             type: 'datetime',
             virtual: true,
             getter: function(entity, data, name) {
@@ -452,9 +439,9 @@ describe("Schema", function() {
         beforeEach(function() {
 
           this.schema = new Schema();
-          this.schema.set('date', { type: 'string' });
-          this.schema.set('time', { type: 'string' });
-          this.schema.set('datetime', {
+          this.schema.column('date', { type: 'string' });
+          this.schema.column('time', { type: 'string' });
+          this.schema.column('datetime', {
             type: 'string',
             setter: function(entity, data, name) {
               var parts = data.split(' ');
@@ -498,9 +485,9 @@ describe("Schema", function() {
         beforeEach(function() {
 
           this.schema = new Schema();
-          this.schema.set('date', { type: 'string' });
-          this.schema.set('time', { type: 'string' });
-          this.schema.set('datetime', {
+          this.schema.column('date', { type: 'string' });
+          this.schema.column('time', { type: 'string' });
+          this.schema.column('datetime', {
             type: 'string',
             virtual: true,
             setter: function(entity, data, name) {
@@ -567,7 +554,7 @@ describe("Schema", function() {
 
     it("checks if a schema contain a virtual field name", function() {
 
-      this.schema.set('virtualField', { virtual: true });
+      this.schema.column('virtualField', { virtual: true });
       expect(this.schema.has('virtualField')).toBe(true);
 
     });
@@ -578,7 +565,7 @@ describe("Schema", function() {
 
     beforeEach(function() {
       this.schema = new Schema();
-      this.schema.set('id', { type: 'serial' });
+      this.schema.column('id', { type: 'serial' });
     });
 
     context("using an array", function() {
@@ -604,8 +591,8 @@ describe("Schema", function() {
       it("adds some fields to a schema", function() {
 
         var extra = new Schema();
-        extra.set('name', { type: 'string' });
-        extra.set('title', { type: 'string' });
+        extra.column('name', { type: 'string' });
+        extra.column('title', { type: 'string' });
 
         this.schema.append(extra);
 
@@ -622,8 +609,8 @@ describe("Schema", function() {
 
     it("returns all virtual fields", function() {
 
-      this.schema.set('virtualField1', { virtual: true });
-      this.schema.set('virtualField2', { virtual: true });
+      this.schema.column('virtualField1', { virtual: true });
+      this.schema.column('virtualField2', { virtual: true });
 
       expect(this.schema.virtuals()).toEqual(['virtualField1', 'virtualField2']);
 
@@ -679,7 +666,7 @@ describe("Schema", function() {
       class MyModel extends Model {}
 
       var schema = new Schema({ model: MyModel });
-      schema.set('embedded', {
+      schema.column('embedded', {
         type: 'object',
         model: MyModel
       });

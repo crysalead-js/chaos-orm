@@ -13,7 +13,7 @@ describe("Entity", function() {
 
   beforeEach(function() {
     var schema = MyModel.definition();
-    schema.set('id', { type: 'serial' });
+    schema.column('id', { type: 'serial' });
     schema.locked(false);
   });
 
@@ -271,7 +271,7 @@ describe("Entity", function() {
     it("sets a value using a virtual field", function() {
 
       var schema = MyModel.definition();
-      schema.set('hello_boy', {
+      schema.column('hello_boy', {
         setter: function(entity, data, name) {
             return 'Hi ' + data;
         }
@@ -286,7 +286,7 @@ describe("Entity", function() {
     it("gets a value using a virtual field", function() {
 
       var schema = MyModel.definition();
-      schema.set('hello_boy', {
+      schema.column('hello_boy', {
         getter: function(entity, data, name) {
             return 'Hi Boy!';
         }
@@ -307,7 +307,7 @@ describe("Entity", function() {
           }
         };
 
-        MyModel.definition().set('child', {
+        MyModel.definition().column('child', {
           type: 'object',
           model: MyModelChild
         });
@@ -483,7 +483,7 @@ describe("Entity", function() {
     it("exports data using `'array'` formatter handlers", function() {
 
       var schema = MyModel.definition();
-      schema.set('created', { type: 'date' });
+      schema.column('created', { type: 'date' });
 
       var entity = new MyModel({ data: {
         title: 'Hello',

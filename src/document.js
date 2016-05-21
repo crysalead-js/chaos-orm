@@ -354,7 +354,7 @@ class Document {
       return;
     }
 
-    var field = schema.field(fieldname);
+    var field = schema.column(fieldname);
     var value;
 
     if (typeof field.getter === 'function') {

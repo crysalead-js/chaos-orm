@@ -67,7 +67,7 @@ class Schema {
    *                      - `'model'`       _Function_ : The fully namespaced model class name (defaults to `undefined`).
    *                      - `'locked'`      _Boolean_  : set the ability to dynamically add/remove fields (defaults to `false`).
    *                      - `'key'`         _String_   : The primary key value (defaults to `id`).
-   *                      - `'fields'`      _Map_      : array of field definition where keys are field names and values are arrays
+   *                      - `'columns'`     _Array_    : array of field definition where keys are field names and values are arrays
    *                                                     with the following keys. All properties are optionnal except the `'type'`:
    *                                                     - `'type'`       _string_ : the type of the field.
    *                                                     - `'default'`    _mixed_  : the default value.
@@ -94,7 +94,7 @@ class Schema {
       source: undefined,
       model: Document,
       locked: true,
-      fields: [],
+      columns: [],
       meta: {},
       handlers: {},
       conventions: undefined,
@@ -150,7 +150,7 @@ class Schema {
      *
      * @var Object
      */
-    this._fields = new Map();
+    this._columns = new Map();
 
     /**
      * The source name.
@@ -197,9 +197,9 @@ class Schema {
 
     var key, handlers;
 
-    for(var field of config.fields) {
-      var key = Object.keys(field)[0];
-      this._fields.set(key, this._initField(field[key]));
+    for(var column of config.columns) {
+      var key = Object.keys(column)[0];
+      this._columns.set(key, this._initColumn(column[key]));
     }
 
     handlers = this._handlers;
@@ -347,7 +347,7 @@ class Schema {
    * @return Array An array of field names.
    */
   names() {
-    return Array.from(this._fields.keys());
+    return Array.from(this._columns.keys());
   }
 
   /**
@@ -358,7 +358,7 @@ class Schema {
   fields() {
     var name;
     var fields = [];
-    for (var [name, value] of this._fields) {
+    for (var [name, value] of this._columns) {
       var field = {};
       if (value.virtual) {
         continue;
@@ -376,31 +376,12 @@ class Schema {
   columns() {
     var name;
     var fields = [];
-    for (var [name, value] of this._fields) {
+    for (var [name, value] of this._columns) {
       var field = {};
       field[name] = value;
       fields.push(field);
     }
     return fields;
-  }
-
-  /**
-   * Returns a schema field attribute.
-   *
-   * @param  String name      A field name.
-   * @param  String attribute An attribute name. If `undefined` returns all attributes.
-   * @return mixed
-   */
-  field(name, attribute) {
-    if (!this._fields.has(name)) {
-      return;
-    }
-    var field = this._fields.get(name);
-
-    if (attribute !== undefined) {
-      return field[attribute];
-    }
-    return field;
   }
 
   /**
@@ -411,10 +392,10 @@ class Schema {
    */
   defaults(name) {
     if (arguments.length === 1) {
-      return this._fields.has(name) ? this._fields.get(name)['default'] : undefined;
+      return this._columns.has(name) ? this._columns.get(name)['default'] : undefined;
     }
     var defaults = {};
-    for (var [name, value] of this._fields) {
+    for (var [name, value] of this._columns) {
       if (value['default'] !== undefined) {
         defaults[name] = value['default'];
       }
@@ -429,56 +410,68 @@ class Schema {
    * @return mixed       The type value or `undefined` if not found.
    */
   type(name) {
-    return this.field(name, 'type');
+    if (!this.has(name)) {
+      return;
+    }
+    var column = this.column(name);
+    return column.type;
   }
 
   /**
-   * Sets a field.
+   * Gets/sets a column.
    *
-   * @param  String name The field name.
-   * @return Object       Returns `this`.
+   * @param  String name   The field name.
+   * @param  Object params The definition.
+   * @return mixed         Returns the column definition on get or `this` otherwise.
    */
-  set(name, params) {
-    var field = this._initField(params);
+  column(name, params) {
+    if (arguments.length === 1) {
+      if (!this.has(name)) {
+        throw new Error("Unexisting column `'" + name + "'`.");
+      }
+      return this._columns.get(name);
+    }
 
-    if (field.type !== 'object') {
-      this._fields.set(name, field);
+    var column = this._initColumn(params);
+
+    if (column.type !== 'object') {
+      this._columns.set(name, column);
       return this;
     }
     var relationship = this.classes().relationship;
 
-    if (field.model) {
-      field.model = typeof field.model === 'string' ? this.model().registered(field.model) : field.model;
+    if (column.model) {
+      column.model = typeof column.model === 'string' ? this.model().registered(column.model) : column.model;
     }
 
     this.bind(name, {
-      type: field.array ? 'set' : 'entity',
-      relation: field.array ? 'hasMany' : 'hasOne',
-      to: field.model ? field.model : this.model(),
+      type: column.array ? 'set' : 'entity',
+      relation: column.array ? 'hasMany' : 'hasOne',
+      to: column.model ? column.model : this.model(),
       link: relationship.LINK_EMBEDDED
     });
-    this._fields.set(name, field);
+    this._columns.set(name, column);
 
     return this;
   }
 
   /**
-   * Normalizes a field.
+   * Normalizes a column.
    *
-   * @param  Object field A field Object.
-   * @return Object       A normalized field Object.
+   * @param  Object column A column Object.
+   * @return Object        A normalized column Object.
    */
-  _initField(field) {
+  _initColumn(column) {
     var defaults = {
       type: 'string',
       array: false
     };
-    if (typeof field === 'string') {
-      field = { type: field };
+    if (typeof column === 'string') {
+      column = { type: column };
     }
-    field = extend({}, defaults, field);
+    column = extend({}, defaults, column);
 
-    return extend({}, { null: field.type !== 'serial' }, field);
+    return extend({}, { null: column.type !== 'serial' }, column);
   }
 
   /**
@@ -491,7 +484,7 @@ class Schema {
     var names = Array.isArray(name) ? name : [name];
     var i, len = name.length;
     for (var i = 0; i < len; i++) {
-      this._fields.delete(names[i]);
+      this._columns.delete(names[i]);
     }
     return this;
   }
@@ -504,9 +497,9 @@ class Schema {
    */
   has(name) {
     if (!Array.isArray(name)) {
-      return this._fields.has(name);
+      return this._columns.has(name);
     }
-    return intersect(name, this._fields.keys()).length === name.length;
+    return intersect(name, this._columns.keys()).length === name.length;
   }
 
   /**
@@ -520,18 +513,13 @@ class Schema {
   append(fields) {
     if (fields.constructor === Object) {
       for (var key in fields) {
-        this._fields.set(key, this._initField(fields[key]));
+        this._columns.set(key, this._initColumn(fields[key]));
       }
     } else {
-      if (fields instanceof Schema) {
-        for (var name of fields.fields()) {
-          this._fields.set(name, fields.field(name));
-        }
-      } else {
-        for (var value of fields) {
-          var key = Object.keys(value);
-          this._fields.set(key, value[key]);
-        }
+      var columns = fields instanceof Schema ? fields.columns() : fields;
+      for (var value of columns) {
+        var key = Object.keys(value)[0];
+        this._columns.set(key, value[key]);
       }
     }
     return this;
@@ -545,7 +533,7 @@ class Schema {
   virtuals()
   {
     var fields = [];
-    for (var [name, field] of this._fields) {
+    for (var [name, field] of this._columns) {
       if (!field.virtual) {
         continue;
       }
@@ -562,7 +550,7 @@ class Schema {
   isVirtual(name)
   {
       if (!Array.isArray(name)) {
-        var field = this._fields.get(name);
+        var field = this._columns.get(name);
         return field !== undefined && field.virtual;
       }
       for (var field of name) {
@@ -934,8 +922,8 @@ class Schema {
       }
       return this._cast(data, options);
     }
-    if (this._fields.has(name)) {
-      options = extend({}, this._fields.get(name), options);
+    if (this._columns.has(name)) {
+      options = extend({}, this._columns.get(name), options);
       if (typeof options.setter === 'function') {
         data = options.setter(options.parent, data, name);
       }
