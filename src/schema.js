@@ -369,6 +369,22 @@ class Schema {
   }
 
   /**
+   * Gets all columns (i.e fields + data).
+   *
+   * @return Array
+   */
+  columns() {
+    var name;
+    var fields = [];
+    for (var [name, value] of this._fields) {
+      var field = {};
+      field[name] = value;
+      fields.push(field);
+    }
+    return fields;
+  }
+
+  /**
    * Returns a schema field attribute.
    *
    * @param  String name      A field name.

@@ -155,6 +155,53 @@ describe("Schema", function() {
 
   });
 
+  describe(".columns()", function() {
+
+    it("returns all fields", function() {
+
+      expect(this.schema.columns()).toEqual([
+        {
+          id: {
+            type: 'serial',
+            array: false,
+            null: false
+          }
+        },
+        {
+          gallery_id: {
+            type: 'integer',
+            array: false,
+            null: true
+          }
+        },
+        {
+          name: {
+            type: 'string',
+            array: false,
+            null: true
+          }
+        },
+        {
+          title: {
+            type: 'string',
+            length: 50,
+            array: false,
+            null: true
+          }
+        },
+        {
+          score: {
+            array: false,
+            null: true,
+            type: 'float'
+          }
+        }
+      ]);
+
+    });
+
+  });
+
   it("returns defaults", function() {
 
     this.schema.set('name', { type: 'string', default: 'Enter The Name Here' });
