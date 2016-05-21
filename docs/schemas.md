@@ -27,8 +27,8 @@ Example of schema definition:
 import { Schema } from "chaos-orm";
 
 var schema = new Schema();
-var schema.set('id',   { type: 'serial' });
-var schema.set('name', { type: 'string' });
+var schema.column('id',   { type: 'serial' });
+var schema.column('name', { type: 'string' });
 ```
 
 `'type'` is an abstract type. For example `{type: 'serial'}` will be translated into `INT NOT NULL AUTO_INCREMENT` for a MySQL connection and into `SERIAL` for PostgreSQL.
@@ -59,11 +59,11 @@ Moreover with Chaos you are not limited to "scalar" types and you can also deal 
 import { Schema } from "chaos-orm";
 
 var schema = new Schema();
-schema.set('id',             { type: 'serial' });
-schema.set('user',           { type: 'object' });
-schema.set('user.firstname', { type: 'string' });
-schema.set('user.lastname',  { type: 'string' });
-schema.set('comments',       { type: 'id', array: true });
+schema.column('id',             { type: 'serial' });
+schema.column('user',           { type: 'object' });
+schema.column('user.firstname', { type: 'string' });
+schema.column('user.lastname',  { type: 'string' });
+schema.column('comments',       { type: 'id', array: true });
 ```
 
 Note: no persistant layer support this high level feature yet as the time I'm writing this documentation but it's planned for PostgreSQL.
@@ -80,7 +80,7 @@ Field definition can have the following options:
 There's two way to set up a relation:
 
 * `.bind()`: is used to define external relations (i.e via foreign keys).
-* `.set()`: is used to define embeded relations (i.e same method as for fields).
+* `.column()`: is used to define embeded relations (i.e same method as for fields).
 
 The first parameter of methods will be the name of the relation (which mean the name of the field name used to store the relationship data). And the second parameter is an array of options. Possible values are:
 
@@ -99,7 +99,7 @@ import Image from "./model/image";
 var schema = new Schema();
 
 // Embeded relation
-schema.set('author', {
+schema.column('author', {
   relation: 'hasOne',
   to: Author
 });
@@ -120,7 +120,7 @@ schema.hasMany('images', Image, { id: 'gallery_id' });
 Formatters are a handy way to perform casting between different data representations. For example when data are loaded from a database, they must be casted first to fit the schema definition, and then, must be casted back into the datasource format to be saved.
 
 A schema with a connection has three built-in type of formatters:
-- `'cast'`: used to load data into an entity. Data can come from the datasource or from manually setted data (e.g. `entity.set('created', '2015-07-26'`)).
+- `'cast'`: used to load data into an entity. Data can come from the datasource or from manually setted data (e.g. `entity.column('created', '2015-07-26'`)).
 - `'datasource'` : used to cast entity's data back to a compatible datasource format.
 - `'array'` : used to export a entity's data into a kind of generic array structure (used by `entiy.data()`);
 
@@ -135,7 +135,7 @@ import Gallery from "./model/gallery";
 var schema = Gallery::schema();
 
 // Just to make sure created is of type date.
-schema.set('created', { type: 'date' });
+schema.column('created', { type: 'date' });
 
 var entity = Gallery::create([
     'name'    => 'My Gallery',
@@ -164,7 +164,7 @@ import Gallery from "./model/gallery";
 var schema = Gallery.schema();
 
 // Just to make sure created is of type date.
-schema.set('created', { type: 'date' });
+schema.column('created', { type: 'date' });
 
 // Override the date handler (casting context)
 schema.formatter('cast', 'date', function(value, options) {
@@ -211,7 +211,7 @@ import Gallery from "./model/gallery";
 var schema = Gallery.schema();
 
 // To make sure created is of type date.
-schema.set('created', { type: 'date' });
+schema.column('created', { type: 'date' });
 
 var entity = Gallery.create({
   name: 'My Gallery',
@@ -257,9 +257,9 @@ schema.formatter('datasource', 'customtype', function(value, options) {
 });
 
 // Now you can use your custom type.
-schema.set('custom', { type: 'customtype' });
+schema.column('custom', { type: 'customtype' });
 
-schema.set('custom', "customdata");
+schema.column('custom', "customdata");
 ```
 
 #### <a name="methods"></a>Additionnal Methods

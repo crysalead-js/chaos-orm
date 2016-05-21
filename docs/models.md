@@ -24,7 +24,7 @@ import { Schema } from 'chaos-database';
 
 class Gallery extends Model {
 }
-Gallery._schema = Schema;
+Gallery._definition = Schema;
 ```
 
 And a complete model definition could be the following:
@@ -43,7 +43,7 @@ class Gallery extends Model {
     schema.hasMany('images', Image);
   }
 }
-Gallery._schema = Schema;
+Gallery._definition = Schema;
 ```
 
 The model definition is pretty straightforward. The schema instance is configured through the `._define()` method.
@@ -64,25 +64,23 @@ Note: Composite primary keys have not been implemented in Chaos to minimize the 
 
 In the previous example you noticed that fields and relations are defined using the `._define()` method. More informations on [how to define a schema can by found here](schemas.md)
 
-Once defined, model's schema is available through `.schema()` and relations through `.relations()`:
+Once defined, model's schema is available through `.definition()`:
 
 ```js
-relations = Gallery.relations(); // ['images']
+relations = Gallery.definition().relations(); // ['images']
 ```
 
 To get a specific relation use `.relation()`:
 
 ```js
-relation = Gallery.relation('images'); // A `HasMany` instance
+relation = Gallery.definition().relation('images'); // A `HasMany` instance
 ```
 
 It's also possible to check the availability of a specific relation using `.hasRelation()`:
 
 ```js
-relation = Gallery.hasRelation('images'); // A boolean
+relation = Gallery.definition().hasRelation('images'); // A boolean
 ```
-
-Note: under the hood, `.relations()`, `.relation()` and `.hasRelation()` are simple shorcuts on `.schema().relations()`, `.schema().relation()` and `.schema().hasRelation()`.
 
 ### <a name="entities"></a>Entities
 
@@ -142,7 +140,7 @@ class Image extends Model {
     validator.rule('name', 'not:empty');
   }
 }
-Image._schema = Schema
+Image._definition = Schema
 ```
 
 It's then possible to perform the following:
@@ -318,9 +316,9 @@ Gets/sets the model's connection.
 
 Gets/sets the model's conventions.
 
-#### .schema()
+#### .definition()
 
-Gets/sets the model's schema.
+Gets/sets the model's schema definition.
 
 #### .validator()
 
