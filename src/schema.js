@@ -355,21 +355,15 @@ class Schema {
    *
    * @return Array
    */
-  fields(attribute) {
+  fields() {
     var name;
     var fields = [];
-    if (!arguments.length) {
-      for (var [name, value] of this._fields) {
-        var field = {};
-        field[name] = value;
-        fields.push(field);
+    for (var [name, value] of this._fields) {
+      var field = {};
+      if (value.virtual) {
+        continue;
       }
-    } else {
-      for (var [name, value] of this._fields) {
-        var field = {};
-        field[name] = this.field(name, attribute);
-        fields.push(field);
-      }
+      fields.push(name);
     }
     return fields;
   }
@@ -513,13 +507,54 @@ class Schema {
         this._fields.set(key, this._initField(fields[key]));
       }
     } else {
-      fields = fields instanceof Schema ? fields.fields() : fields;
-      for (var value of fields) {
-        var key = Object.keys(value);
-        this._fields.set(key, value[key]);
+      if (fields instanceof Schema) {
+        for (var name of fields.fields()) {
+          this._fields.set(name, fields.field(name));
+        }
+      } else {
+        for (var value of fields) {
+          var key = Object.keys(value);
+          this._fields.set(key, value[key]);
+        }
       }
     }
     return this;
+  }
+
+  /**
+   * Gets all virtual fields.
+   *
+   * @return Object
+   */
+  virtuals()
+  {
+    var fields = [];
+    for (var [name, field] of this._fields) {
+      if (!field.virtual) {
+        continue;
+      }
+      fields.push(name);
+    }
+    return fields;
+  }
+  /**
+   * Checks if the schema has a field/some virtual fields.
+   *
+   * @param  String|Array name The field name or an array of field names to check.
+   * @return Boolean           Returns `true` if present, `false` otherwise.
+   */
+  isVirtual(name)
+  {
+      if (!Array.isArray(name)) {
+        var field = this._fields.get(name);
+        return field !== undefined && field.virtual;
+      }
+      for (var field of name) {
+        if (!this.isVirtual(field)) {
+          return false;
+        }
+      }
+      return true;
   }
 
   /**
@@ -885,8 +920,8 @@ class Schema {
     }
     if (this._fields.has(name)) {
       options = extend({}, this._fields.get(name), options);
-      if (data === null && options['null']) {
-        return null;
+      if (typeof options.setter === 'function') {
+        data = options.setter(options.parent, data, name);
       }
       if (options.array && field) {
         return this._castArray(name, data, options);

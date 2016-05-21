@@ -315,6 +315,79 @@ class Document {
   }
 
   /**
+   * Returns the current data.
+   *
+   * @param  String name If name is defined, it'll only return the field value.
+   * @return mixed.
+   */
+  get(name) {
+    if (!arguments.length) {
+      return this._data;
+    }
+    var keys = Array.isArray(name) ? name : dotpath(name);
+    name = keys.shift();
+    if (!name) {
+      throw new Error("Field name can't be empty.");
+    }
+
+    if (keys.length) {
+      var value = this.get(name);
+      if (value.set === undefined) {
+        throw new Error("The field: `" + name + "` is not a valid document or entity.");
+      }
+      return value.get(keys);
+    }
+
+    var schema = this.schema();
+    var fieldname = this.rootPath() ? this.rootPath() + '.' + name : name;
+
+    if (!schema.has(fieldname)) {
+      if (this._data[name] !== undefined) {
+        return this._data[name];
+      } else if(schema.hasRelation(fieldname)) {
+        return this._data[name] = schema.cast(name, undefined, {
+          collector: this.collector(),
+          parent: this,
+          rootPath: this.rootPath()
+        });
+      }
+      return;
+    }
+
+    var field = schema.field(fieldname);
+    var value;
+
+    if (typeof field.getter === 'function') {
+      value = field.getter(this, this._data[name], name);
+    } else if (this._data[name] !== undefined) {
+      return this._data[name];
+    } else if(schema.hasRelation(fieldname)) {
+      return this._data[name] = schema.cast(name, undefined, {
+        collector: this.collector(),
+        parent: this,
+        rootPath: this.rootPath()
+      });
+    } else if (field.type === 'object') {
+      value = [];
+    } else {
+      return;
+    }
+
+    value = schema.cast(name, value, {
+      collector: this.collector(),
+      parent: this,
+      rootPath: this.rootPath(),
+      defaults: true,
+      exists: this.exists()
+    });
+
+    if (field.virtual) {
+      return value;
+    }
+    return this._data[name] = value;
+  }
+
+  /**
    * Sets one or several properties.
    *
    * @param  mixed name    A field name or an associative array of fields and values.
@@ -344,24 +417,24 @@ class Document {
    * provided by a select input which generally provide such kind of array:
    *
    * ```php
-   * $array = [
-   *     'id' => 3
-   *     'comments' => [
+   * var array = {
+   *     id: 3
+   *     comments: [
    *         '5', '6', '9
    *     ]
-   * ];
+   * };
    * ```
    *
    * To avoid painfull pre-processing, this function will automagically manage such relation
    * array by reformating it into the following on autoboxing:
    *
    * ```php
-   * $array = [
-   *     'id' => 3
-   *     'comments' => [
-   *         ['id' => '5'],
-   *         ['id' => '6'],
-   *         ['id' => '9']
+   * var array = [
+   *     id: 3
+   *     comments: [
+   *         { id: '5' },
+   *         { id: '6' },
+   *         { id: '9' }
    *     ],
    * ];
    * ```
@@ -390,10 +463,7 @@ class Document {
       return;
     }
 
-    var method = this.model().conventions().apply('setter', name);
-    if (this[method] instanceof Function) {
-      data = this[method](data);
-    }
+    var schema = this.schema();
 
     var previous = this._data[name];
     var value = this.schema().cast(name, data, {
@@ -406,60 +476,11 @@ class Document {
     if (previous === value) {
       return;
     }
-    this._data[name] = value;
-  }
-
-  /**
-   * Returns the current data.
-   *
-   * @param  String name If name is defined, it'll only return the field value.
-   * @return mixed.
-   */
-  get(name) {
-    if (!arguments.length) {
-      return this._data;
-    }
-    var keys = Array.isArray(name) ? name : dotpath(name);
-    name = keys.shift();
-    if (!name) {
-      throw new Error("Field name can't be empty.");
-    }
-
-    if (keys.length) {
-      var value = this.get(name);
-      if (value.set === undefined) {
-        throw new Error("The field: `" + name + "` is not a valid document or entity.");
-      }
-      return value.get(keys);
-    }
-
-    var method = this.model().conventions().apply('getter', name);
-    if (typeof this[method] === 'function') {
-      return this[method](this._data[name]);
-    }
-    if (this._data[name] !== undefined) {
-      return this._data[name];
-    }
-    var schema = this.schema();
-    if (schema.hasRelation(name)) {
-      return this._data[name] = schema.cast(name, undefined, {
-        collector: this.collector(),
-        parent: this
-      });
-    }
     var fieldname = this.rootPath() ? this.rootPath() + '.' + name : name;
-    if (!schema.has(fieldname)) {
+    if (schema.isVirtual(fieldname)) {
       return;
     }
-    if (schema.field(fieldname, 'type') === 'object') {
-      return this._data[name] = schema.cast(name, undefined, {
-        collector: this.collector(),
-        parent: this,
-        rootPath: this.rootPath(),
-        defaults: true,
-        exists: this.exists()
-      });
-    }
+    this._data[name] = value;
   }
 
   /**
@@ -743,6 +764,7 @@ class Document {
   to(format, options) {
     var defaults = {
       embed: true,
+      verbose: false,
       rootPath: undefined
     };
     options = extend({}, defaults, options);
@@ -756,7 +778,12 @@ class Document {
     var result = {};
     var rootPath = options.rootPath;
 
-    for (var field in this._data) {
+    var fields = Object.keys(this._data);
+    if (options.verbose && schema.locked()) {
+      fields = fields.concat(Object.keys(schema.fields()));
+    }
+
+    for (var field of fields) {
       if (schema.hasRelation(field)) {
         var rel = schema.relation(field);
         if (!rel.embedded()) {

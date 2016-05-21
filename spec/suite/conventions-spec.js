@@ -20,8 +20,6 @@ describe("Conventions", function() {
       expect(conventions.apply('field', 'MyPost')).toBe('my_post');
       expect(conventions.apply('single', 'tag')).toBe('tag');
       expect(conventions.apply('multiple', 'tag')).toBe('tags');
-      expect(conventions.apply('getter', 'hello_world')).toBe('getHelloWorld');
-      expect(conventions.apply('setter', 'hello_world')).toBe('setHelloWorld');
 
     });
 
@@ -61,11 +59,9 @@ describe("Conventions", function() {
       var keys = Object.keys(closures).sort();
       expect(keys).toEqual([
         'field',
-        'getter',
         'key',
         'multiple',
         'reference',
-        'setter',
         'single',
         'source'
       ]);

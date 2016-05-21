@@ -45,12 +45,6 @@ class Conventions {
         },
         single: function(name) {
             return inflector.singular(name);
-        },
-        getter: function(name) {
-            return 'get' + pascalize(name);
-        },
-        setter: function(name) {
-            return 'set' + pascalize(name);
         }
       }
     };

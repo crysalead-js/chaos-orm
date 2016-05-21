@@ -75,7 +75,7 @@ class Source {
       },
       datasource: {
         'string': function(value, options) {
-          return value instanceof Date ? value.toISOString() : String(value);
+          return value instanceof Date ? value.toISOString().substring(0, 19).replace('T', ' ') : String(value);
         }
       }
     };

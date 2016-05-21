@@ -268,28 +268,32 @@ describe("Entity", function() {
 
     });
 
-    it("sets a value using a dedicated method", function() {
+    it("sets a value using a virtual field", function() {
 
-      var entity = new MyModel();
-
-      entity.setHelloBoy = function(data) {
-        return 'Hi ' + data;
-      };
+      var schema = MyModel.definition();
+      schema.set('hello_boy', {
+        setter: function(entity, data, name) {
+            return 'Hi ' + data;
+        }
+      });
+      var entity = MyModel.create();
 
       entity.set('hello_boy', 'boy');
       expect(entity.get('hello_boy')).toBe('Hi boy');
 
     });
 
-    it("gets a value using a dedicated method", function() {
+    it("gets a value using a virtual field", function() {
 
-      var entity = new MyModel();
-      entity.getHelloBoy = function(data) {
-        return 'Hi ' + data;
-      };
+      var schema = MyModel.definition();
+      schema.set('hello_boy', {
+        getter: function(entity, data, name) {
+            return 'Hi Boy!';
+        }
+      });
+      var entity = MyModel.create();
 
-      entity.set('hello_boy', 'boy');
-      expect(entity.get('hello_boy')).toBe('Hi boy');
+      expect(entity.get('hello_boy')).toBe('Hi Boy!');
 
     });
 

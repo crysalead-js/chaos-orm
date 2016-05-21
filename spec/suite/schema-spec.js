@@ -38,22 +38,7 @@ describe("Schema", function() {
       expect(schema.model()).toBe(Image);
       expect(schema.key()).toBe('key');
       expect(schema.locked()).toBe(false);
-      expect(schema.fields()).toEqual([
-        {
-          id: {
-            type: 'serial',
-            array: false,
-            null: false
-          }
-        },
-        {
-          age: {
-            type: 'integer',
-            array: false,
-            null: true
-          }
-        }
-      ]);
+      expect(schema.fields()).toEqual(['id', 'age']);
       expect(schema.meta()).toEqual({ some: 'meta' });
       expect(schema.conventions()).toBe(conventions);
 
@@ -156,64 +141,15 @@ describe("Schema", function() {
 
     it("returns all fields", function() {
 
-      expect(this.schema.fields()).toEqual([
-        {
-          id: {
-            type: 'serial',
-            array: false,
-            null: false
-          }
-        },
-        {
-          gallery_id: {
-            type: 'integer',
-            array: false,
-            null: true
-          }
-        },
-        {
-          name: {
-            type: 'string',
-            array: false,
-            null: true
-          }
-        },
-        {
-          title: {
-            type: 'string',
-            length: 50,
-            array: false,
-            null: true
-          }
-        },
-        {
-          score: {
-            array: false,
-            null: true,
-            type: 'float'
-          }
-        }
-      ]);
+      expect(this.schema.fields()).toEqual(['id', 'gallery_id', 'name', 'title', 'score']);
 
     });
 
-    it("returns an attribute only", function() {
+    it("filters out virtual fields", function() {
 
-      expect(this.schema.fields('default')).toEqual([
-        { id: undefined },
-        { gallery_id: undefined },
-        { name: undefined },
-        { title: undefined },
-        { score: undefined }
-      ]);
-
-      expect(this.schema.fields('type')).toEqual([
-        { id: 'serial' },
-        { gallery_id: 'integer' },
-        { name: 'string' },
-        { title: 'string' },
-        { score: 'float' }
-      ]);
+      this.schema.set('virtualField', { virtual: true });
+      var fields = this.schema.fields();
+      expect(fields['virtualField']).toBe(undefined);
 
     });
 
@@ -231,7 +167,7 @@ describe("Schema", function() {
 
   });
 
-  describe(".type()", function() {
+  describe(".field()", function() {
 
     it("gets the type of a field", function() {
 
@@ -241,13 +177,38 @@ describe("Schema", function() {
         null: false
       });
 
+      expect(this.schema.field('gallery_id')).toEqual({
+        type: 'integer',
+        array: false,
+        null: true
+      });
+
+      expect(this.schema.field('name')).toEqual({
+        type: 'string',
+        array: false,
+        null: true
+      });
+
+      expect(this.schema.field('title')).toEqual({
+        type: 'string',
+        length: 50,
+        array: false,
+        null: true
+      });
+
+      expect(this.schema.field('score')).toEqual({
+        type: 'float',
+        array: false,
+        null: true
+      });
+
     });
 
   });
 
-  describe(".field()", function() {
+  describe(".type()", function() {
 
-    it("returns a field", function() {
+    it("returns a field type", function() {
 
       expect(this.schema.type('id')).toBe('serial');
 
@@ -346,6 +307,194 @@ describe("Schema", function() {
 
     });
 
+    context("with a dynamic getter", function() {
+
+      context("with a normal field", function() {
+
+        beforeEach(function() {
+
+          this.schema = new Schema();
+          this.schema.set('date', { type: 'string' });
+          this.schema.set('time', { type: 'string' });
+          this.schema.set('datetime', {
+            type: 'datetime',
+            getter: function(entity, data, name) {
+              return entity.get('date') + ' ' + entity.get('time') + ' UTC';
+            }
+          });
+
+        });
+
+        it("builds the field", function() {
+
+          var document = this.schema.cast(null, {
+            date: '2015-05-20',
+            time: '21:50:00'
+          });
+          expect(document.get('datetime').toISOString().substring(0, 19).replace('T', ' ')).toBe('2015-05-20 21:50:00');
+          expect(document.isset('datetime')).toBe(true);
+
+        });
+
+        it("rebuilds the field on changes", function() {
+
+          var document = this.schema.cast(null, {
+            date: '2015-05-20',
+            time: '21:50:00'
+          });
+          expect(document.get('datetime').toISOString().substring(0, 19).replace('T', ' ')).toBe('2015-05-20 21:50:00');
+
+          document.set('time', '22:15:00');
+          expect(document.get('datetime').toISOString().substring(0, 19).replace('T', ' ')).toBe('2015-05-20 22:15:00');
+          expect(document.isset('datetime')).toBe(true);
+
+        });
+
+      });
+
+      context("with a virtual field", function() {
+
+        beforeEach(function() {
+
+          this.schema = new Schema();
+          this.schema.set('date', { type: 'string' });
+          this.schema.set('time', { type: 'string' });
+          this.schema.set('datetime', {
+            type: 'datetime',
+            virtual: true,
+            getter: function(entity, data, name) {
+              return entity.get('date') + ' ' + entity.get('time') + ' UTC';
+            }
+          });
+
+        });
+
+        it("builds the field", function() {
+
+          var document = this.schema.cast(null, {
+            date: '2015-05-20',
+            time: '21:50:00'
+          });
+          expect(document.get('datetime').toISOString().substring(0, 19).replace('T', ' ')).toBe('2015-05-20 21:50:00');
+          expect(document.isset('datetime')).toBe(false);
+
+        });
+
+        it("rebuilds the field on changes", function() {
+
+          var document = this.schema.cast(null, {
+            date: '2015-05-20',
+            time: '21:50:00'
+          });
+          expect(document.get('datetime').toISOString().substring(0, 19).replace('T', ' ')).toBe('2015-05-20 21:50:00');
+
+          document.set('time', '22:15:00');
+          expect(document.get('datetime').toISOString().substring(0, 19).replace('T', ' ')).toBe('2015-05-20 22:15:00');
+          expect(document.isset('datetime')).toBe(false);
+
+        });
+
+      });
+
+    });
+
+    context("with a dynamic setter", function() {
+
+      context("with a normal field", function() {
+
+        beforeEach(function() {
+
+          this.schema = new Schema();
+          this.schema.set('date', { type: 'string' });
+          this.schema.set('time', { type: 'string' });
+          this.schema.set('datetime', {
+            type: 'string',
+            setter: function(entity, data, name) {
+              var parts = data.split(' ');
+              entity.set('date', parts[0]);
+              entity.set('time', parts[1]);
+              return data;
+            }
+          });
+
+        });
+
+        it("builds the field", function() {
+
+          var document = this.schema.cast();
+          document.set('datetime', '2015-05-20 21:50:00');
+          expect(document.get('date')).toBe('2015-05-20');
+          expect(document.get('time')).toBe('21:50:00');
+          expect(document.get('datetime')).toBe('2015-05-20 21:50:00');
+
+        });
+
+        it("rebuilds the field on changes", function() {
+
+          var document = this.schema.cast();
+          document.set('datetime', '2015-05-20 21:50:00');
+          expect(document.get('date')).toBe('2015-05-20');
+          expect(document.get('time')).toBe('21:50:00');
+          expect(document.get('datetime')).toBe('2015-05-20 21:50:00');
+
+          document.set('datetime', '2015-05-20 22:15:00');
+          expect(document.get('date')).toBe('2015-05-20');
+          expect(document.get('time')).toBe('22:15:00');
+          expect(document.get('datetime')).toBe('2015-05-20 22:15:00');
+
+        });
+
+      });
+
+      context("with a virtual field", function() {
+
+        beforeEach(function() {
+
+          this.schema = new Schema();
+          this.schema.set('date', { type: 'string' });
+          this.schema.set('time', { type: 'string' });
+          this.schema.set('datetime', {
+            type: 'string',
+            virtual: true,
+            setter: function(entity, data, name) {
+              var parts = data.split(' ');
+              entity.set('date', parts[0]);
+              entity.set('time', parts[1]);
+              return data;
+            }
+          });
+
+        });
+
+        it("builds the field", function() {
+
+          var document = this.schema.cast();
+          document.set('datetime', '2015-05-20 21:50:00');
+          expect(document.get('date')).toBe('2015-05-20');
+          expect(document.get('time')).toBe('21:50:00');
+          expect(document.isset('datetime')).toBe(false);
+
+        });
+
+        it("rebuilds the field on changes", function() {
+
+          var document = this.schema.cast();
+          document.set('datetime', '2015-05-20 21:50:00');
+          expect(document.get('date')).toBe('2015-05-20');
+          expect(document.get('time')).toBe('21:50:00');
+          expect(document.isset('datetime')).toBe(false);
+
+          document.set('datetime', '2015-05-20 22:15:00');
+          expect(document.get('date')).toBe('2015-05-20');
+          expect(document.get('time')).toBe('22:15:00');
+          expect(document.isset('datetime')).toBe(false);
+
+        });
+
+      });
+
+    });
+
   });
 
   describe(".remove()", function() {
@@ -366,6 +515,13 @@ describe("Schema", function() {
       expect(this.schema.has('title')).toBe(true);
       this.schema.remove('title');
       expect(this.schema.has('title')).toBe(false);
+
+    });
+
+    it("checks if a schema contain a virtual field name", function() {
+
+      this.schema.set('virtualField', { virtual: true });
+      expect(this.schema.has('virtualField')).toBe(true);
 
     });
 
@@ -390,30 +546,7 @@ describe("Schema", function() {
         });
 
         var fields = this.schema.fields();
-
-        expect(fields).toEqual([
-          {
-            id: {
-              type: 'serial',
-              array: false,
-              null: false
-            }
-          },
-          {
-            name: {
-              type: 'string',
-              array: false,
-              null: true
-            }
-          },
-          {
-            title: {
-              type: 'string',
-              array: false,
-              null: true
-            }
-          }
-        ]);
+        expect(fields).toEqual(['id', 'name', 'title']);
 
       });
 
@@ -430,36 +563,26 @@ describe("Schema", function() {
         this.schema.append(extra);
 
         var fields = this.schema.fields();
-
-        expect(fields).toEqual([
-          {
-            id: {
-              type: 'serial',
-              array: false,
-              null: false
-            }
-          },
-          {
-            name: {
-              type: 'string',
-              array: false,
-              null: true
-            }
-          },
-          {
-            title: {
-              type: 'string',
-              array: false,
-              null: true
-            }
-          }
-        ]);
+        expect(fields).toEqual(['id', 'name', 'title']);
 
       });
 
     });
 
   });
+
+  describe("->virtuals()", function() {
+
+    it("returns all virtual fields", function() {
+
+      this.schema.set('virtualField1', { virtual: true });
+      this.schema.set('virtualField2', { virtual: true });
+
+      expect(this.schema.virtuals()).toEqual(['virtualField1', 'virtualField2']);
+
+    });
+
+ });
 
   describe(".bind()", function() {
 

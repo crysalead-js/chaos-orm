@@ -53,10 +53,10 @@ describe("Source", function() {
       expect(this.source.format('datasource', 'float', 12.3)).toBe('12.3');
       expect(this.source.format('datasource', 'decimal', 12.3)).toBe('12.3');
       var date = new Date('2014-11-21');
-      expect(this.source.format('datasource', 'date', date)).toBe('2014-11-21T00:00:00.000Z');
+      expect(this.source.format('datasource', 'date', date)).toBe('2014-11-21 00:00:00');
       expect(this.source.format('datasource', 'date', '2014-11-21')).toBe('2014-11-21');
       var datetime = new Date('2014-11-21T10:20:45.000Z');
-      expect(this.source.format('datasource', 'datetime', datetime)).toBe('2014-11-21T10:20:45.000Z');
+      expect(this.source.format('datasource', 'datetime', datetime)).toBe('2014-11-21 10:20:45');
       expect(this.source.format('datasource', 'datetime', '2014-11-21 10:20:45')).toBe('2014-11-21 10:20:45');
       expect(this.source.format('datasource', 'boolean', true)).toBe('true');
       expect(this.source.format('datasource', 'null', null)).toBe('null');
