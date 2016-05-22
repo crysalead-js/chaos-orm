@@ -388,14 +388,14 @@ describe("Collection", function() {
       var schema = { embed: function() {} };
       var spy = spyOn(schema, 'embed');
 
-      MyModel.config({ schema: schema });
+      MyModel.definition(schema);
 
       var galleries = MyModel.create({}, { type: 'set' });
 
       galleries.embed(['relation1.relation2']);
       expect(spy).toHaveBeenCalledWith(galleries, ['relation1.relation2']);
 
-      MyModel.config();
+      MyModel.reset();
 
     });
 

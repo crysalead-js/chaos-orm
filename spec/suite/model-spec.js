@@ -16,41 +16,6 @@ describe("Model", function() {
     MyModel.reset();
   });
 
-  describe(".config()", function() {
-
-    it("configures the model", function() {
-
-      var options = {};
-      var query = { option: 'value' };
-      var connection = new Source();
-      var conventions = new Conventions();
-
-      MyModel.config({
-        query: query,
-        connection: connection,
-        conventions: conventions
-      });
-
-      var schema = MyModel.definition();
-
-      expect(schema instanceof MySchema).toBe(true);
-      expect(MyModel.definition().source()).toBe('my_model');
-
-      expect(MyModel.query()).toBe(query);
-      expect(MyModel.connection()).toBe(connection);
-      expect(MyModel.conventions()).toBe(conventions);
-
-      MyModel.reset();
-
-      expect(MyModel.definition()).not.toBe(schema);
-      expect(MyModel.query()).toEqual({});
-      expect(MyModel.connection()).toBe(undefined);
-      expect(MyModel.conventions()).not.toBe(conventions);
-
-    });
-
-  });
-
   describe(".conventions()", function() {
 
     it("gets/sets a conventions", function() {

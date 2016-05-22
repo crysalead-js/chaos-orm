@@ -23,8 +23,8 @@ class Model extends Document{
       this._models[name] = model;
       return this;
     }
-    var name = name !== undefined ? name : this.name;
-    this._models[name] = this;
+    this._name = name !== undefined ? name : this.name;
+    this._models[this._name] = this;
     return this;
   }
 
@@ -42,25 +42,6 @@ class Model extends Document{
       throw new Error("Undefined `" + name + "` as model dependency, the model need to be registered first.");
     }
     return this._models[name];
-  }
-
-  /**
-   * Configures the Model.
-   *
-   * @param Object config Possible options are:
-   *                      - `'schema'`      _Object_: The schema instance to use.
-   *                      - `'validator'`   _Object_: The validator instance to use.
-   *                      - `'connection'`  _Object_: The connection instance to use.
-   *                      - `'conventions'` _Object_: The conventions instance to use.
-   */
-  static config(config) {
-    config = config || {};
-    this.classes(config.classes);
-    this.conventions(config.conventions);
-    this.connection(config.connection);
-    this.definition(config.schema);
-    this.validator(config.validator);
-    this.query(config.query);
   }
 
   /**
@@ -244,7 +225,13 @@ class Model extends Document{
    * Resets the Model.
    */
   static reset() {
-    this.config();
+    this.classes({});
+    this.conventions(undefined);
+    this.connection(undefined);
+    this.definition(undefined);
+    this.validator(undefined);
+    this.query({});
+    this._definitions.delete(this);
   }
 
   /***************************
@@ -570,6 +557,13 @@ Model._classes = {
   conventions: Conventions,
   validator: Validator
 };
+
+/**
+ * Registered name.
+ *
+ * @var Object
+ */
+Model._name = undefined;
 
 /**
  * Stores validator instances.

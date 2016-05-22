@@ -79,7 +79,7 @@ describe("Entity", function() {
 
       var schema = new Schema({ key: null });
       schema.locked(false);
-      MyModel.config({ schema: schema });
+      MyModel.definition(schema);
 
       var closure = function() {
         var entity = MyModel.create({
