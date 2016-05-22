@@ -958,8 +958,9 @@ class Schema {
       data.rootPath(options.rootPath);
       return data;
     }
-    options.type = 'entity';
-    return options.model.create(data ? data : {}, options);
+    options.data = data ? data : {};
+    options.schema = options.model === Document ? options.schema : undefined;
+    return new options.model(options);
   }
 
   /**
@@ -972,14 +973,16 @@ class Schema {
    */
   _castArray(name, data, options) {
     options.type = options.relation === 'hasManyThrough' ? 'through' : 'set';
-    var collection = this.classes()[options.type];
-    if (data instanceof collection) {
+    var Collection = this.classes()[options.type];
+    if (data instanceof Collection) {
       data.collector(options.collector);
       data.parent(options.parent);
       data.rootPath(options.rootPath);
       return data;
     }
-    return options.model.create(data ? data : [], options);
+    options.data = data ? data : [];
+    options.schema = options.model.definition();
+    return new Collection(options);
   }
 
   /**

@@ -34,18 +34,6 @@ describe("Document", function() {
 
   });
 
-
-  describe(".exists()", function() {
-
-    it("returns the exists value", function() {
-
-      var document = Document.create({}, { exists: true });
-      expect(document.exists()).toBe(true);
-
-    });
-
-  });
-
   describe(".parent()", function() {
 
     it("sets a parent", function() {
@@ -60,7 +48,7 @@ describe("Document", function() {
     it("returns the parent", function() {
 
       var parent = {};
-      var document = Document.create({}, { parent: parent });
+      var document = new Document({ parent: parent });
       expect(document.parent()).toBe(parent);
 
     });
@@ -71,7 +59,7 @@ describe("Document", function() {
 
     it("returns the root path", function() {
 
-      var document = Document.create({}, { rootPath: 'items' });
+      var document = new Document({ rootPath: 'items' });
       expect(document.rootPath()).toBe('items');
 
     });
@@ -97,7 +85,7 @@ describe("Document", function() {
 
     it("sets nested arbitraty value in cascade", function() {
 
-      var data = Document.create();
+      var data = new Document();
       data.set('a.nested.value', 'hello');
 
       expect(data.data()).toEqual({
@@ -137,10 +125,12 @@ describe("Document", function() {
 
       var timestamp = 1446208769;
 
-      var document = Document.create({
-        title: 'Hello',
-        body: 'World',
-        created: timestamp
+      var document = new Document({
+        data: {
+          title: 'Hello',
+          body: 'World',
+          created: timestamp
+        }
       });
       expect(document.get()).toEqual({
         title: 'Hello',
@@ -206,7 +196,7 @@ describe("Document", function() {
         enabled: true
       };
 
-      var document = Document.create(data);
+      var document = new Document({ data: data });
       document.unset('body');
       document.unset('enabled');
 
@@ -236,11 +226,14 @@ describe("Document", function() {
 
     it("returns persisted data", function() {
 
-      var document = Document.create({
-        id: 1,
-        title: 'Hello',
-        body: 'World'
-      }, { exists: true });
+      var document = new Document({
+        data: {
+          id: 1,
+          title: 'Hello',
+          body: 'World'
+        },
+        exists: true
+      });
 
       document.set({
         id: 1,
@@ -261,11 +254,14 @@ describe("Document", function() {
 
     it("returns all persisted data with no parameter", function() {
 
-      var document = Document.create({
-        id: 1,
-        title: 'Hello',
-        body: 'World'
-      }, { exists: true });
+      var document = new Document({
+        data: {
+          id: 1,
+          title: 'Hello',
+          body: 'World'
+        },
+        exists: true
+      });
 
       document.set({
         id: 1,
@@ -287,7 +283,12 @@ describe("Document", function() {
 
     it("returns a boolean indicating if a field has been modified", function() {
 
-      var document = Document.create({ title: 'original' }, { exists: true });
+      var document = new Document({
+        data: {
+          title: 'original'
+        },
+        exists: true
+      });
 
       expect(document.modified('title')).toBe(false);
 
@@ -298,7 +299,12 @@ describe("Document", function() {
 
     it("returns `false` if a field has been updated with a same scalar value", function() {
 
-      var document = Document.create({ title: 'original' }, { exists: true });
+      var document = new Document({
+        data: {
+          title: 'original'
+        },
+        exists: true
+      });
 
       expect(document.modified('title')).toBe(false);
 
@@ -309,7 +315,12 @@ describe("Document", function() {
 
     it("returns `false` if a field has been updated with a similar object value", function() {
 
-      var document = Document.create({ 'body': {} }, { exists: true });
+      var document = new Document({
+        data: {
+          'body': {}
+        },
+        exists: true
+      });
 
       expect(document.modified('body')).toBe(false);
 
@@ -320,9 +331,19 @@ describe("Document", function() {
 
     it("delegates the job for values which has a `modified()` method", function() {
 
-      var childDocument = Document.create({ field: 'value' }, { exists: true });
+      var childDocument = new Document({
+        data: {
+          field: 'value'
+        },
+        exists: true
+      });
 
-      var document = Document.create({ child: childDocument }, { exists: true });
+      var document = new Document({
+        data: {
+          child: childDocument
+        },
+        exists: true
+      });
 
       expect(document.modified()).toBe(false);
 
@@ -333,7 +354,7 @@ describe("Document", function() {
 
     it("returns `true` when an unexisting field has been added", function() {
 
-      var document = Document.create({}, { exists: true });
+      var document = new Document({ exists: true });
 
       document.set('modified', 'modified');
 
@@ -343,7 +364,12 @@ describe("Document", function() {
 
     it("returns `true` when a field is removed", function() {
 
-      var document = Document.create({ title: 'original' }, { exists: true });
+      var document = new Document({
+        data: {
+          title: 'original'
+        },
+        exists: true
+      });
 
       expect(document.modified('title')).toBe(false);
 
@@ -354,7 +380,7 @@ describe("Document", function() {
 
     it("returns `false` when an unexisting field is checked", function() {
 
-      var document = Document.create({}, { exists: true });
+      var document = new Document({ exists: true });
       expect(document.modified('unexisting')).toBe(false);
 
     });
@@ -370,7 +396,7 @@ describe("Document", function() {
         title: 'test record'
       };
 
-      var document = Document.create(data);
+      var document = new Document({ data: data });
       expect(document.to('array')).toEqual(data);
 
     });
@@ -385,24 +411,8 @@ describe("Document", function() {
         ]
       };
 
-      var image = Document.create(data);
+      var image = new Document({ data: data });
       expect(image.data()).toEqual(data);
-
-    });
-
-  });
-
-  describe(".toString()", function() {
-
-    it("returns the title field", function() {
-
-      var data = {
-        id: 1,
-        title: 'test record'
-      };
-
-      var document = Document.create(data);
-      expect(document.toString()).toBe('test record');
 
     });
 

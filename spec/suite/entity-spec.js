@@ -27,11 +27,11 @@ describe("Entity", function() {
 
       var date = new Date('2014-10-26 00:25:15');
 
-      var entity = new MyModel({ data: {
+      var entity = MyModel.create({
         title: 'Hello',
         body: 'World',
         created: date
-      }});
+      });
       expect(entity.get('title')).toBe('Hello');
       expect(entity.get('body')).toBe('World');
       expect(entity.get('created')).toBe(date);
@@ -44,7 +44,18 @@ describe("Entity", function() {
 
     it("returns the model class name", function() {
 
-      var entity = new MyModel();
+      var entity = MyModel.create();
+      expect(entity.model()).toBe(MyModel);
+
+    });
+
+  });
+
+  describe(".exists()", function() {
+
+    it("returns the exists value", function() {
+
+      var entity = MyModel.create({ id: 123 }, { exists: true });
       expect(entity.model()).toBe(MyModel);
 
     });
@@ -82,13 +93,23 @@ describe("Entity", function() {
 
     });
 
+    it("throws an exception when trying to update an entity with no ID data", function() {
+
+      var closure = function() {
+        var entity = MyModel.create({}, { exists: true });
+        entity.id();
+      };
+      expect(closure).toThrow(new Error("Existing entities must have a valid ID."));
+
+    });
+
   });
 
   describe(".sync()", function() {
 
     it("syncs an entity to its persisted value", function() {
 
-      var entity = new MyModel();
+      var entity = MyModel.create();
       entity.set('modified', 'modified');
 
       expect(entity.exists()).toBe(false);
@@ -109,7 +130,7 @@ describe("Entity", function() {
 
       it("syncs an entity to its persisted value", function() {
 
-        var entity = new MyModel();
+        var entity = MyModel.create();
         entity.set('modified', 'modified');
 
         expect(entity.exists()).toBe(false);
@@ -140,7 +161,7 @@ describe("Entity", function() {
 
       var date = new Date('2014-10-26 00:25:15');
 
-      var entity = new MyModel();
+      var entity = MyModel.create();
       expect(entity.set('title', 'Hello')).toBe(entity);
       expect(entity.set('body', 'World')).toBe(entity);
       expect(entity.set('created', date)).toBe(entity);
@@ -155,7 +176,7 @@ describe("Entity", function() {
 
       var date = new Date('2014-10-26 00:25:15');
 
-      var entity = new MyModel();
+      var entity = MyModel.create();
       expect(entity.set({
         title: 'Hello',
         body: 'World',
@@ -312,7 +333,7 @@ describe("Entity", function() {
           model: MyModelChild
         });
 
-        var entity = new MyModel();
+        var entity = MyModel.create();
 
         entity.set('child', {
           id: 1,
@@ -485,11 +506,11 @@ describe("Entity", function() {
       var schema = MyModel.definition();
       schema.column('created', { type: 'date' });
 
-      var entity = new MyModel({ data: {
+      var entity = MyModel.create({
         title: 'Hello',
         body: 'World',
         created: new Date('2014-10-26 00:25:15')
-      }});
+      });
 
       expect(entity.data()).toEqual({
         title: 'Hello',
@@ -559,6 +580,22 @@ describe("Entity", function() {
       expect(image.to('array', { embed: false })).toEqual({
         title: 'Amiga 1200'
       });
+
+    });
+
+  });
+
+  describe(".toString()", function() {
+
+    it("returns the title field", function() {
+
+      var data = {
+        id: 1,
+        title: 'test record'
+      };
+
+      var entity = MyModel.create(data);
+      expect(entity.toString()).toBe('test record');
 
     });
 

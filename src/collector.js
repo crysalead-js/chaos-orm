@@ -15,42 +15,46 @@ class Collector {
   /**
    * Collects an object.
    *
-   * @param String scope The scope name.
-   * @param String id    The ID to look up.
+   * @param String uuid  The UUID to look up.
    * @param mixed        The data to collect.
    */
-  set(scope, id, data)
-  {
-    if (this._data[scope] === undefined) {
-      this._data[scope] = {};
-    }
-    this._data[scope][id] = data;
-  }
-
-  /**
-   * Checks if an object with a specific ID has already been collected.
-   *
-   * @param  String  scope The scope name.
-   * @param  String  id    The ID to look up.
-   * @return Boolean       Returns `true` if exists, `false` otherwise.
-   */
-  exists(scope, id) {
-    return this._data[scope] && this._data[scope][id];
+  set(uuid, data) {
+    this._data[uuid] = data;
   }
 
   /**
    * Gets a collected object.
    *
-   * @param  string $scope The scope name.
-   * @param  string $id    The ID to look up.
+   * @param  string uuid   The UUID to look up.
    * @return mixed         The collected data.
    */
-  get(scope, id) {
-    if (this.exists(scope, id)) {
-      return this._data[scope][id];
+  get(uuid) {
+    if (this.exists(uuid)) {
+      return this._data[uuid];
     }
-    throw new Error("No collected data for `'" + scope + "'` with ID `'" + id + "'` in this collector.");
+    throw new Error("No collected data with UUID `'" + uuid + "'` in this collector.");
   }
+
+  /**
+   * Uncollects an object.
+   *
+   * @param String uuid  The UUID to remove.
+   */
+  remove(uuid) {
+    delete this._data[uuid];
+  }
+
+  /**
+   * Checks if an object with a specific ID has already been collected.
+   *
+   * @param  String  uuid  The UUID to look up.
+   * @return Boolean       Returns `true` if exists, `false` otherwise.
+   */
+  exists(uuid) {
+    return this._data[uuid];
+  }
+
+
 }
 
 export default Collector;

@@ -1,3 +1,4 @@
+import Uuid from 'node-uuid';
 import co from 'co';
 import Emitter from 'component-emitter';
 import dotpath from 'dotpath-parser';
@@ -62,7 +63,7 @@ class Document {
    *
    * ```php
    * var post = Post.create({ title: 'New post' });
-   * echo post.data.title; // echoes 'New post'
+   * echo post.get('title'); // echoes 'New post'
    * var success = post.save();
    * ```
    *
@@ -73,68 +74,39 @@ class Document {
    * database, without actually querying the database:
    *
    * ```php
-   * var post = Post::create({ id: $id, moreData: 'foo' }, { exists: true });
-   * post.data.title = 'New title';
+   * var post = Post::create({ id: id, moreData: 'foo' }, { exists: true });
+   * post.set('title', 'New title');
    * var success = post.save();
    * ```
    *
    * @param  Object data    Any data that this object should be populated with initially.
    * @param  Object options Options to be passed to item.
-   *                         - `'type'`       _string_ : can be `'entity'` or `'set'`. `'set'` is used if the passed data represent a collection
-   *                           of entities. Default to `'entity'`.
-   *                         - `'exists'`     _mixed_  : corresponds whether the entity is present in the datastore or not.
-   *                         - `'defaults'`   _boolean_: indicates whether the entity needs to be populated with their defaults values on creation.
-   *                         - `'model'`      _string_ : the model to use for instantiating the entity. Can be useful for implementing
-   *                                                     som Single Table Inheritance.
-   * @return Object          Returns a new, un-saved record or document object. In addition to
-   *                         the values passed to `data`, the object will also contain any values
-   *                         assigned to the `'default'` key of each field defined in the schema.
+   *                         - `'type'`  _string_ : can be `'entity'` or `'set'`. `'set'` is used if the passed data represent a collection
+   *                                                of entities. Default to `'entity'`.
+   * @return Object         Returns a new, un-saved record or document object. In addition to
+   *                        the values passed to `data`, the object will also contain any values
+   *                        assigned to the `'default'` key of each field defined in the schema.
    */
   static create(data, options)
   {
     var defaults = {
-      type: 'entity',
-      exists: false,
-      model: this
+      type: 'entity'
     };
 
     options = extend({}, defaults, options);
-    options.defaults = !options.exists;
 
     var type = options.type;
     var classname;
 
     if (type === 'entity') {
-      classname = options.model;
-      options.schema = options.model === Document ? options.schema : undefined;
+      classname = this;
     } else {
-      options.schema = options.model.definition();
+      options.schema = this.definition();
       classname = this._classes[type];
     }
 
     options = extend({}, options, { data: data });
     return new classname(options);
-  }
-
-  /**
-   * Gets/sets the validator instance.
-   *
-   * @param  Object validator The validator instance to set or none to get it.
-   * @return mixed            The validator instance on get.
-   */
-  static validator(validator) {
-    if (arguments.length) {
-      this._validators[this.name] = validator;
-      return;
-    }
-
-    if (this._validators[this.name]) {
-      return this._validators[this.name];
-    }
-    var classname = this.classes().validator;
-    var validator = this._validators[this.name] = new classname();
-    this._rules(validator);
-    return validator;
   }
 
   /***************************
@@ -146,21 +118,23 @@ class Document {
    * Creates a new record object with default values.
    *
    * @param array $config Possible options are:
-   *                      - `'collector'`  _object_ : A collector instance.
-   *                      - `'parent'`     _object_ : The parent instance.
-   *                      - `'rootPath'`   _string_ : A dotted field names path (for embedded entities).
-   *                      - `'exists'`     _boolean_: A boolean or `null` indicating if the entity exists.
-   *                      - `'data'`       _array_  : The entity's data.
+   *                      - `'collector'`  _Object_  : A collector instance.
+   *                      - `'uuid'`       _Object_  : The object UUID.
+   *                      - `'parent'`     _Object_  : The parent instance.
+   *                      - `'schema'`     _Object_  : The schema instance.
+   *                      - `'rootPath'`   _String_  : A dotted field names path (for embedded entities).
+   *                      - `'defaults'`   _Boolean_ : Populates or not the fields default values.
+   *                      - `'data'`       _Array_   : The entity's data.
    *
    */
   constructor(config) {
     var defaults = {
       collector: undefined,
+      uuid: undefined,
       parent: undefined,
       schema: undefined,
       rootPath: undefined,
-      exists: false,
-      defaults: false,
+      defaults: true,
       data: {}
     };
     config = extend({}, defaults, config);
@@ -180,15 +154,6 @@ class Document {
     this.parent(config.parent);
 
     /**
-     * Cached value indicating whether or not this instance exists somehow. If this instance has been loaded
-     * from the database, or has been created and subsequently saved this value should be automatically
-     * setted to `true`.
-     *
-     * @var Boolean
-     */
-    this.exists(config.exists);
-
-    /**
      * If this instance has a parent, this value indicates the parent field path.
      *
      * @var String
@@ -199,14 +164,14 @@ class Document {
      * Contains the values of updated fields. These values will be persisted to the backend data
      * store when the document is saved.
      *
-     * @var array
+     * @var Object
      */
     this._data = {};
 
     /**
      * Loaded data on construct.
      *
-     * @var array
+     * @var Object
      */
     this._persisted = {};
 
@@ -214,7 +179,7 @@ class Document {
      * The list of validation errors associated with this object, where keys are field names, and
      * values are arrays containing one or more validation error messages.
      *
-     * @var array
+     * @var Object
      */
     this._errors = {};
 
@@ -226,6 +191,13 @@ class Document {
 
     this.set(config.data);
     this._persisted = extend({}, this._data);
+
+    /**
+     * Collect the UUID.
+     *
+     * @var String
+     */
+    this.uuid(config.uuid);
   }
 
   /**
@@ -241,7 +213,7 @@ class Document {
    * Gets/sets the schema instance.
    *
    * @param  Object schema The schema instance to set or none to get it.
-   * @return Object        The schema instance or `this` on set.
+   * @return mixed         The schema instance on get or `this` otherwise.
    */
   schema(schema) {
     if (arguments.length) {
@@ -252,6 +224,34 @@ class Document {
       this._schema = this.constructor.definition();
     }
     return this._schema;
+  }
+
+  /**
+   * Gets/sets the instance uuid.
+   *
+   * @param  String uuid The uuid to set or none to get it.
+   * @return mixed       The uuid on get or `this` otherwise.
+   */
+  uuid(uuid) {
+    if (arguments.length) {
+      if (this._uuid === uuid) {
+        return this;
+      }
+
+      var collector = this.collector();
+      if (this._uuid) {
+        collector.remove(this._uuid);
+      }
+      this._uuid = uuid;
+      if (this._uuid) {
+        collector.set(this.uuid(), this);
+      }
+      return this;
+    }
+    if (!this._uuid) {
+      this._uuid = Uuid.v4();
+    }
+    return this._uuid;
   }
 
   /**
@@ -284,20 +284,6 @@ class Document {
       return this;
     }
     return this._parent;
-  }
-
-  /**
-   * Gets/sets whether or not this instance has been persisted somehow.
-   *
-   * @param  Boolean exists The exists value to set or `null` to get the current one.
-   * @return mixed          Returns the exists value on get or `this` otherwise.
-   */
-  exists(exists) {
-    if (arguments.length) {
-      this._exists = exists;
-      return this;
-    }
-    return this._exists;
   }
 
   /**
@@ -340,21 +326,7 @@ class Document {
 
     var schema = this.schema();
     var fieldname = this.rootPath() ? this.rootPath() + '.' + name : name;
-
-    if (!schema.has(fieldname)) {
-      if (this._data[name] !== undefined) {
-        return this._data[name];
-      } else if(schema.hasRelation(fieldname)) {
-        return this._data[name] = schema.cast(name, undefined, {
-          collector: this.collector(),
-          parent: this,
-          rootPath: this.rootPath()
-        });
-      }
-      return;
-    }
-
-    var field = schema.column(fieldname);
+    var field = schema.has(fieldname) ? schema.column(fieldname) : {};
     var value;
 
     if (typeof field.getter === 'function') {
@@ -377,8 +349,7 @@ class Document {
       collector: this.collector(),
       parent: this,
       rootPath: this.rootPath(),
-      defaults: true,
-      exists: this.exists()
+      defaults: true
     });
 
     if (field.virtual) {
@@ -470,8 +441,7 @@ class Document {
       collector: this.collector(),
       parent: this,
       rootPath: this.rootPath(),
-      defaults: true,
-      exists: this.exists()
+      defaults: true
     });
     if (previous === value) {
       return;
@@ -525,15 +495,6 @@ class Document {
   }
 
   /**
-   * Returns a string representation of the instance.
-   *
-   * @return String
-   */
-  title() {
-    return this._data.title ? this._data.title : this._data.name;
-  }
-
-  /**
    * Exports the entity into an array based representation.
    *
    * @param  Object options Some exporting options. Possibles values are:
@@ -566,9 +527,6 @@ class Document {
    *                      original values.
    */
   modified(field) {
-    if (!this.exists()) {
-        return true;
-    }
     var schema = this.schema();
     var updated = {};
     var fields = field ? [field] : Object.keys(extend({}, this._persisted, this._data));
@@ -605,99 +563,6 @@ class Document {
     }
     var result = Object.keys(updated);
     return field ? result : result.length !== 0;
-  }
-
-  /**
-   * Validates the entity data.
-   *
-   * @param  array   options Available options:
-   *                         - `'events'` _mixed_    : A string or array defining one or more validation
-   *                           events. Events are different contexts in which data events can occur, and
-   *                           correspond to the optional `'on'` key in validation rules. For example, by
-   *                           default, `'events'` is set to either `'create'` or `'update'`, depending on
-   *                           whether the entity already exists. Then, individual rules can specify
-   *                           `'on' => 'create'` or `'on' => 'update'` to only be applied at certain times.
-   *                           You can also set up custom events in your rules as well, such as `'on' => 'login'`.
-   *                           Note that when defining validation rules, the `'on'` key can also be an array of
-   *                           multiple events.
-   *                         - `'required'` _boolean_ : Sets the validation rules `'required'` default value.
-   *                         - `'embed'`    _array_   : List of relations to validate.
-   * @return Promise         Returns a promise.
-   */
-  validate(options) {
-    return co(function* () {
-      var defaults = {
-        events: this.exists() !== false ? 'update' : 'create',
-        required: this.exists() !== false ? false : true,
-        embed: true
-      };
-      options = extend({}, defaults, options);
-      var validator = this.model().validator();
-
-      var valid = yield this._validate(options);
-
-      var success = yield validator.validate(this.get(), options);
-      this._errors = validator.errors();
-      return success && valid;
-    }.bind(this));
-  }
-
-  /**
-   * Validates a relation.
-   *
-   * @param  array   $options Available options:
-   *                          - `'embed'` _array_ : List of relations to validate.
-   * @return boolean          Returns `true` if all validation rules on all fields succeed, otherwise `false`.
-   */
-  _validate(options) {
-    return co(function* () {
-      var defaults = { embed: true };
-      options = extend({}, defaults, options);
-
-      if (options.embed === true) {
-        options.embed = this.hierarchy();
-      }
-
-      var schema = this.schema();
-      var embed = schema.treeify(options.embed);
-      var success = true;
-
-      for (var name in embed) {
-        if (this.isset(name)) {
-          var value = embed[name];
-          var rel = schema.relation(name);
-          var ok = yield rel.validate(this, extend({}, options, { embed: value }));
-          var success = success && ok;
-        }
-      }
-      return success;
-    }.bind(this));
-  }
-
-  /**
-   * Returns the errors from the last `.validate()` call.
-   *
-   * @return Object The occured errors.
-   */
-  errors(options) {
-    var defaults = { embed: true };
-    options = extend({}, defaults, options);
-
-    if (options.embed === true) {
-      options.embed = this.hierarchy();
-    }
-
-    var schema = this.schema();
-    var embed = schema.treeify(options.embed);
-    var errors = extend({}, this._errors);
-
-    for (var name in embed) {
-      if (this.isset(name)) {
-        var value = embed[name];
-        errors[name] = this.get(name).errors(extend({}, options, { embed: value }));
-      }
-    }
-    return errors;
   }
 
   /**
@@ -740,15 +605,6 @@ class Document {
         }
       }
       return result;
-  }
-
-  /**
-   * Returns a string representation of the instance.
-   *
-   * @return String Returns the generated title of the object.
-   */
-  toString() {
-    return String(this.title());
   }
 
   /**
@@ -817,16 +673,8 @@ Document._classes = {
   collector: Collector,
   set: Collection,
   through: Through,
-  conventions: Conventions,
-  validator: Validator
-};
-
-/**
- * Stores validator instances.
- *
- * @var Object
- */
-Document._validators = {};
+  conventions: Conventions
+}
 
 /**
  * MUST BE re-defined in sub-classes which require some different conventions.

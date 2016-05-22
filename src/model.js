@@ -79,6 +79,27 @@ class Model extends Document{
   }
 
   /**
+   * Gets/sets the validator instance.
+   *
+   * @param  Object validator The validator instance to set or none to get it.
+   * @return mixed            The validator instance on get.
+   */
+  static validator(validator) {
+    if (arguments.length) {
+      this._validators[this.name] = validator;
+      return;
+    }
+
+    if (this._validators[this.name]) {
+      return this._validators[this.name];
+    }
+    var classname = this.classes().validator;
+    var validator = this._validators[this.name] = new classname();
+    this._rules(validator);
+    return validator;
+  }
+
+  /**
    * Gets/sets the default query parameters used on finds.
    *
    * @param  Object query The query parameters.
@@ -243,22 +264,40 @@ class Model extends Document{
    *
    */
   constructor(config) {
+    var defaults = {
+      exists: false
+    };
+    config = extend({}, defaults, config);
+
     super(config);
 
-    if (this.exists() === false) {
+    /**
+     * Cached value indicating whether or not this instance exists somehow. If this instance has been loaded
+     * from the database, or has been created and subsequently saved this value should be automatically
+     * setted to `true`.
+     *
+     * @var Boolean
+     */
+    this.exists(config.exists);
+
+    if (!this.exists()) {
       return;
     }
-
     var id = this.id();
     if (!id) {
-      return;
+      throw new Error("Existing entities must have a valid ID.");
     }
-
     var source = this.schema().source();
+    this.uuid(source + ':' + id);
+  }
 
-    if (!this._collector.exists(source, id)) {
-      this._collector.set(source, id, this);
-    }
+  /**
+   * Returns a string representation of the instance.
+   *
+   * @return String
+   */
+  title() {
+    return this._data.title ? this._data.title : this._data.name;
   }
 
   /**
@@ -272,6 +311,20 @@ class Model extends Document{
       throw new Error("No primary key has been defined for `" + this.model().name + "`'s schema.");
     }
     return this.get(key);
+  }
+
+  /**
+   * Gets/sets whether or not this instance has been persisted somehow.
+   *
+   * @param  Boolean exists The exists value to set or `null` to get the current one.
+   * @return mixed          Returns the exists value on get or `this` otherwise.
+   */
+  exists(exists) {
+    if (arguments.length) {
+      this._exists = exists;
+      return this;
+    }
+    return this._exists;
   }
 
   /**
@@ -401,7 +454,129 @@ class Model extends Document{
       this._persisted = {};
     }.bind(this));
   }
+
+  /**
+   * Validates the entity data.
+   *
+   * @param  array   options Available options:
+   *                         - `'events'` _mixed_    : A string or array defining one or more validation
+   *                           events. Events are different contexts in which data events can occur, and
+   *                           correspond to the optional `'on'` key in validation rules. For example, by
+   *                           default, `'events'` is set to either `'create'` or `'update'`, depending on
+   *                           whether the entity already exists. Then, individual rules can specify
+   *                           `'on' => 'create'` or `'on' => 'update'` to only be applied at certain times.
+   *                           You can also set up custom events in your rules as well, such as `'on' => 'login'`.
+   *                           Note that when defining validation rules, the `'on'` key can also be an array of
+   *                           multiple events.
+   *                         - `'required'` _boolean_ : Sets the validation rules `'required'` default value.
+   *                         - `'embed'`    _array_   : List of relations to validate.
+   * @return Promise         Returns a promise.
+   */
+  validate(options) {
+    return co(function* () {
+      var defaults = {
+        events: this.exists() !== false ? 'update' : 'create',
+        required: this.exists() !== false ? false : true,
+        embed: true
+      };
+      options = extend({}, defaults, options);
+      var validator = this.model().validator();
+
+      var valid = yield this._validate(options);
+
+      var success = yield validator.validate(this.get(), options);
+      this._errors = validator.errors();
+      return success && valid;
+    }.bind(this));
+  }
+
+  /**
+   * Validates a relation.
+   *
+   * @param  array   $options Available options:
+   *                          - `'embed'` _array_ : List of relations to validate.
+   * @return boolean          Returns `true` if all validation rules on all fields succeed, otherwise `false`.
+   */
+  _validate(options) {
+    return co(function* () {
+      var defaults = { embed: true };
+      options = extend({}, defaults, options);
+
+      if (options.embed === true) {
+        options.embed = this.hierarchy();
+      }
+
+      var schema = this.schema();
+      var embed = schema.treeify(options.embed);
+      var success = true;
+
+      for (var name in embed) {
+        if (this.isset(name)) {
+          var value = embed[name];
+          var rel = schema.relation(name);
+          var ok = yield rel.validate(this, extend({}, options, { embed: value }));
+          var success = success && ok;
+        }
+      }
+      return success;
+    }.bind(this));
+  }
+
+  /**
+   * Returns the errors from the last `.validate()` call.
+   *
+   * @return Object The occured errors.
+   */
+  errors(options) {
+    var defaults = { embed: true };
+    options = extend({}, defaults, options);
+
+    if (options.embed === true) {
+      options.embed = this.hierarchy();
+    }
+
+    var schema = this.schema();
+    var embed = schema.treeify(options.embed);
+    var errors = extend({}, this._errors);
+
+    for (var name in embed) {
+      if (this.isset(name)) {
+        var value = embed[name];
+        errors[name] = this.get(name).errors(extend({}, options, { embed: value }));
+      }
+    }
+    return errors;
+  }
+
+  /**
+   * Returns a string representation of the instance.
+   *
+   * @return String Returns the generated title of the object.
+   */
+  toString() {
+    return String(this.title());
+  }
 }
+
+/**
+ * Class dependencies.
+ *
+ * @var Object
+ */
+Model._classes = {
+  collector: Collector,
+  set: Collection,
+  through: Through,
+  conventions: Conventions,
+  validator: Validator
+};
+
+/**
+ * Stores validator instances.
+ *
+ * @var Object
+ */
+Model._validators = {};
 
 /**
  * Registered models
@@ -435,5 +610,12 @@ Model._conventions = undefined;
  * @var Object The connection instance.
  */
 Model._connection = undefined;
+
+/**
+ * MUST BE re-defined in sub-classes which require a different schema.
+ *
+ * @var Function
+ */
+Document._definition = undefined;
 
 export default Model;

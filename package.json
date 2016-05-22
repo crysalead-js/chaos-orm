@@ -30,6 +30,7 @@
     "expand-flatten": "^1.0.0",
     "extend-merge": "^1.0.3",
     "intersect": "^1.0.1",
+    "node-uuid": "^1.4.7",
     "pascal-case": "^1.1.2",
     "pluralize": "^2.0.0",
     "snake-case": "^1.1.2"
