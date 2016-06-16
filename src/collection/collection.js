@@ -27,7 +27,7 @@ class Collection {
    * @param Object config Possible options are:
    *                      - `'collector'` _object_ : A collector instance.
    *                      - `'parent'`    _object_ : The parent instance.
-   *                      - `'rootPath'`  _string_ : A dotted string field path.
+   *                      - `'basePath'`  _string_ : A dotted string field path.
    *                      - `'schema'`    _string_ : The attached schema.
    *                      - `'meta'`      _array_  : Some meta data.
    *                      - `'data'`      _array_  : The collection data.
@@ -36,7 +36,7 @@ class Collection {
     var defaults = {
       collector: undefined,
       parent: undefined,
-      rootPath: undefined,
+      basePath: undefined,
       schema: undefined,
       meta: {},
       data: [],
@@ -74,7 +74,7 @@ class Collection {
      *
      * @var string
      */
-    this.rootPath(config.rootPath);
+    this.basePath(config.basePath);
 
     /**
      * The schema to which this collection is bound. This
@@ -173,17 +173,17 @@ class Collection {
   }
 
   /**
-   * Gets/sets the rootPath (embedded entities).
+   * Gets/sets the basePath (embedded entities).
    *
-   * @param  String rootPath The rootPath value to set or none to get the current one.
-   * @return mixed           Returns the rootPath value on get or `this` otherwise.
+   * @param  String basePath The basePath value to set or none to get the current one.
+   * @return mixed           Returns the basePath value on get or `this` otherwise.
    */
-  rootPath(rootPath) {
+  basePath(basePath) {
     if (arguments.length) {
-      this._rootPath = rootPath;
+      this._basePath = basePath;
       return this;
     }
-    return this._rootPath;
+    return this._basePath;
   }
 
   /**
@@ -296,7 +296,7 @@ class Collection {
       data = this.schema().cast(undefined, data, {
         collector: this.collector(),
         parent: this,
-        rootPath: this.rootPath(),
+        basePath: this.basePath(),
         exists: this.exists(),
         defaults: true
       });

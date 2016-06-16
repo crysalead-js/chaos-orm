@@ -887,7 +887,7 @@ class Schema {
     var defaults = {
       collector: undefined,
       parent: undefined,
-      rootPath: undefined,
+      basePath: undefined,
       exists: false
     };
 
@@ -898,9 +898,9 @@ class Schema {
     var name;
 
     if (field) {
-      name = options.rootPath ? options.rootPath + '.' + field : field;
+      name = options.basePath ? options.basePath + '.' + field : field;
     } else {
-      name = options.rootPath;
+      name = options.basePath;
     }
 
     if (!name) {
@@ -909,7 +909,7 @@ class Schema {
 
     if (this._relations[name]) {
       options = extend({}, this._relations[name], options);
-      options.rootPath = options.embedded ? name : undefined;
+      options.basePath = options.embedded ? name : undefined;
 
       if (options.relation !== 'hasManyThrough') {
         options.model = options.to;
@@ -955,7 +955,7 @@ class Schema {
     if (data instanceof Document) {
       data.collector(options.collector);
       data.parent(options.parent);
-      data.rootPath(options.rootPath);
+      data.basePath(options.basePath);
       return data;
     }
     options.data = data ? data : {};
@@ -977,7 +977,7 @@ class Schema {
     if (data instanceof Collection) {
       data.collector(options.collector);
       data.parent(options.parent);
-      data.rootPath(options.rootPath);
+      data.basePath(options.basePath);
       return data;
     }
     options.data = data ? data : [];

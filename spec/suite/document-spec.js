@@ -55,12 +55,12 @@ describe("Document", function() {
 
   });
 
-  describe(".rootPath()", function() {
+  describe(".basePath()", function() {
 
     it("returns the root path", function() {
 
-      var document = new Document({ rootPath: 'items' });
-      expect(document.rootPath()).toBe('items');
+      var document = new Document({ basePath: 'items' });
+      expect(document.basePath()).toBe('items');
 
     });
 

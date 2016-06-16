@@ -43,12 +43,12 @@ describe("Collection", function() {
 
   });
 
-  describe(".rootPath()", function() {
+  describe(".basePath()", function() {
 
     it("returns the root path", function() {
 
-      var collection = new Collection({ rootPath: 'items' });
-      expect(collection.rootPath()).toBe('items');
+      var collection = new Collection({ basePath: 'items' });
+      expect(collection.basePath()).toBe('items');
 
     });
 
@@ -287,7 +287,7 @@ describe("Collection", function() {
         var entity = collection.get(0);
         expect(entity instanceof MyModel).toBe(true);
         expect(entity.parent()).toBe(collection);
-        expect(entity.rootPath()).toBe(undefined);
+        expect(entity.basePath()).toBe(undefined);
 
       });
 

@@ -120,11 +120,11 @@ class Through {
   }
 
   /**
-   * Gets the base rootPath.
+   * Gets the base basePath.
    *
    * @return String
    */
-  rootPath() {
+  basePath() {
     return '';
   }
 

@@ -122,7 +122,7 @@ class Document {
    *                      - `'uuid'`       _Object_  : The object UUID.
    *                      - `'parent'`     _Object_  : The parent instance.
    *                      - `'schema'`     _Object_  : The schema instance.
-   *                      - `'rootPath'`   _String_  : A dotted field names path (for embedded entities).
+   *                      - `'basePath'`   _String_  : A dotted field names path (for embedded entities).
    *                      - `'defaults'`   _Boolean_ : Populates or not the fields default values.
    *                      - `'data'`       _Array_   : The entity's data.
    *
@@ -133,7 +133,7 @@ class Document {
       uuid: undefined,
       parent: undefined,
       schema: undefined,
-      rootPath: undefined,
+      basePath: undefined,
       defaults: true,
       data: {}
     };
@@ -158,7 +158,7 @@ class Document {
      *
      * @var String
      */
-    this.rootPath(config.rootPath);
+    this.basePath(config.basePath);
 
     /**
      * Contains the values of updated fields. These values will be persisted to the backend data
@@ -185,7 +185,7 @@ class Document {
 
     this.schema(config.schema);
 
-    if (config.defaults && !config.rootPath) {
+    if (config.defaults && !config.basePath) {
       config.data = extend(this.schema().defaults(), config.data);
     }
 
@@ -287,17 +287,17 @@ class Document {
   }
 
   /**
-   * Gets/sets the rootPath (embedded entities).
+   * Gets/sets the basePath (embedded entities).
    *
-   * @param  String rootPath The rootPath value to set or `null` to get the current one.
-   * @return mixed           Returns the rootPath value on get or `this` otherwise.
+   * @param  String basePath The basePath value to set or `null` to get the current one.
+   * @return mixed           Returns the basePath value on get or `this` otherwise.
    */
-  rootPath(rootPath) {
+  basePath(basePath) {
     if (arguments.length) {
-      this._rootPath = rootPath;
+      this._basePath = basePath;
       return this;
     }
-    return this._rootPath;
+    return this._basePath;
   }
 
   /**
@@ -325,7 +325,7 @@ class Document {
     }
 
     var schema = this.schema();
-    var fieldname = this.rootPath() ? this.rootPath() + '.' + name : name;
+    var fieldname = this.basePath() ? this.basePath() + '.' + name : name;
     var field = schema.has(fieldname) ? schema.column(fieldname) : {};
     var value;
 
@@ -337,7 +337,7 @@ class Document {
       return this._data[name] = schema.cast(name, undefined, {
         collector: this.collector(),
         parent: this,
-        rootPath: this.rootPath()
+        basePath: this.basePath()
       });
     } else if (field.type === 'object') {
       value = [];
@@ -348,7 +348,7 @@ class Document {
     value = schema.cast(name, value, {
       collector: this.collector(),
       parent: this,
-      rootPath: this.rootPath(),
+      basePath: this.basePath(),
       defaults: true
     });
 
@@ -440,13 +440,13 @@ class Document {
     var value = this.schema().cast(name, data, {
       collector: this.collector(),
       parent: this,
-      rootPath: this.rootPath(),
+      basePath: this.basePath(),
       defaults: true
     });
     if (previous === value) {
       return;
     }
-    var fieldname = this.rootPath() ? this.rootPath() + '.' + name : name;
+    var fieldname = this.basePath() ? this.basePath() + '.' + name : name;
     if (schema.isVirtual(fieldname)) {
       return;
     }
@@ -621,7 +621,7 @@ class Document {
     var defaults = {
       embed: true,
       verbose: false,
-      rootPath: undefined
+      basePath: undefined
     };
     options = extend({}, defaults, options);
 
@@ -632,7 +632,7 @@ class Document {
     var schema = this.schema();
     var embed = schema.treeify(options.embed);
     var result = {};
-    var rootPath = options.rootPath;
+    var basePath = options.basePath;
 
     var fields = Object.keys(this._data);
     if (options.verbose && schema.locked()) {
@@ -651,13 +651,13 @@ class Document {
       }
       var value = this._data[field];
       if (value instanceof Document) {
-        options.rootPath = value.rootPath();
+        options.basePath = value.basePath();
         result[field] = value.to(format, options);
       } else if (value && value.forEach instanceof Function) {
         result[field] = Collection.toArray(value, options);
       } else {
-        options.rootPath = rootPath ? rootPath + '.' + field : field;
-        result[field] = schema.has(options.rootPath) ? schema.format(format, options.rootPath, value, options) : value;
+        options.basePath = basePath ? basePath + '.' + field : field;
+        result[field] = schema.has(options.basePath) ? schema.format(format, options.basePath, value, options) : value;
       }
     }
     return result;

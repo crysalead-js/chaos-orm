@@ -75,11 +75,11 @@ describe("Through", function() {
 
   });
 
-  describe(".rootPath()", function() {
+  describe(".basePath()", function() {
 
     it("always returns an emtpy root path", function() {
 
-      expect(this.through.rootPath()).toBe('');
+      expect(this.through.basePath()).toBe('');
 
     });
 
