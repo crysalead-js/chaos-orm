@@ -939,6 +939,7 @@ class Schema {
       return this._castArray(name, data, options);
     }
     if (data !== null && typeof data === 'object' && data.constructor === Object) {
+      options.basePath = name;
       return this._cast(data, options);
     }
     return data;
@@ -953,13 +954,14 @@ class Schema {
    */
   _cast(data, options) {
     if (data instanceof Document) {
-      data.collector(options.collector);
-      data.parent(options.parent);
       data.basePath(options.basePath);
       return data;
     }
     options.data = data ? data : {};
     options.schema = options.model === Document ? options.schema : undefined;
+    if (!options.basePath) {
+      options.parent = undefined;
+    }
     return new options.model(options);
   }
 
@@ -975,7 +977,6 @@ class Schema {
     options.type = options.relation === 'hasManyThrough' ? 'through' : 'set';
     var Collection = this.classes()[options.type];
     if (data instanceof Collection) {
-      data.collector(options.collector);
       data.parent(options.parent);
       data.basePath(options.basePath);
       return data;

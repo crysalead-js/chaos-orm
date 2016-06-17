@@ -43,25 +43,6 @@ describe("Collection", function() {
 
   });
 
-  describe(".root()", function() {
-
-    it("returns itself as root", function() {
-
-      var collection = new Collection();
-      expect(collection.root()).toBe(collection);
-
-    });
-
-    it("returns the root", function() {
-
-      var parent = new Document();
-      var collection = new Collection({ parent: parent });
-      expect(collection.root()).toBe(parent);
-
-    });
-
-  });
-
   describe(".basePath()", function() {
 
     it("returns the root path", function() {
@@ -288,6 +269,19 @@ describe("Collection", function() {
 
     });
 
+    it("emits modified events", function(done) {
+
+      var document = new Document();
+      document.on('modified', function(uuid) {
+        done();
+      });
+
+      var collection = new Collection();
+      document.set('collection', collection);
+      collection.push(new Document());
+
+    });
+
     context("when a schema is defined", function() {
 
       it("autoboxes setted data", function() {
@@ -305,7 +299,7 @@ describe("Collection", function() {
 
         var entity = collection.get(0);
         expect(entity instanceof MyModel).toBe(true);
-        expect(entity.parent()).toBe(collection);
+        expect(entity.parent()).toBe(undefined);
         expect(entity.basePath()).toBe(undefined);
 
       });

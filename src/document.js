@@ -1,6 +1,5 @@
 import Uuid from 'node-uuid';
 import co from 'co';
-import Emitter from 'component-emitter';
 import dotpath from 'dotpath-parser';
 import { extend, merge } from "extend-merge";
 import { expand, flatten } from "expand-flatten";
@@ -138,13 +137,6 @@ class Document {
       data: {}
     };
     config = extend({}, defaults, config);
-
-    /**
-     * A reference to this object's root `Document` object.
-     *
-     * @var Object
-     */
-    this._root = undefined;
 
     /**
      * Contains the values of updated fields. These values will be persisted to the backend data
@@ -290,16 +282,6 @@ class Document {
       return this._parent;
     }
     this._parent = parent;
-    this._root = this._parent ? this._parent.root() : this;
-  }
-
-  /**
-   * Gets the root instance.
-   *
-   * @return mixed  Returns the root instance.
-   */
-  root() {
-    return this._root;
   }
 
   /**
@@ -466,7 +448,16 @@ class Document {
     if (schema.isVirtual(fieldname)) {
       return;
     }
+    var current = this;
+
+    if (this.basePath()) {
+      var keys = this.basePath().split('.');
+      for (var key of keys) {
+        current = current.parent();
+      }
+    }
     this._data[name] = value;
+    current.collector().emit('modified', current.constructor.name, current.uuid());
   }
 
   /**
@@ -621,6 +612,10 @@ class Document {
         }
       }
       return result;
+  }
+
+  on(name, action) {
+    this.collector().on(name, action);
   }
 
   /**

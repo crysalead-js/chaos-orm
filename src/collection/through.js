@@ -215,6 +215,15 @@ class Through {
   }
 
   /**
+   * Gets the raw data.
+   *
+   * @return Array The collection array.
+   */
+  unbox() {
+    return this._parent.get(this._through).unbox();
+  }
+
+  /**
    * Adds the specified object to the `Collection` instance, and assigns associated metadata to
    * the added object.
    *

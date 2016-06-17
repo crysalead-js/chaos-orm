@@ -55,25 +55,6 @@ describe("Document", function() {
 
   });
 
-  describe(".root()", function() {
-
-    it("returns itself as root", function() {
-
-      var document = new Document();
-      expect(document.root()).toBe(document);
-
-    });
-
-    it("returns the root", function() {
-
-      var parent = new Document();
-      var document = new Document({ parent: parent });
-      expect(document.root()).toBe(parent);
-
-    });
-
-  });
-
   describe(".basePath()", function() {
 
     it("returns the root path", function() {
@@ -161,11 +142,30 @@ describe("Document", function() {
 
     it("throws an exception if the field name is not valid", function() {
 
-       var closure = function() {
+      var closure = function() {
         var document = new Document();
         document.get('');
       };
       expect(closure).toThrow(new Error("Field name can't be empty."));
+
+    });
+
+    it("emits modified events", function(done) {
+
+      var document = new Document();
+      var id;
+      var events = 0;
+      document.on('modified', function(model, uuid) {
+        if (id === undefined || id === uuid) {
+          events++;
+          id = uuid;
+        }
+        if (events === 3) {
+          done();
+        }
+      });
+
+      document.set('a.nested.value', 'hello');
 
     });
 

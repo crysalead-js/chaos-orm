@@ -46,13 +46,6 @@ class Collection {
     config = extend({}, defaults, config);
 
     /**
-     * A reference to this object's root `Document` object.
-     *
-     * @var Object
-     */
-    this._root = undefined;
-
-    /**
      * The items contained in the collection.
      *
      * @var Array
@@ -148,17 +141,7 @@ class Collection {
       return this._parent;
     }
     this._parent = parent;
-    this._root = this._parent ? this._parent.root() : this;
     return this;
-  }
-
-  /**
-   * Gets the root instance.
-   *
-   * @return mixed  Returns the root instance.
-   */
-  root() {
-    return this._root;
   }
 
   /**
@@ -292,6 +275,15 @@ class Collection {
   }
 
   /**
+   * Gets the raw data.
+   *
+   * @return Array The collection array.
+   */
+  unbox() {
+    return this._data;
+  }
+
+  /**
    * Sets data inside the `Collection` instance.
    *
    * @param  mixed offset The offset.
@@ -307,6 +299,7 @@ class Collection {
         throw new Error("Missing index `" + name + "` for collection.");
       }
       this._data[name].set(keys, data);
+      return this;
     }
 
     if (this.schema()) {
@@ -317,6 +310,10 @@ class Collection {
         exists: this.exists(),
         defaults: true
       });
+    } else if (data && data.collector) {
+      data.collector(this.collector());
+      data.parent(this);
+      data.basePath(this.basePath());
     }
 
     if (name !== undefined) {
@@ -326,6 +323,9 @@ class Collection {
       this._data[name] = data;
     } else {
       this._data.push(data);
+    }
+    if (this.parent()) {
+      this.parent().collector().emit('modified', this.parent().constructor.name, this.parent().uuid());
     }
     return this;
   }
