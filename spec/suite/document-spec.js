@@ -38,7 +38,7 @@ describe("Document", function() {
 
     it("sets a parent", function() {
 
-      var parent = {};
+      var parent = new Document();
       var document = new Document();
       document.parent(parent);
       expect(document.parent()).toBe(parent);
@@ -47,9 +47,28 @@ describe("Document", function() {
 
     it("returns the parent", function() {
 
-      var parent = {};
+      var parent = new Document();
       var document = new Document({ parent: parent });
       expect(document.parent()).toBe(parent);
+
+    });
+
+  });
+
+  describe(".root()", function() {
+
+    it("returns itself as root", function() {
+
+      var document = new Document();
+      expect(document.root()).toBe(document);
+
+    });
+
+    it("returns the root", function() {
+
+      var parent = new Document();
+      var document = new Document({ parent: parent });
+      expect(document.root()).toBe(parent);
 
     });
 

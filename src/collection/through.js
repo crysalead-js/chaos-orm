@@ -96,6 +96,15 @@ class Through {
   }
 
   /**
+   * Gets the root instance.
+   *
+   * @return mixed  Returns the root instance.
+   */
+  root() {
+    return this._parent.get(this._through).root();
+  }
+
+  /**
    * Gets/sets whether or not this instance has been persisted somehow.
    *
    * @param  Boolean exists The exists value to set or noen to get the current one.

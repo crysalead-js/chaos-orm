@@ -25,12 +25,12 @@ class Collection {
    * Creates a collection.
    *
    * @param Object config Possible options are:
-   *                      - `'collector'` _object_ : A collector instance.
-   *                      - `'parent'`    _object_ : The parent instance.
-   *                      - `'basePath'`  _string_ : A dotted string field path.
-   *                      - `'schema'`    _string_ : The attached schema.
-   *                      - `'meta'`      _array_  : Some meta data.
-   *                      - `'data'`      _array_  : The collection data.
+   *                      - `'collector'` _Object_ : A collector instance.
+   *                      - `'parent'`    _Object_ : The parent instance.
+   *                      - `'basePath'`  _String_ : A dotted string field path.
+   *                      - `'schema'`    _String_ : The attached schema.
+   *                      - `'meta'`      _Array_  : Some meta data.
+   *                      - `'data'`      _Array_  : The collection data.
    */
   constructor(config) {
     var defaults = {
@@ -44,6 +44,20 @@ class Collection {
     };
 
     config = extend({}, defaults, config);
+
+    /**
+     * A reference to this object's root `Document` object.
+     *
+     * @var Object
+     */
+    this._root = undefined;
+
+    /**
+     * The items contained in the collection.
+     *
+     * @var Array
+     */
+    this._data = [];
 
     /**
      * The collector instance.
@@ -91,13 +105,6 @@ class Collection {
      */
     this.meta(config.meta);
 
-    /**
-     * The items contained in the collection.
-     *
-     * @var Array
-     */
-    this._data = [];
-
     var i, len = config.data.length;
 
     for (i = 0; i < len; i++) {
@@ -141,7 +148,17 @@ class Collection {
       return this._parent;
     }
     this._parent = parent;
+    this._root = this._parent ? this._parent.root() : this;
     return this;
+  }
+
+  /**
+   * Gets the root instance.
+   *
+   * @return mixed  Returns the root instance.
+   */
+  root() {
+    return this._root;
   }
 
   /**

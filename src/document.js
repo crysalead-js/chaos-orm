@@ -140,25 +140,11 @@ class Document {
     config = extend({}, defaults, config);
 
     /**
-     * The collector instance.
+     * A reference to this object's root `Document` object.
      *
      * @var Object
      */
-    this.collector(config.collector);
-
-    /**
-     * If this record is chained off of another, contains the origin object.
-     *
-     * @var Object
-     */
-    this.parent(config.parent);
-
-    /**
-     * If this instance has a parent, this value indicates the parent field path.
-     *
-     * @var String
-     */
-    this.basePath(config.basePath);
+    this._root = undefined;
 
     /**
      * Contains the values of updated fields. These values will be persisted to the backend data
@@ -182,6 +168,27 @@ class Document {
      * @var Object
      */
     this._errors = {};
+
+    /**
+     * The collector instance.
+     *
+     * @var Object
+     */
+    this.collector(config.collector);
+
+    /**
+     * A reference to this object's parent `Document` object.
+     *
+     * @var Object
+     */
+    this.parent(config.parent);
+
+    /**
+     * If this instance has a parent, this value indicates the parent field path.
+     *
+     * @var String
+     */
+    this.basePath(config.basePath);
 
     this.schema(config.schema);
 
@@ -275,15 +282,24 @@ class Document {
   /**
    * Gets/sets the parent.
    *
-   * @param  Object parent The parent instance to set or `null` to get it.
+   * @param  Object parent The parent instance to set or none to get it.
    * @return mixed         Returns the parent value on get or `this` otherwise.
    */
   parent(parent) {
-    if (arguments.length) {
-      this._parent = parent;
-      return this;
+    if (!arguments.length) {
+      return this._parent;
     }
-    return this._parent;
+    this._parent = parent;
+    this._root = this._parent ? this._parent.root() : this;
+  }
+
+  /**
+   * Gets the root instance.
+   *
+   * @return mixed  Returns the root instance.
+   */
+  root() {
+    return this._root;
   }
 
   /**

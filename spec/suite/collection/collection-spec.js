@@ -1,5 +1,5 @@
 import Collection from '../../../src/collection/collection';
-import { Model } from '../../../src';
+import { Model, Document } from '../../../src';
 
 class MyModel extends Model {
   static _define(schema) {
@@ -26,7 +26,7 @@ describe("Collection", function() {
 
     it("gets the parent", function() {
 
-      var parent = {};
+      var parent = new Document();
       var collection = new Collection({ parent: parent });
       expect(collection.parent()).toBe(parent);
 
@@ -34,10 +34,29 @@ describe("Collection", function() {
 
     it("sets a parent", function() {
 
-      var parent = {};
+      var parent = new Document();
       var collection = new Collection();
       collection.parent(parent);
       expect(collection.parent()).toBe(parent);
+
+    });
+
+  });
+
+  describe(".root()", function() {
+
+    it("returns itself as root", function() {
+
+      var collection = new Collection();
+      expect(collection.root()).toBe(collection);
+
+    });
+
+    it("returns the root", function() {
+
+      var parent = new Document();
+      var collection = new Collection({ parent: parent });
+      expect(collection.root()).toBe(parent);
 
     });
 

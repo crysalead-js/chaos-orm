@@ -1,4 +1,4 @@
-import { Collection, Through, Schema, Model } from '../../../src';
+import { Document, Collection, Through, Schema, Model } from '../../../src';
 import Gallery from '../../fixture/model/gallery';
 import GalleryDetail from '../../fixture/model/gallery-detail';
 import Image from '../../fixture/model/image';
@@ -67,7 +67,7 @@ describe("Through", function() {
 
     it("sets a parent", function() {
 
-      var parent = {};
+      var parent = new Document;
       this.through.parent(parent);
       expect(this.through.parent()).toBe(parent);
 
