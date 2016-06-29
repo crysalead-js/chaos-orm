@@ -1,3 +1,4 @@
+import Emitter from 'component-emitter';
 import co from 'co';
 import dotpath from 'dotpath-parser';
 import { extend, merge } from 'extend-merge';
@@ -26,7 +27,6 @@ class Collection {
    *
    * @param Object config Possible options are:
    *                      - `'collector'` _Object_ : A collector instance.
-   *                      - `'parent'`    _Object_ : The parent instance.
    *                      - `'basePath'`  _String_ : A dotted string field path.
    *                      - `'schema'`    _String_ : The attached schema.
    *                      - `'meta'`      _Array_  : Some meta data.
@@ -35,7 +35,6 @@ class Collection {
   constructor(config) {
     var defaults = {
       collector: undefined,
-      parent: undefined,
       basePath: undefined,
       schema: undefined,
       meta: {},
@@ -60,11 +59,11 @@ class Collection {
     this.collector(config.collector);
 
     /**
-     * A reference to this object's parent `Document` object.
+     * A reference to `Document`'s parents object.
      *
-     * @var object
+     * @var Object
      */
-    this.parent(config.parent);
+    this._parents = new Map();
 
     /**
      * Cached value indicating whether or not this instance exists somehow. If this instance has been loaded
@@ -131,16 +130,34 @@ class Collection {
   }
 
   /**
-   * Gets/sets the parent.
+   * Get parents.
    *
-   * @param  Object parent The parent instance to set or none to get it.
-   * @return mixed         Returns the parent value on get or `this` otherwise.
+   * @return Map Returns the parents map.
    */
-  parent(parent) {
-    if (!arguments.length) {
-      return this._parent;
-    }
-    this._parent = parent;
+  parents() {
+    return this._parents;
+  }
+
+  /**
+   * Set a parent.
+   *
+   * @param  Object parent The parent instance to set.
+   * @param  String from   The parent from field to set.
+   * @return self
+   */
+  setParent(parent, from) {
+    this._parents.set(parent, from);
+    return this;
+  }
+
+  /**
+   * Unset a parent.
+   *
+   * @param  Object parent The parent instance to unset.
+   * @return self
+   */
+  unsetParent(parent) {
+    this._parents.delete(parent);
     return this;
   }
 
@@ -305,14 +322,13 @@ class Collection {
     if (this.schema()) {
       data = this.schema().cast(undefined, data, {
         collector: this.collector(),
-        parent: this,
         basePath: this.basePath(),
         exists: this.exists(),
         defaults: true
       });
     } else if (data && data.collector) {
       data.collector(this.collector());
-      data.parent(this);
+      data.setParent(this, offset);
       data.basePath(this.basePath());
     }
 
@@ -320,14 +336,41 @@ class Collection {
       if (typeof name !== 'number' ) {
        throw new Error("Invalid index `" + name + "` for a collection, must be a numeric value.");
       }
+      var value = this._data[name];
       this._data[name] = data;
+      if (value && typeof value.unsetParent === 'function') {
+        value.unsetParent(this);
+      }
     } else {
-      this._data.push(data);
+      name = this._data.push(data) - 1;
     }
-    if (this.parent()) {
-      this.parent().collector().emit('modified', this.parent().constructor.name, this.parent().uuid());
+    if (data && typeof data.setParent === 'function') {
+      data.setParent(this, name);
     }
+    this.broadcast('modified', name);
     return this;
+  }
+
+  /**
+   * Broadcast an event through the graph.
+   *
+   * @param String type The type of event.
+   * @param String name The field name.
+   */
+  broadcast(type, name, ignore) {
+    name = Array.isArray(name) ? name : [name];
+    ignore = ignore || new Map();
+
+    if (ignore.has(this)) {
+        return;
+    }
+    ignore.set(this, true);
+
+    this.emit('modified', name);
+
+    for (var [parent, field] of this.parents()) {
+      parent.broadcast(type, [field, ...name], ignore);
+    }
   }
 
   /**
@@ -380,7 +423,12 @@ class Collection {
       }
       return;
     }
+    var value = this._data[offset];
     this._data.splice(offset, 1);
+    if (typeof value.unsetParent === 'function') {
+      value.unsetParent(this);
+    }
+    this.broadcast('modified', name);
   }
 
   /**
@@ -648,5 +696,7 @@ class Collection {
 Collection._classes = {
   collector: Collector
 };
+
+Emitter(Collection.prototype);
 
 export default Collection;

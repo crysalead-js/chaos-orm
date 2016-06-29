@@ -34,22 +34,29 @@ describe("Document", function() {
 
   });
 
-  describe(".parent()", function() {
+  describe(".parents()", function() {
 
-    it("sets a parent", function() {
+    it("gets the parents", function() {
 
       var parent = new Document();
       var document = new Document();
-      document.parent(parent);
-      expect(document.parent()).toBe(parent);
+      parent.set('value', document);
+      expect(document.parents().has(parent)).toBe(true);
+      expect(document.parents().get(parent)).toBe('value');
 
     });
 
-    it("returns the parent", function() {
+  });
+
+  describe(".unsetParent()", function() {
+
+    it("unsets a parent", function() {
 
       var parent = new Document();
-      var document = new Document({ parent: parent });
-      expect(document.parent()).toBe(parent);
+      var document = new Document();
+      parent.set('value', document);
+      parent.unset('value');
+      expect(document.parents().has(parent)).toBe(false);
 
     });
 

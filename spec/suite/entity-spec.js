@@ -343,7 +343,7 @@ describe("Entity", function() {
 
         var child = entity.get('child');
         expect(child instanceof MyModelChild).toBe(true);
-        expect(child.parent()).toBe(entity);
+        expect(child.parents().get(entity)).toBe('child');
         expect(child.basePath()).toBe('child');
 
       });

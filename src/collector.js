@@ -1,4 +1,3 @@
-import Emitter from 'component-emitter';
 /**
  * The `Collector` class ensures single references of objects through the Identity Map pattern.
  */
@@ -55,7 +54,5 @@ class Collector {
     return this._data[uuid];
   }
 }
-
-Emitter(Collector.prototype);
 
 export default Collector;

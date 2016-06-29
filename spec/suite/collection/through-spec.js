@@ -44,11 +44,13 @@ describe("Through", function() {
     }});
 
     this.through = new Through({
-      parent: this.image,
       schema: MyTag.definition(),
+      parent: this.image,
       through: 'images_tags',
       using: 'tag'
     });
+
+    this.image.set('tags', this.through);
 
   });
 
@@ -57,19 +59,22 @@ describe("Through", function() {
     MyTag.reset();
   });
 
-  describe(".parent()", function() {
+  describe(".parents()", function() {
 
-    it("gets the parent", function() {
+    it("gets the parents", function() {
 
-      expect(this.through.parent()).toBe(this.image);
+      expect(this.through.parents().get(this.image)).toBe('tags');
 
     });
 
-    it("sets a parent", function() {
+  });
 
-      var parent = new Document;
-      this.through.parent(parent);
-      expect(this.through.parent()).toBe(parent);
+  describe(".unsetParent()", function() {
+
+    it("unsets a parent", function() {
+
+      this.image.unset('tags');
+      expect(this.through.parents().has(this.image)).toBe(false);
 
     });
 

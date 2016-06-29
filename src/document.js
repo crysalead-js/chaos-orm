@@ -1,3 +1,4 @@
+import Emitter from 'component-emitter';
 import Uuid from 'node-uuid';
 import co from 'co';
 import dotpath from 'dotpath-parser';
@@ -119,7 +120,6 @@ class Document {
    * @param array $config Possible options are:
    *                      - `'collector'`  _Object_  : A collector instance.
    *                      - `'uuid'`       _Object_  : The object UUID.
-   *                      - `'parent'`     _Object_  : The parent instance.
    *                      - `'schema'`     _Object_  : The schema instance.
    *                      - `'basePath'`   _String_  : A dotted field names path (for embedded entities).
    *                      - `'defaults'`   _Boolean_ : Populates or not the fields default values.
@@ -130,7 +130,6 @@ class Document {
     var defaults = {
       collector: undefined,
       uuid: undefined,
-      parent: undefined,
       schema: undefined,
       basePath: undefined,
       defaults: true,
@@ -169,11 +168,11 @@ class Document {
     this.collector(config.collector);
 
     /**
-     * A reference to this object's parent `Document` object.
+     * A reference to `Document`'s parents object.
      *
      * @var Object
      */
-    this.parent(config.parent);
+    this._parents = new Map();
 
     /**
      * If this instance has a parent, this value indicates the parent field path.
@@ -272,16 +271,38 @@ class Document {
   }
 
   /**
-   * Gets/sets the parent.
+   * Get parents.
    *
-   * @param  Object parent The parent instance to set or none to get it.
-   * @return mixed         Returns the parent value on get or `this` otherwise.
+   * @return Map Returns the parents map.
    */
-  parent(parent) {
-    if (!arguments.length) {
-      return this._parent;
+  parents() {
+    return this._parents;
+  }
+
+  /**
+   * Set a parent.
+   *
+   * @param  Object parent The parent instance to set.
+   * @param  String from   The parent from field to set.
+   * @return self
+   */
+  setParent(parent, from) {
+    this._parents.set(parent, from);
+    return this;
+  }
+
+  /**
+   * Unset a parent.
+   *
+   * @param  Object parent The parent instance to unset.
+   * @return self
+   */
+  unsetParent(parent) {
+    this._parents.delete(parent);
+    if (this._parents.size === 0) {
+      this.collector().remove(this._uuid);
     }
-    this._parent = parent;
+    return this;
   }
 
   /**
@@ -448,16 +469,39 @@ class Document {
     if (schema.isVirtual(fieldname)) {
       return;
     }
-    var current = this;
 
-    if (this.basePath()) {
-      var keys = this.basePath().split('.');
-      for (var key of keys) {
-        current = current.parent();
-      }
+    if (value && typeof value.setParent === 'function') {
+      value.setParent(this, name);
     }
+
     this._data[name] = value;
-    current.collector().emit('modified', current.constructor.name, current.uuid());
+
+    if (previous && typeof previous.unsetParent === 'function') {
+      previous.unsetParent(this);
+    }
+    this.broadcast('modified', name);
+  }
+
+  /**
+   * Broadcast an event through the graph.
+   *
+   * @param String type The type of event.
+   * @param String name The field name.
+   */
+  broadcast(type, name, ignore) {
+    name = Array.isArray(name) ? name : [name];
+    ignore = ignore || new Map();
+
+    if (ignore.has(this)) {
+        return;
+    }
+    ignore.set(this, true);
+
+    this.emit('modified', name);
+
+    for (var [parent, field] of this.parents()) {
+      parent.broadcast(type, [field, ...name], ignore);
+    }
   }
 
   /**
@@ -498,7 +542,12 @@ class Document {
       }
       return;
     }
+    var value = this._data[name];
+    if (value && typeof value.unsetParent === 'function') {
+      value.unsetParent(this);
+    }
     delete this._data[name];
+    return this;
   }
 
   /**
@@ -579,43 +628,37 @@ class Document {
    * @param  Map    ignore The already processed entities to ignore (address circular dependencies).
    * @return Array         The included relations.
    */
-  hierarchy(prefix, ignore)
-  {
-      prefix = prefix || '';
-      ignore = ignore || new Map();
+  hierarchy(prefix, ignore) {
+    prefix = prefix || '';
+    ignore = ignore || new Map();
 
-      if (ignore.has(this)) {
-          return false;
-      } else {
-          ignore.set(this, true);
+    if (ignore.has(this)) {
+      return false;
+    }
+    ignore.set(this, true);
+
+    var tree = this.schema().relations();
+    var result = [];
+
+    for (var field of tree) {
+      if (!this.isset(field)) {
+        continue;
       }
-
-      var tree = this.schema().relations();
-      var result = [];
-
-      for (var field of tree) {
-        if (!this.isset(field)) {
-            continue;
-        }
-        var rel = this.schema().relation(field);
-        if (rel.type() === 'hasManyThrough') {
-            result.push(prefix ? prefix + '.' + field : field);
-            continue;
-        }
-        var childs = this.get(field).hierarchy(field, ignore);
-        if (childs.length) {
-          for (var value of childs) {
-            result.push(value);
-          }
-        } else if (childs !== false) {
-          result.push(prefix ? prefix + '.' + field : field);
-        }
+      var rel = this.schema().relation(field);
+      if (rel.type() === 'hasManyThrough') {
+        result.push(prefix ? prefix + '.' + field : field);
+        continue;
       }
-      return result;
-  }
-
-  on(name, action) {
-    this.collector().on(name, action);
+      var childs = this.get(field).hierarchy(field, ignore);
+      if (childs.length) {
+        for (var value of childs) {
+          result.push(value);
+        }
+      } else if (childs !== false) {
+        result.push(prefix ? prefix + '.' + field : field);
+      }
+    }
+    return result;
   }
 
   /**
@@ -700,5 +743,7 @@ Document._conventions = undefined;
  * @var Function
  */
 Document._definition = undefined;
+
+Emitter(Document.prototype);
 
 export default Document;

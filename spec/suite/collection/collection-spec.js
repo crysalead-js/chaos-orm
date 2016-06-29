@@ -22,22 +22,29 @@ describe("Collection", function() {
 
   });
 
-  describe(".parent()", function() {
+  describe(".parents()", function() {
 
-    it("gets the parent", function() {
-
-      var parent = new Document();
-      var collection = new Collection({ parent: parent });
-      expect(collection.parent()).toBe(parent);
-
-    });
-
-    it("sets a parent", function() {
+    it("gets the parents", function() {
 
       var parent = new Document();
       var collection = new Collection();
-      collection.parent(parent);
-      expect(collection.parent()).toBe(parent);
+      parent.set('value', collection);
+      expect(collection.parents().has(parent)).toBe(true);
+      expect(collection.parents().get(parent)).toBe('value');
+
+    });
+
+  });
+
+  describe(".unsetParent()", function() {
+
+    it("unsets a parent", function() {
+
+      var parent = new Document();
+      var collection = new Collection();
+      parent.set('value', collection);
+      parent.unset('value');
+      expect(collection.parents().has(parent)).toBe(false);
 
     });
 
@@ -271,13 +278,45 @@ describe("Collection", function() {
 
     it("emits modified events", function(done) {
 
+      var collection = new Collection();
       var document = new Document();
-      document.on('modified', function(uuid) {
+
+      collection.on('modified', function(name) {
         done();
       });
 
+      collection.push(document);
+
+    });
+
+    it("supports recursive structure when emitting modified events", function(done) {
+
       var collection = new Collection();
+      var document = new Document();
       document.set('collection', collection);
+
+      var received = 0;
+
+      var check = function() {
+        if (received === 2) {
+          done();
+        }
+      };
+
+      collection.on('modified', function(name) {
+        if (name.toString() === [0].toString()) {
+          received++;
+        }
+        check();
+      });
+
+      document.on('modified', function(name) {
+        if (name.toString() === ['collection', 0].toString()) {
+          received++;
+        }
+        check();
+      });
+
       collection.push(new Document());
 
     });
@@ -299,7 +338,7 @@ describe("Collection", function() {
 
         var entity = collection.get(0);
         expect(entity instanceof MyModel).toBe(true);
-        expect(entity.parent()).toBe(undefined);
+        expect(entity.parents().get(collection)).toBe(0);
         expect(entity.basePath()).toBe(undefined);
 
       });

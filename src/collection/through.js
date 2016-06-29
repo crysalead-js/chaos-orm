@@ -82,16 +82,34 @@ class Through {
   }
 
   /**
-   * Gets/sets the parent.
+   * Get parents.
    *
-   * @param  Object parent The parent instance to set or none to get it.
-   * @return mixed         Returns the parent value on get or `this` otherwise.
+   * @return Map Returns the parents map.
    */
-  parent(parent) {
-    if (!arguments.length) {
-      return this._parent.get(this._through).parent();
-    }
-    this._parent.get(this._through).parent(parent);
+  parents(parent) {
+    return this._parent.get(this._through).parents();
+  }
+
+  /**
+   * Set a parent.
+   *
+   * @param  Object parent The parent instance to set.
+   * @param  String from   The parent from field to set.
+   * @return self
+   */
+  setParent(parent, from) {
+    this._parent.get(this._through).setParent(parent, from);
+    return this;
+  }
+
+  /**
+   * Unset a parent.
+   *
+   * @param  Object parent The parent instance to unset.
+   * @return self
+   */
+  unsetParent(parent) {
+    this._parent.get(this._through).unsetParent(parent);
     return this;
   }
 
@@ -256,7 +274,7 @@ class Through {
    */
   _item(data) {
     var name = this._through;
-    var parent = this.parent();
+    var parent = this._parent;
     var relThrough = this._parent.schema().relation(name);
     var through = relThrough.to();
     var item = through.create(this._parent.exists() ? relThrough.match(this._parent) : {});

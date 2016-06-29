@@ -9,7 +9,7 @@ import Collector from "./collector";
 import Collection from "./collection/collection";
 import Through from "./collection/through";
 
-class Model extends Document{
+class Model extends Document {
 
   /**
    * Registers a model dependency.
