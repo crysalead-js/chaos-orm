@@ -1191,8 +1191,8 @@ class Schema {
    *                             options.
    * @return boolean             Returns `true` if the remove operation succeeded, otherwise `false`.
    */
-  delete(conditions, options) {
-    throw new Error("Missing `remove()` implementation for `" + this.model.name + "`'s schema.");
+  truncate(conditions, options) {
+    throw new Error("Missing `truncate()` implementation for `" + this.model.name + "`'s schema.");
   }
 
   /**

@@ -436,7 +436,7 @@ class Model extends Document {
     }
     var params = {};
     params[key] = this.id();
-    return schema.delete(params).then(function() {
+    return schema.truncate(params).then(function() {
       this._exists = false;
       this._persisted = {};
     }.bind(this));

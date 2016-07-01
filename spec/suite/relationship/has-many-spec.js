@@ -242,7 +242,7 @@ describe("HasMany", function() {
 
       var schema = ImageTag.definition();
       spyOn(toKeep, 'save').and.returnValue(Promise.resolve(toKeep));
-      spyOn(schema, 'delete').and.returnValue(Promise.resolve());
+      spyOn(schema, 'truncate').and.returnValue(Promise.resolve());
 
       hasMany.save(image).then(function() {
         expect(toDelete.exists()).toBe(false);
@@ -250,7 +250,7 @@ describe("HasMany", function() {
 
         expect(image.get('images_tags').get(0).save).toHaveBeenCalled();
         expect(toKeep.save).toHaveBeenCalled();
-        expect(schema.delete).toHaveBeenCalledWith({ id: 5 });
+        expect(schema.truncate).toHaveBeenCalledWith({ id: 5 });
         done();
       });
 
