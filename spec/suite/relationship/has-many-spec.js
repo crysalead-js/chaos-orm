@@ -156,7 +156,7 @@ describe("HasMany", function() {
       var hasMany = Gallery.definition().relation('images');
       var gallery = Gallery.create({ id: 1, name: 'Foo Gallery' },  { exists: true });
       hasMany.save(gallery).then(function() {
-        expect(gallery.isset('images')).toBe(false);
+        expect(gallery.has('images')).toBe(false);
         done();
       });
 

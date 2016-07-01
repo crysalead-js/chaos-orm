@@ -153,10 +153,10 @@ class Collection {
   /**
    * Unset a parent.
    *
-   * @param  Object parent The parent instance to unset.
+   * @param  Object parent The parent instance to remove.
    * @return self
    */
-  unsetParent(parent) {
+  removeParent(parent) {
     this._parents.delete(parent);
     return this;
   }
@@ -338,8 +338,8 @@ class Collection {
       }
       var value = this._data[name];
       this._data[name] = data;
-      if (value && typeof value.unsetParent === 'function') {
-        value.unsetParent(this);
+      if (value && typeof value.removeParent === 'function') {
+        value.removeParent(this);
       }
     } else {
       name = this._data.push(data) - 1;
@@ -390,7 +390,7 @@ class Collection {
    * @param  String  offset Integer indicating the offset or index of an entity in the set.
    * @return Boolean        Result.
    */
-  isset(offset) {
+  has(offset) {
     var keys = Array.isArray(offset) ? offset : dotpath(offset);
     if (!keys.length) {
       return;
@@ -399,7 +399,7 @@ class Collection {
     var name = keys.shift();
     if (keys.length) {
       var value = this._data[name];
-      return typeof value.isset === 'function' ? value.isset(keys) : false;
+      return typeof value.has === 'function' ? value.has(keys) : false;
     }
     return this._data[offset] !== undefined;
   }
@@ -407,9 +407,9 @@ class Collection {
   /**
    * Unsets an offset.
    *
-   * @param integer $offset The offset to unset.
+   * @param integer $offset The offset to remove.
    */
-  unset(offset) {
+  remove(offset) {
     var keys = Array.isArray(offset) ? offset : dotpath(offset);
     if (!keys.length) {
       return;
@@ -418,15 +418,15 @@ class Collection {
     var name = keys.shift();
     if (keys.length) {
       var value = this._data[name];
-      if (typeof value.unset === 'function') {
-        value.unset(keys);
+      if (typeof value.remove === 'function') {
+        value.remove(keys);
       }
       return;
     }
     var value = this._data[offset];
     this._data.splice(offset, 1);
-    if (typeof value.unsetParent === 'function') {
-      value.unsetParent(this);
+    if (typeof value.removeParent === 'function') {
+      value.removeParent(this);
     }
     this.broadcast('modified', name);
   }

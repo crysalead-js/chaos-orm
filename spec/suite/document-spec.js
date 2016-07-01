@@ -48,14 +48,14 @@ describe("Document", function() {
 
   });
 
-  describe(".unsetParent()", function() {
+  describe(".removeParent()", function() {
 
-    it("unsets a parent", function() {
+    it("removes a parent", function() {
 
       var parent = new Document();
       var document = new Document();
       parent.set('value', document);
-      parent.unset('value');
+      parent.remove('value');
       expect(document.parents().has(parent)).toBe(false);
 
     });
@@ -105,7 +105,7 @@ describe("Document", function() {
 
     });
 
-    it("returns `null` for undefined fields", function() {
+    it("returns `undefined` for undefined fields", function() {
 
       var document = new Document();
       expect(document.get('foo')).toBe(undefined);
@@ -178,7 +178,7 @@ describe("Document", function() {
 
   });
 
-  describe(".isset()", function() {
+  describe(".has()", function() {
 
     it("returns `true` if a element has been setted", function() {
 
@@ -186,8 +186,8 @@ describe("Document", function() {
       document.set('field1', 'foo');
       document.set('field2', null);
 
-      expect(document.isset('field1')).toBe(true);
-      expect(document.isset('field2')).toBe(true);
+      expect(document.has('field1')).toBe(true);
+      expect(document.has('field2')).toBe(true);
 
     });
 
@@ -197,23 +197,23 @@ describe("Document", function() {
       document.set('field1.field1', 'foo');
       document.set('field2.field2', null);
 
-      expect(document.isset('field1.field1')).toBe(true);
-      expect(document.isset('field2.field2')).toBe(true);
+      expect(document.has('field1.field1')).toBe(true);
+      expect(document.has('field2.field2')).toBe(true);
 
     });
 
     it("returns false if a element doesn't exist", function() {
 
       var document = new Document();
-      expect(document.isset('undefined')).toBe(false);
+      expect(document.has('undefined')).toBe(false);
 
     });
 
   });
 
-  describe(".unset()", function() {
+  describe(".remove()", function() {
 
-    it("unsets items", function() {
+    it("removes items", function() {
 
       var data = {
         id: 1,
@@ -223,8 +223,8 @@ describe("Document", function() {
       };
 
       var document = new Document({ data: data });
-      document.unset('body');
-      document.unset('enabled');
+      document.remove('body');
+      document.remove('enabled');
 
       expect(document.data()).toEqual({
         id: 1,
@@ -233,16 +233,16 @@ describe("Document", function() {
 
     });
 
-    it("unsets items using a dotted notation", function() {
+    it("removes items using a dotted notation", function() {
 
       var document = new Document();
       document.set('field1.field1', 'foo');
       document.set('field2.field2', null);
-      document.unset('field1.field1');
-      document.unset('field2.field2');
+      document.remove('field1.field1');
+      document.remove('field2.field2');
 
-      expect(document.isset('field1.field1')).toBe(false);
-      expect(document.isset('field2.field2')).toBe(false);
+      expect(document.has('field1.field1')).toBe(false);
+      expect(document.has('field2.field2')).toBe(false);
 
     });
 
@@ -399,7 +399,7 @@ describe("Document", function() {
 
       expect(document.modified('title')).toBe(false);
 
-      document.unset('title');
+      document.remove('title');
       expect(document.modified('title')).toBe(true);
 
     });

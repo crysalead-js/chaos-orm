@@ -69,11 +69,11 @@ describe("Through", function() {
 
   });
 
-  describe(".unsetParent()", function() {
+  describe(".removeParent()", function() {
 
-    it("unsets a parent", function() {
+    it("removes a parent", function() {
 
-      this.image.unset('tags');
+      this.image.remove('tags');
       expect(this.through.parents().has(this.image)).toBe(false);
 
     });
@@ -219,18 +219,18 @@ describe("Through", function() {
 
   });
 
-  describe(".isset()", function() {
+  describe(".has()", function() {
 
     it("returns true if a element exist", function() {
 
-      expect(this.through.isset(0)).toBe(true);
-      expect(this.through.isset(1)).toBe(true);
+      expect(this.through.has(0)).toBe(true);
+      expect(this.through.has(1)).toBe(true);
 
     });
 
     it("returns false if a element doesn't exist", function() {
 
-      expect(this.through.isset(10)).toBe(false);
+      expect(this.through.has(10)).toBe(false);
 
     });
 
@@ -274,12 +274,12 @@ describe("Through", function() {
 
   });
 
-  describe(".unset()", function() {
+  describe(".remove()", function() {
 
-    it("unsets items", function() {
+    it("removes items", function() {
 
-      this.through.unset(1);
-      this.through.unset(1);
+      this.through.remove(1);
+      this.through.remove(1);
 
       expect(this.through.count()).toBe(3);
       expect(this.through.data()).toEqual([

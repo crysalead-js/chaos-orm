@@ -105,11 +105,11 @@ class Through {
   /**
    * Unset a parent.
    *
-   * @param  Object parent The parent instance to unset.
+   * @param  Object parent The parent instance to remove.
    * @return self
    */
-  unsetParent(parent) {
-    this._parent.get(this._through).unsetParent(parent);
+  removeParent(parent) {
+    this._parent.get(this._through).removeParent(parent);
     return this;
   }
 
@@ -215,8 +215,8 @@ class Through {
    * @param  integer offset Integer indicating the offset or index of an entity in the set.
    * @return Boolean        Result.
    */
-  isset(offset) {
-    return this._parent.get(this._through).isset(offset);
+  has(offset) {
+    return this._parent.get(this._through).has(offset);
   }
 
   /**
@@ -285,10 +285,10 @@ class Through {
   /**
    * Unsets an offset.
    *
-   * @param integer offset The offset to unset.
+   * @param integer offset The offset to remove.
    */
-  unset(offset) {
-    this._parent.get(this._through).unset(offset);
+  remove(offset) {
+    this._parent.get(this._through).remove(offset);
   }
 
   /**

@@ -269,7 +269,7 @@ class Relationship {
     var to = this.keys('to');
 
     var conditions = {};
-    if (!entity.isset(from)) {
+    if (!entity.has(from)) {
       throw new Error("The `'" + from + "'` key is missing from entity data.");
     }
     conditions[to] = entity.get(from);
@@ -450,7 +450,7 @@ class Relationship {
 
     collection.forEach(function(entity) {
       if (entity instanceof Model) {
-        entity.unset(name);
+        entity.remove(name);
       } else {
         delete entity[name];
       }
@@ -468,7 +468,7 @@ class Relationship {
     var name = this.name();
     return co(function*() {
       var fieldname = name;
-      if (!entity.isset(fieldname)) {
+      if (!entity.has(fieldname)) {
         return true;
       }
       return entity.get(fieldname).validate(options);

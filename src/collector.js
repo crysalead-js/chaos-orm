@@ -20,6 +20,7 @@ class Collector {
    */
   set(uuid, data) {
     this._data[uuid] = data;
+    return this;
   }
 
   /**
@@ -29,7 +30,7 @@ class Collector {
    * @return mixed         The collected data.
    */
   get(uuid) {
-    if (this.exists(uuid)) {
+    if (this.has(uuid)) {
       return this._data[uuid];
     }
     throw new Error("No collected data with UUID `'" + uuid + "'` in this collector.");
@@ -42,6 +43,7 @@ class Collector {
    */
   remove(uuid) {
     delete this._data[uuid];
+    return this;
   }
 
   /**
@@ -50,8 +52,8 @@ class Collector {
    * @param  String  uuid  The UUID to look up.
    * @return Boolean       Returns `true` if exists, `false` otherwise.
    */
-  exists(uuid) {
-    return this._data[uuid];
+  has(uuid) {
+    return this._data[uuid] !== undefined;
   }
 }
 

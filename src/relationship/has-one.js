@@ -64,7 +64,7 @@ class HasOne extends Relationship {
       }
 
       var name = this.name();
-      if (!entity.isset(name)) {
+      if (!entity.has(name)) {
         return true;
       }
 

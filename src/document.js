@@ -294,10 +294,10 @@ class Document {
   /**
    * Unset a parent.
    *
-   * @param  Object parent The parent instance to unset.
+   * @param  Object parent The parent instance to remove.
    * @return self
    */
-  unsetParent(parent) {
+  removeParent(parent) {
     this._parents.delete(parent);
     if (this._parents.size === 0) {
       this.collector().remove(this._uuid);
@@ -476,8 +476,8 @@ class Document {
 
     this._data[name] = value;
 
-    if (previous && typeof previous.unsetParent === 'function') {
-      previous.unsetParent(this);
+    if (previous && typeof previous.removeParent === 'function') {
+      previous.removeParent(this);
     }
     this.broadcast('modified', name);
   }
@@ -509,7 +509,7 @@ class Document {
    *
    * @param String name A field name.
    */
-  isset(name) {
+  has(name) {
     var keys = Array.isArray(name) ? name : dotpath(name);
     if (!keys.length) {
       return;
@@ -518,7 +518,7 @@ class Document {
     var name = keys.shift();
     if (keys.length) {
       var value = this.get(name);
-      return value instanceof Document ? value.isset(keys) : false;
+      return value instanceof Document ? value.has(keys) : false;
     }
     return this._data[name] !== undefined;
   }
@@ -528,7 +528,7 @@ class Document {
    *
    * @param String name A field name.
    */
-  unset(name) {
+  remove(name) {
     var keys = Array.isArray(name) ? name : dotpath(name);
     if (!keys.length) {
       return;
@@ -538,13 +538,13 @@ class Document {
     if (keys.length) {
       var value = this.get(name);
       if (value instanceof Document) {
-        value.unset(keys);
+        value.remove(keys);
       }
       return;
     }
     var value = this._data[name];
-    if (value && typeof value.unsetParent === 'function') {
-      value.unsetParent(this);
+    if (value && typeof value.removeParent === 'function') {
+      value.removeParent(this);
     }
     delete this._data[name];
     return this;
@@ -641,7 +641,7 @@ class Document {
     var result = [];
 
     for (var field of tree) {
-      if (!this.isset(field)) {
+      if (!this.has(field)) {
         continue;
       }
       var rel = this.schema().relation(field);

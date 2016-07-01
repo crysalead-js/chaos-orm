@@ -109,7 +109,7 @@ class HasMany extends Relationship {
       }
 
       var name = this.name();
-      if (!entity.isset(name)) {
+      if (!entity.has(name)) {
         return true;
       }
 
@@ -144,7 +144,7 @@ class HasMany extends Relationship {
         var toKey = this.keys('to');
         previous.forEach(function (item, index) {
           if (!existing[index]) {
-            item.unset(toKey);
+            item.remove(toKey);
             promises.push(item.save());
           }
         });

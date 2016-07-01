@@ -154,7 +154,7 @@ describe("BelongsTo", function() {
       var belongsTo = Image.definition().relation('gallery');
       var image = Image.create({ id: 1, gallery_id: 1, title: 'Amiga 1200' });
       belongsTo.save(image).then(function() {
-        expect(image.isset('gallery')).toBe(false);
+        expect(image.has('gallery')).toBe(false);
         done();
       });
 

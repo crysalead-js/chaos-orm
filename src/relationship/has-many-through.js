@@ -145,7 +145,7 @@ class HasManyThrough extends Relationship {
       collection.forEach(function(entity, index) {
         if (entity instanceof Model) {
           entity.get(through).forEach(function(item) {
-            if (item.isset(using)) {
+            if (item.has(using)) {
               var value = item.get(using);
               value.get(name); // It's not a useless statement.
             }

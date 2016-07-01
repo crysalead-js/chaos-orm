@@ -36,14 +36,14 @@ describe("Collection", function() {
 
   });
 
-  describe(".unsetParent()", function() {
+  describe(".removeParent()", function() {
 
-    it("unsets a parent", function() {
+    it("removes a parent", function() {
 
       var parent = new Document();
       var collection = new Collection();
       parent.set('value', collection);
-      parent.unset('value');
+      parent.remove('value');
       expect(collection.parents().has(parent)).toBe(false);
 
     });
@@ -203,7 +203,7 @@ describe("Collection", function() {
 
   });
 
-  describe(".isset()", function() {
+  describe(".has()", function() {
 
     it("returns true if a element exist", function() {
 
@@ -211,15 +211,15 @@ describe("Collection", function() {
       collection.push('foo');
       collection.push(null);
 
-      expect(collection.isset(0)).toBe(true);
-      expect(collection.isset(1)).toBe(true);
+      expect(collection.has(0)).toBe(true);
+      expect(collection.has(1)).toBe(true);
 
     });
 
     it("returns false if a element doesn't exist", function() {
 
       var collection = new Collection();
-      expect(collection.isset(0)).toBe(false);
+      expect(collection.has(0)).toBe(false);
 
     });
 
@@ -230,9 +230,9 @@ describe("Collection", function() {
         { name: 'world', item: { a: 'b'} }
       ], {type: 'set'});
 
-      expect(collection.isset('0.name')).toBe(true);
-      expect(collection.isset('1.name')).toBe(true);
-      expect(collection.isset('1.item.a')).toBe(true);
+      expect(collection.has('0.name')).toBe(true);
+      expect(collection.has('1.name')).toBe(true);
+      expect(collection.has('1.item.a')).toBe(true);
 
     });
 
@@ -347,24 +347,24 @@ describe("Collection", function() {
 
   });
 
-  describe(".unset()", function() {
+  describe(".remove()", function() {
 
-    it("unsets items", function() {
+    it("removes items", function() {
 
       var collection = new Collection({ data: [5, 3, 4, 1, 2] });
-      collection.unset(1);
-      collection.unset(1);
+      collection.remove(1);
+      collection.remove(1);
 
       expect(collection.count()).toBe(3);
       expect(collection.data()).toEqual([5, 1, 2]);
 
     });
 
-    it("unsets items rebuild indexes", function() {
+    it("removes items rebuild indexes", function() {
 
       var collection = new Collection({ data: [5, 3, 4, 1, 2] });
-      collection.unset(1);
-      collection.unset(1);
+      collection.remove(1);
+      collection.remove(1);
 
       expect(collection.count()).toBe(3);
       expect(collection.data()).toEqual([5, 1, 2]);
@@ -372,17 +372,17 @@ describe("Collection", function() {
 
     });
 
-    it("unsets items using a dotted notation", function() {
+    it("removes items using a dotted notation", function() {
 
       var collection = MyModel.create([
         { name: 'hello' },
         { name: 'world' }
       ], {type: 'set'});
 
-      collection.unset('1.name');
+      collection.remove('1.name');
 
-      expect(collection.isset('0.name')).toBe(true);
-      expect(collection.isset('1.name')).toBe(false);
+      expect(collection.has('0.name')).toBe(true);
+      expect(collection.has('1.name')).toBe(false);
 
     });
 

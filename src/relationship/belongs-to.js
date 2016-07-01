@@ -75,7 +75,7 @@ class BelongsTo extends Relationship {
       }
 
       var name = this.name();
-      if (!entity.isset(name)) {
+      if (!entity.has(name)) {
         return true;
       }
 
@@ -88,7 +88,7 @@ class BelongsTo extends Relationship {
       var to = this.keys('to');
 
       var conditions = {};
-      if (!related.isset(to)) {
+      if (!related.has(to)) {
         throw new Error ("The `'" + to + "'` key is missing from related data.");
       }
       conditions[from] = related.get(to);

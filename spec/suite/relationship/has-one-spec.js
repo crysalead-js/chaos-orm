@@ -149,7 +149,7 @@ describe("HasOne", function() {
       var hasOne = Gallery.definition().relation('detail');
       var gallery = Gallery.create({ id: 1, name: 'Foo Gallery' }, { exists: true });
       hasOne.save(gallery).then(function() {
-        expect(gallery.isset('detail')).toBe(false);
+        expect(gallery.has('detail')).toBe(false);
         done();
       });
     });

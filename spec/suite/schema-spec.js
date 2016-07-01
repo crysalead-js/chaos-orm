@@ -366,7 +366,7 @@ describe("Schema", function() {
             time: '21:50:00'
           });
           expect(document.get('datetime').toISOString().substring(0, 19).replace('T', ' ')).toBe('2015-05-20 21:50:00');
-          expect(document.isset('datetime')).toBe(true);
+          expect(document.has('datetime')).toBe(true);
 
         });
 
@@ -380,7 +380,7 @@ describe("Schema", function() {
 
           document.set('time', '22:15:00');
           expect(document.get('datetime').toISOString().substring(0, 19).replace('T', ' ')).toBe('2015-05-20 22:15:00');
-          expect(document.isset('datetime')).toBe(true);
+          expect(document.has('datetime')).toBe(true);
 
         });
 
@@ -410,7 +410,7 @@ describe("Schema", function() {
             time: '21:50:00'
           });
           expect(document.get('datetime').toISOString().substring(0, 19).replace('T', ' ')).toBe('2015-05-20 21:50:00');
-          expect(document.isset('datetime')).toBe(false);
+          expect(document.has('datetime')).toBe(false);
 
         });
 
@@ -424,7 +424,7 @@ describe("Schema", function() {
 
           document.set('time', '22:15:00');
           expect(document.get('datetime').toISOString().substring(0, 19).replace('T', ' ')).toBe('2015-05-20 22:15:00');
-          expect(document.isset('datetime')).toBe(false);
+          expect(document.has('datetime')).toBe(false);
 
         });
 
@@ -506,7 +506,7 @@ describe("Schema", function() {
           document.set('datetime', '2015-05-20 21:50:00');
           expect(document.get('date')).toBe('2015-05-20');
           expect(document.get('time')).toBe('21:50:00');
-          expect(document.isset('datetime')).toBe(false);
+          expect(document.has('datetime')).toBe(false);
 
         });
 
@@ -516,12 +516,12 @@ describe("Schema", function() {
           document.set('datetime', '2015-05-20 21:50:00');
           expect(document.get('date')).toBe('2015-05-20');
           expect(document.get('time')).toBe('21:50:00');
-          expect(document.isset('datetime')).toBe(false);
+          expect(document.has('datetime')).toBe(false);
 
           document.set('datetime', '2015-05-20 22:15:00');
           expect(document.get('date')).toBe('2015-05-20');
           expect(document.get('time')).toBe('22:15:00');
-          expect(document.isset('datetime')).toBe(false);
+          expect(document.has('datetime')).toBe(false);
 
         });
 
