@@ -1,3 +1,4 @@
+import dateFormat from 'dateformat-light';
 import { extend, merge } from 'extend-merge';
 
 class Source {
@@ -37,6 +38,10 @@ class Source {
     this.formatter('cast', 'null',      handlers.cast['null']);
     this.formatter('cast', 'string',    handlers.cast['string']);
 
+    this.formatter('datasource', 'date',      handlers.datasource['date']);
+    this.formatter('datasource', 'datetime',  handlers.datasource['datetime']);
+    this.formatter('datasource', 'boolean',   handlers.datasource['boolean']);
+    this.formatter('datasource', 'null',      handlers.datasource['null']);
     this.formatter('datasource', '_default_', handlers.datasource['string']);
   }
 
@@ -58,7 +63,9 @@ class Source {
           return Number.parseFloat(value);
         },
         'decimal': function(value, options) {
-          return Number.parseFloat(value);
+          var defaults = { precision: 2 };
+          options = extend({}, defaults, options);
+          return Number(value).toFixed(options.precision);
         },
         'date':function(value, options) {
           return new Date(value);
@@ -75,7 +82,26 @@ class Source {
       },
       datasource: {
         'string': function(value, options) {
-          return value instanceof Date ? value.toISOString().substring(0, 19).replace('T', ' ') : String(value);
+          return String(value);
+        },
+        'date': function(value, options) {
+          options = options || {};
+          options.format = options.format ? options.format : 'yyyy-mm-dd';
+          return this.format('datasource', 'datetime', value, options);
+        }.bind(this),
+        'datetime': function(value, options) {
+          options = options || {};
+          options.format = options.format ? options.format : 'yyyy-mm-dd HH:MM:ss';
+          if (!value instanceof Date) {
+            value = new Date(value);
+          }
+          return dateFormat(value, options.format, true);
+        },
+        'boolean': function(value, options) {
+          return !!value ? '1' : '0';
+        },
+        'null': function(value, options) {
+          return '';
         }
       }
     };

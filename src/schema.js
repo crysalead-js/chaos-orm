@@ -2,7 +2,7 @@ import co from 'co';
 import { extend, merge } from 'extend-merge';
 import { expand, flatten } from 'expand-flatten';
 import intersect from 'intersect';
-import dateformat from 'date-format';
+import dateFormat from 'dateformat-light';
 import Document from './document';
 import Conventions from './conventions';
 import Collection from "./collection/collection";
@@ -208,7 +208,7 @@ class Schema {
     this.formatter('array', 'serial',    handlers['array']['integer']);
     this.formatter('array', 'integer',   handlers['array']['integer']);
     this.formatter('array', 'float',     handlers['array']['float']);
-    this.formatter('array', 'decimal',   handlers['array']['float']);
+    this.formatter('array', 'decimal',   handlers['array']['string']);
     this.formatter('array', 'date',      handlers['array']['date']);
     this.formatter('array', 'datetime',  handlers['array']['datetime']);
     this.formatter('array', 'boolean',   handlers['array']['boolean']);
@@ -217,7 +217,7 @@ class Schema {
 
     this.formatter('cast', 'integer',  handlers['cast']['integer']);
     this.formatter('cast', 'float',    handlers['cast']['float']);
-    this.formatter('cast', 'decimal',  handlers['cast']['float']);
+    this.formatter('cast', 'decimal',  handlers['cast']['decimal']);
     this.formatter('cast', 'date',     handlers['cast']['datetime']);
     this.formatter('cast', 'datetime', handlers['cast']['datetime']);
     this.formatter('cast', 'boolean',  handlers['cast']['boolean']);
@@ -1001,16 +1001,16 @@ class Schema {
         },
         'date': function(value, options) {
           options = options || {};
-          options.format = options.format ? options.format : 'yyyy-MM-dd';
+          options.format = options.format ? options.format : 'yyyy-mm-dd';
           return this._format('array', 'datetime', value, options);
         }.bind(this),
         'datetime': function(value, options) {
           options = options || {};
-          options.format = options.format ? options.format : 'yyyy-MM-dd hh:mm:ss';
+          options.format = options.format ? options.format : 'yyyy-mm-dd HH:MM:ss';
           if (!value instanceof Date) {
             value = new Date(value);
           }
-          return dateformat.asString(options.format, value);
+          return dateFormat(value, options.format);
         },
         'boolean': function(value, options) {
           return !!value;
@@ -1030,7 +1030,9 @@ class Schema {
           return Number.parseFloat(value);
         },
         'decimal': function(value, options) {
-          return Number.parseFloat(value);
+          var defaults = { precision: 2 };
+          options = extend({}, defaults, options);
+          return Number(value).toFixed(options.precision);
         },
         'date':function(value, options) {
           return new Date(value);
@@ -1051,15 +1053,14 @@ class Schema {
   /**
    * Formats a value according to a field definition.
    *
-   * @param   String mode    The format mode (i.e. `'cast'` or `'datasource'`).
-   * @param   String name    The field name.
-   * @param   mixed  value   The value to format.
-   * @param   mixed  options The options array to pass the the formatter handler.
-   * @return  mixed          The formated value.
+   * @param   String mode  The format mode (i.e. `'cast'` or `'datasource'`).
+   * @param   String name  The field name.
+   * @param   mixed  value The value to format.
+   * @return  mixed        The formated value.
    */
-  format(mode, name, value, options) {
+  format(mode, name, value) {
     var type = value === null ? 'null' : this.type(name);
-    return this._format(mode, type, value, options);
+    return this._format(mode, type, value, this._columns.get(name));
   }
 
   /**
@@ -1073,7 +1074,6 @@ class Schema {
    */
   _format(mode, type, value, options) {
     var formatter;
-
     if (this._formatters[mode] && this._formatters[mode][type]) {
       formatter = this._formatters[mode][type];
     } else if (this._formatters[mode] && this._formatters[mode]._default_) {

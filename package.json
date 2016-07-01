@@ -25,7 +25,7 @@
     "chaos-validator": "^1.0",
     "co": "^4.6.0",
     "component-emitter": "^1.2.1",
-    "date-format": "0.0.2",
+    "dateformat-light": "^1.0.14",
     "dotpath-parser": "0.0.2",
     "expand-flatten": "^1.0.0",
     "extend-merge": "^1.0.3",
