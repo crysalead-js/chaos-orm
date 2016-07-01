@@ -1002,7 +1002,7 @@ class Schema {
         'date': function(value, options) {
           options = options || {};
           options.format = options.format ? options.format : 'yyyy-mm-dd';
-          return this._format('array', 'datetime', value, options);
+          return this.convert('array', 'datetime', value, options);
         }.bind(this),
         'datetime': function(value, options) {
           options = options || {};
@@ -1060,7 +1060,7 @@ class Schema {
    */
   format(mode, name, value) {
     var type = value === null ? 'null' : this.type(name);
-    return this._format(mode, type, value, this._columns.get(name));
+    return this.convert(mode, type, value, this._columns.get(name));
   }
 
   /**
@@ -1072,7 +1072,7 @@ class Schema {
    * @param   mixed  options The options array to pass the the formatter handler.
    * @return  mixed          The formated value.
    */
-  _format(mode, type, value, options) {
+  convert(mode, type, value, options) {
     var formatter;
     if (this._formatters[mode] && this._formatters[mode][type]) {
       formatter = this._formatters[mode][type];

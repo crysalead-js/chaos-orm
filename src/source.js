@@ -87,7 +87,7 @@ class Source {
         'date': function(value, options) {
           options = options || {};
           options.format = options.format ? options.format : 'yyyy-mm-dd';
-          return this.format('datasource', 'datetime', value, options);
+          return this.convert('datasource', 'datetime', value, options);
         }.bind(this),
         'datetime': function(value, options) {
           options = options || {};
@@ -149,7 +149,7 @@ class Source {
    * @param   Object options The options the pass to the casting handler.
    * @return  mixed          The formated value.
    */
-  format(mode, type, value, options) {
+  convert(mode, type, value, options) {
     var formatter = null;
     if (this._formatters[mode]) {
       if (this._formatters[mode][type] !== undefined) {
