@@ -606,6 +606,6 @@ Model._connection = undefined;
  *
  * @var Function
  */
-Document._definition = undefined;
+Model._definition = undefined;
 
 export default Model;
