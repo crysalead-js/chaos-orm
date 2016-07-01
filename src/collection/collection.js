@@ -401,7 +401,7 @@ class Collection {
       var value = this._data[name];
       return typeof value.has === 'function' ? value.has(keys) : false;
     }
-    return this._data[offset] !== undefined;
+    return this._data[name] !== undefined;
   }
 
   /**
@@ -423,8 +423,8 @@ class Collection {
       }
       return;
     }
-    var value = this._data[offset];
-    this._data.splice(offset, 1);
+    var value = this._data[name];
+    this._data.splice(name, 1);
     if (typeof value.removeParent === 'function') {
       value.removeParent(this);
     }

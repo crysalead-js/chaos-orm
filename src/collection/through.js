@@ -86,7 +86,7 @@ class Through {
    *
    * @return Map Returns the parents map.
    */
-  parents(parent) {
+  parents() {
     return this._parent.get(this._through).parents();
   }
 

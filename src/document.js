@@ -300,7 +300,7 @@ class Document {
   removeParent(parent) {
     this._parents.delete(parent);
     if (this._parents.size === 0) {
-      this.collector().remove(this._uuid);
+      this.collector().remove(this.uuid());
     }
     return this;
   }
@@ -470,11 +470,11 @@ class Document {
       return;
     }
 
+    this._data[name] = value;
+
     if (value && typeof value.setParent === 'function') {
       value.setParent(this, name);
     }
-
-    this._data[name] = value;
 
     if (previous && typeof previous.removeParent === 'function') {
       previous.removeParent(this);

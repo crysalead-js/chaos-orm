@@ -243,11 +243,7 @@ class Model extends Document {
    * Creates a new record object with default values.
    *
    * @param array $config Possible options are:
-   *                      - `'collector'`  _object_ : A collector instance.
-   *                      - `'parent'`     _object_ : The parent instance.
-   *                      - `'basePath'`   _string_ : A dotted field names path (for embedded entities).
    *                      - `'exists'`     _boolean_: A boolean or `null` indicating if the entity exists.
-   *                      - `'data'`       _array_  : The entity's data.
    *
    */
   constructor(config) {

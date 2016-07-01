@@ -257,8 +257,7 @@ describe("Document", function() {
           id: 1,
           title: 'Hello',
           body: 'World'
-        },
-        exists: true
+        }
       });
 
       document.set({
@@ -285,8 +284,7 @@ describe("Document", function() {
           id: 1,
           title: 'Hello',
           body: 'World'
-        },
-        exists: true
+        }
       });
 
       document.set({
@@ -312,8 +310,7 @@ describe("Document", function() {
       var document = new Document({
         data: {
           title: 'original'
-        },
-        exists: true
+        }
       });
 
       expect(document.modified('title')).toBe(false);
@@ -328,8 +325,7 @@ describe("Document", function() {
       var document = new Document({
         data: {
           title: 'original'
-        },
-        exists: true
+        }
       });
 
       expect(document.modified('title')).toBe(false);
@@ -344,8 +340,7 @@ describe("Document", function() {
       var document = new Document({
         data: {
           'body': {}
-        },
-        exists: true
+        }
       });
 
       expect(document.modified('body')).toBe(false);
@@ -360,15 +355,13 @@ describe("Document", function() {
       var childDocument = new Document({
         data: {
           field: 'value'
-        },
-        exists: true
+        }
       });
 
       var document = new Document({
         data: {
           child: childDocument
-        },
-        exists: true
+        }
       });
 
       expect(document.modified()).toBe(false);
@@ -380,7 +373,7 @@ describe("Document", function() {
 
     it("returns `true` when an unexisting field has been added", function() {
 
-      var document = new Document({ exists: true });
+      var document = new Document();
 
       document.set('modified', 'modified');
 
@@ -393,8 +386,7 @@ describe("Document", function() {
       var document = new Document({
         data: {
           title: 'original'
-        },
-        exists: true
+        }
       });
 
       expect(document.modified('title')).toBe(false);
@@ -406,7 +398,7 @@ describe("Document", function() {
 
     it("returns `false` when an unexisting field is checked", function() {
 
-      var document = new Document({ exists: true });
+      var document = new Document();
       expect(document.modified('unexisting')).toBe(false);
 
     });
