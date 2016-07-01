@@ -37,8 +37,8 @@ import Image from './model/image';
 class Gallery extends Model {
 
   static _define(schema) {
-    schema.set('id', { type: 'serial' });
-    schema.set('name', { type: 'string' });
+    schema.column('id', { type: 'serial' });
+    schema.column('name', { type: 'string' });
 
     schema.hasMany('images', Image);
   }

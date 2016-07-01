@@ -19,6 +19,8 @@ Chaos dramatically simplify the developpment of a datasources libraries by provi
 npm install chaos-orm
 ```
 
+__Note: Require `babel-polyfill` as a peer dependency__
+
 ## Main Features
 
 * Support eager loading
