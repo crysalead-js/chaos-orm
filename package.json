@@ -46,5 +46,15 @@
     "isparta": "^4.0.0",
     "jasmine-kahlan": "^1.0.2",
     "mocha": "^2.5.3"
+  },
+  "babel": {
+    "env": {
+      "development": {
+        "plugins": ["transform-es2015-modules-commonjs"]
+      },
+      "production": {
+        "presets": ["es2015"]
+      }
+    }
   }
 }
