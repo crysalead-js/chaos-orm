@@ -337,7 +337,7 @@ class Document {
 
     if (keys.length) {
       var value = this.get(name);
-      if (value.set === undefined) {
+      if (!value || value.set === undefined) {
         throw new Error("The field: `" + name + "` is not a valid document or entity.");
       }
       return value.get(keys);
@@ -446,7 +446,7 @@ class Document {
         this._set(name, {});
       }
       var value = this._data[name];
-      if (value.set === undefined) {
+      if (!value || value.set === undefined) {
         throw new Error("The field: `" + name + "` is not a valid document or entity.");
       }
       value.set(keys, data);
