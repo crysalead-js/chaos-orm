@@ -292,15 +292,6 @@ class Collection {
   }
 
   /**
-   * Gets the raw data.
-   *
-   * @return Array The collection array.
-   */
-  unbox() {
-    return this._data;
-  }
-
-  /**
    * Sets data inside the `Collection` instance.
    *
    * @param  mixed offset The offset.
