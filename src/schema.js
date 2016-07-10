@@ -342,15 +342,6 @@ class Schema {
   }
 
   /**
-   * Returns all schema field names.
-   *
-   * @return Array An array of field names.
-   */
-  names() {
-    return Array.from(this._columns.keys());
-  }
-
-  /**
    * Gets all fields.
    *
    * @return Array

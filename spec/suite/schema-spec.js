@@ -125,23 +125,11 @@ describe("Schema", function() {
 
   });
 
-  describe(".names()", function() {
-
-    it("gets the schema field names", function() {
-
-      var names = this.schema.names();
-      names.sort();
-      expect(names).toEqual(['gallery_id', 'id', 'name', 'score', 'title']);
-
-    });
-
-  });
-
   describe(".fields()", function() {
 
     it("returns all fields", function() {
 
-      expect(this.schema.fields()).toEqual(['id', 'gallery_id', 'name', 'title', 'score']);
+      expect(this.schema.fields().sort()).toEqual(['gallery_id', 'id', 'name', 'score', 'title']);
 
     });
 
