@@ -342,6 +342,32 @@ class Schema {
   }
 
   /**
+   * Returns all schema field names.
+   *
+   * @return Array An array of field names.
+   */
+  names(basePath) {
+    basePath = basePath || '';
+    var fields = {};
+    for (var name of this.fields()) {
+      fields[name] = true;
+    }
+
+    var names = expand(fields);
+    if (basePath.length) {
+      var parts = basePath.split('.');
+
+      for (var part of parts) {
+        if (names[part] === undefined) {
+          return [];
+        }
+        names = names[part];
+      }
+    }
+    return Object.keys(names);
+  }
+
+  /**
    * Gets all fields.
    *
    * @return Array
@@ -350,7 +376,6 @@ class Schema {
     var name;
     var fields = [];
     for (var [name, value] of this._columns) {
-      var field = {};
       if (value.virtual) {
         continue;
       }

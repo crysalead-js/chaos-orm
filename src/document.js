@@ -674,7 +674,6 @@ class Document {
   to(format, options) {
     var defaults = {
       embed: true,
-      verbose: false,
       basePath: undefined
     };
     options = extend({}, defaults, options);
@@ -684,18 +683,24 @@ class Document {
     }
 
     var schema = this.schema();
+
     var embed = schema.treeify(options.embed);
     var result = {};
     var basePath = options.basePath;
 
-    var fields = Object.keys(this._data);
-    if (options.verbose && schema.locked()) {
-      fields = fields.concat(Object.keys(schema.fields()));
+    var fields;
+    if (schema.locked()) {
+      fields = schema.names(options.basePath).concat(schema.relations());
+    } else {
+      fields = Object.keys(this._data);
     }
 
     for (var field of fields) {
-      if (schema.hasRelation(field)) {
-        var rel = schema.relation(field);
+      var rel;
+      var path = basePath ? basePath + '.' + field : field;
+
+      if (schema.hasRelation(path)) {
+        rel = schema.relation(path);
         if (!rel.embedded()) {
           if (embed[field] === undefined) {
             continue;
@@ -704,13 +709,17 @@ class Document {
         }
       }
       var value = this._data[field];
+      if (value === undefined) {
+        continue;
+      }
       if (value instanceof Document) {
-        options.basePath = value.basePath();
+        options.basePath = rel && rel.embedded() ? value.basePath() : '';
         result[field] = value.to(format, options);
       } else if (value && value.forEach instanceof Function) {
+        options.basePath = rel && rel.embedded() ? value.basePath() : '';
         result[field] = Collection.toArray(value, options);
       } else {
-        options.basePath = basePath ? basePath + '.' + field : field;
+        options.basePath = path;
         result[field] = schema.has(options.basePath) ? schema.format(format, options.basePath, value) : value;
       }
     }
