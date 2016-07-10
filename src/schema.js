@@ -1138,7 +1138,7 @@ class Schema {
    * @return Promise         Returns a promise.
    */
   save(entity, options) {
-    throw new Error("Missing `query()` implementation for `" + this.model.name + "`'s schema.");
+    throw new Error("Missing `save()` implementation for `" + this.model.name + "`'s schema.");
   }
 
   /**
