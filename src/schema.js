@@ -342,14 +342,32 @@ class Schema {
   }
 
   /**
-   * Returns all schema field names.
+   * Returns all schema columns names.
    *
    * @return Array An array of field names.
    */
-  names(basePath) {
+  names() {
+    var name;
+    var fields = [];
+    for (var [name, value] of this._columns) {
+      if (value.virtual) {
+        continue;
+      }
+      fields.push(name);
+    }
+    return fields;
+  }
+
+  /**
+   * Gets all fields.
+   *
+   * @param  String basePath The dotted base path to extract fields from.
+   * @return Array
+   */
+  fields(basePath) {
     basePath = basePath || '';
     var fields = {};
-    for (var name of this.fields()) {
+    for (var name of this.names()) {
       fields[name] = true;
     }
 
@@ -365,23 +383,6 @@ class Schema {
       }
     }
     return Object.keys(names);
-  }
-
-  /**
-   * Gets all fields.
-   *
-   * @return Array
-   */
-  fields() {
-    var name;
-    var fields = [];
-    for (var [name, value] of this._columns) {
-      if (value.virtual) {
-        continue;
-      }
-      fields.push(name);
-    }
-    return fields;
   }
 
   /**

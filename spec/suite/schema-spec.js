@@ -9,6 +9,15 @@ describe("Schema", function() {
 
   beforeEach(function() {
     this.schema = Image.definition();
+
+    this.preferences = new Schema();
+    this.preferences.column('preferences', { type: 'object' });
+    this.preferences.column('preferences.blacklist', { type: 'object' });
+    this.preferences.column('preferences.blacklist.projects', { type: 'id', array: true, 'default': [] });
+    this.preferences.column('preferences.mail', { type: 'object' });
+    this.preferences.column('preferences.mail.enabled', { type: 'boolean', 'default': true });
+    this.preferences.column('preferences.mail.frequency', { type: 'integer', 'default': 24 });
+
   });
 
   afterEach(function() {
@@ -125,11 +134,50 @@ describe("Schema", function() {
 
   });
 
+  describe(".names()", function() {
+
+    it("returns all column names", function() {
+
+      expect(this.schema.names().sort()).toEqual(['gallery_id', 'id', 'name', 'score', 'title']);
+
+    });
+
+    it("returns all column names and nested ones", function() {
+
+      expect(this.preferences.names().sort()).toEqual([
+        'preferences',
+        'preferences.blacklist',
+        'preferences.blacklist.projects',
+        'preferences.mail',
+        'preferences.mail.enabled',
+        'preferences.mail.frequency'
+      ]);
+
+    });
+
+    it("filters out virtual fields", function() {
+
+      this.schema.column('virtualField', { virtual: true });
+      var fields = this.schema.names();
+      expect(fields['virtualField']).toBe(undefined);
+
+    });
+
+  });
+
   describe(".fields()", function() {
 
     it("returns all fields", function() {
 
       expect(this.schema.fields().sort()).toEqual(['gallery_id', 'id', 'name', 'score', 'title']);
+
+    });
+
+    it("returns fields according the base path", function() {
+
+      expect(this.preferences.fields()).toEqual(['preferences']);
+      expect(this.preferences.fields('preferences').sort()).toEqual(['blacklist', 'mail']);
+      expect(this.preferences.fields('preferences.mail').sort()).toEqual(['enabled', 'frequency']);
 
     });
 
@@ -303,15 +351,7 @@ describe("Schema", function() {
 
     it("sets nested fields", function() {
 
-      var schema = new Schema();
-      schema.column('preferences', { type: 'object' });
-      schema.column('preferences.blacklist', { type: 'object' });
-      schema.column('preferences.blacklist.projects', { type: 'id', array: true, 'default': [] });
-      schema.column('preferences.mail', { type: 'object' });
-      schema.column('preferences.mail.enabled', { type: 'boolean', 'default': true });
-      schema.column('preferences.mail.frequency', { type: 'integer', 'default': 24 });
-
-      var document = schema.cast(undefined, {});
+      var document = this.preferences.cast(undefined, {});
       expect(document.data()).toEqual({
         preferences: {
           blacklist: {

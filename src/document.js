@@ -690,7 +690,7 @@ class Document {
 
     var fields;
     if (schema.locked()) {
-      fields = schema.names(options.basePath).concat(schema.relations());
+      fields = schema.fields(options.basePath).concat(schema.relations());
     } else {
       fields = Object.keys(this._data);
     }
