@@ -534,7 +534,6 @@ describe("Schema", function() {
           document.set('datetime', '2015-05-20 21:50:00');
           expect(document.get('date')).toBe('2015-05-20');
           expect(document.get('time')).toBe('21:50:00');
-          expect(document.has('datetime')).toBe(false);
 
         });
 
@@ -544,12 +543,10 @@ describe("Schema", function() {
           document.set('datetime', '2015-05-20 21:50:00');
           expect(document.get('date')).toBe('2015-05-20');
           expect(document.get('time')).toBe('21:50:00');
-          expect(document.has('datetime')).toBe(false);
 
           document.set('datetime', '2015-05-20 22:15:00');
           expect(document.get('date')).toBe('2015-05-20');
           expect(document.get('time')).toBe('22:15:00');
-          expect(document.has('datetime')).toBe(false);
 
         });
 

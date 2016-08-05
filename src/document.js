@@ -326,8 +326,15 @@ class Document {
    * @return mixed.
    */
   get(name) {
+    var schema = this.schema();
+
     if (!arguments.length) {
-      return this._data;
+      var fields = schema.locked() ? schema.fields() : Object.keys(this._data);
+      var result = {};
+      for (var field of fields) {
+        result[field] = this.get(field);
+      }
+      return result;
     }
     var keys = Array.isArray(name) ? name : dotpath(name);
     name = keys.shift();
@@ -343,7 +350,6 @@ class Document {
       return value.get(keys);
     }
 
-    var schema = this.schema();
     var fieldname = this.basePath() ? this.basePath() + '.' + name : name;
     var field = schema.has(fieldname) ? schema.column(fieldname) : {};
     var value;
@@ -466,11 +472,11 @@ class Document {
       return;
     }
     var fieldname = this.basePath() ? this.basePath() + '.' + name : name;
+    this._data[name] = value;
+
     if (schema.isVirtual(fieldname)) {
       return;
     }
-
-    this._data[name] = value;
 
     if (value && typeof value.setParent === 'function') {
       value.setParent(this, name);
