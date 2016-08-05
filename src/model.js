@@ -134,20 +134,20 @@ class Model extends Document {
    *
    * Example of schema initialization:
    * ```php
-   * schema.set('id', { type: 'id' });
+   * schema.column('id', { type: 'id' });
    *
-   * schema.set('title', { type: 'string', 'default': true });
+   * schema.column('title', { type: 'string', 'default': true });
    *
-   * schema.set('body', { type: 'string' });
+   * schema.column('body', { type: 'string' });
    *
    * // Custom object
-   * schema.set('comments',       { type: 'object', array: true, 'default': [] });
-   * schema.set('comments.id',    { type: 'id' });
-   * schema.set('comments.email', { type: 'string' });
-   * schema.set('comments.body',  { type: 'string' });
+   * schema.column('comments',       { type: 'object', array: true, 'default': [] });
+   * schema.column('comments.id',    { type: 'id' });
+   * schema.column('comments.email', { type: 'string' });
+   * schema.column('comments.body',  { type: 'string' });
    *
    * // Custom object with a dedicated class
-   * schema.set('comments', {
+   * schema.column('comments', {
    *    type: 'entity',
    *    model: Comment,
    *    array: true,
