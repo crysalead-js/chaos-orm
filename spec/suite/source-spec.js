@@ -80,6 +80,7 @@ describe("Source", function() {
       var date = new Date('2014-11-21');
       expect(this.source.convert('cast', 'date', date)).toEqual(date);
       expect(this.source.convert('cast', 'date', '2014-11-21')).toEqual(date);
+      expect(this.source.convert('cast', 'date', '2014-11-21').toISOString()).toEqual('2014-11-21T00:00:00.000Z');
       var datetime = new Date('2014-11-21 10:20:45');
       expect(this.source.convert('cast', 'datetime', datetime)).toEqual(datetime);
 
