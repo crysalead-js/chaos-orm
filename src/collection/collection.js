@@ -569,12 +569,12 @@ class Collection {
    * @param  Object  options Validate options.
    * @return Promise
    */
-  valid(options ) {
+  validates(options ) {
     var self = this;
     return co(function*() {
       var success = true;
       for (var entity of self) {
-        var ok = yield entity.valid(options);
+        var ok = yield entity.validates(options);
         if (!ok) {
           success = false;
         }

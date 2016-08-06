@@ -326,10 +326,8 @@ class Document {
    * @return mixed.
    */
   get(name) {
-    var schema = this.schema();
-
     if (!arguments.length) {
-      var fields = schema.locked() ? schema.fields() : Object.keys(this._data);
+      var fields = Object.keys(this._data);
       var result = {};
       for (var field of fields) {
         result[field] = this.get(field);
@@ -351,6 +349,7 @@ class Document {
     }
 
     var fieldname = this.basePath() ? this.basePath() + '.' + name : name;
+    var schema = this.schema();
     var field = schema.has(fieldname) ? schema.column(fieldname) : {};
     var value;
 
@@ -714,10 +713,12 @@ class Document {
           options.embed = embed[field];
         }
       }
-      var value = this._data[field];
-      if (value === undefined) {
+
+      if (!this.has(field)) {
         continue;
       }
+      var value = this.get(field);
+
       if (value instanceof Document) {
         options.basePath = rel && rel.embedded() ? value.basePath() : '';
         result[field] = value.to(format, options);

@@ -97,19 +97,20 @@ describe("Document", function() {
       it("gets all values but virtuals", function() {
 
         var schema = new Schema();
-        schema.column('a', { type: 'boolean' });
-        schema.column('b', { type: 'boolean' });
-        schema.column('c', { type: 'string', virtual: true});
 
-        var document = new Document({schema: schema});
+        var document = new Document();
 
-        expect(document.set('a', 1)).toBe(document);
-        expect(document.set('b', 0)).toBe(document);
-        expect(document.set('c', 'test')).toBe(document);
+        expect(document.set({
+          a: 1,
+          b: 2,
+          c: 3
+        })).toBe(document);
 
-        expect(document.get().a).toBe(true);
-        expect(document.get().b).toBe(false);
-        expect(document.get().c).toBe(undefined);
+        expect(document.get()).toEqual({
+          a: 1,
+          b: 2,
+          c: 3
+        });
 
       });
 

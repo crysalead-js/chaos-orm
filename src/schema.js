@@ -368,7 +368,7 @@ class Schema {
     basePath = basePath || '';
     var fields = {};
     for (var name of this.names()) {
-      fields[name] = true;
+      fields[name] = null;
     }
 
     var names = expand(fields);

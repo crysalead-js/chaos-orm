@@ -71,20 +71,19 @@ class HasMany extends Relationship {
       this._cleanup(collection);
 
       related.forEach(function(entity, index) {
-        var isObject = entity instanceof Model;
-        var values = isObject ? entity.get(this.keys('to')) : entity[this.keys('to')];
+        var values = entity instanceof Model ? entity.get(this.keys('to')) : entity[this.keys('to')];
         values = Array.isArray(values) || values instanceof Collection || values instanceof Through ? values : [values];
         values.forEach(function(value) {
           if (indexes.has(value)) {
-            if (isObject) {
-              if (Array.isArray(collection)) {
+            if (Array.isArray(collection)) {
+              if (collection[indexes.get(value)] instanceof Model) {
                 collection[indexes.get(value)].get(name).push(entity);
               } else {
-                collection.get(indexes.get(value)).get(name).push(entity);
+                collection[indexes.get(value)][name].push(entity);
               }
             } else {
-              if (Array.isArray(collection)) {
-                collection[indexes.get(value)][name].push(entity);
+              if (collection.get(indexes.get(value)) instanceof Model) {
+                collection.get(indexes.get(value)).get(name).push(entity);
               } else {
                 collection.get(indexes.get(value))[name].push(entity);
               }
@@ -127,8 +126,8 @@ class HasMany extends Relationship {
       var success = true;
 
       for (var item of collection) {
-        if (item.exists() && indexes[item.id()] !== undefined) {
-          existing[indexes[item.id()]] = true;
+        if (item.exists() && indexes.get(item.id()) !== undefined) {
+          existing[indexes.get(item.id())] = true;
         }
         item.set(conditions);
         var ok = yield item.save(options);

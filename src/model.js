@@ -382,7 +382,7 @@ class Model extends Document {
       };
       options = extend({}, defaults, options);
       if (options.validate) {
-        var valid = yield this.valid(options);
+        var valid = yield this.validates(options);
         if (!valid) {
           return false;
         }
@@ -455,7 +455,7 @@ class Model extends Document {
    *                         - `'embed'`    _array_   : List of relations to validate.
    * @return Promise         Returns a promise.
    */
-  valid(options) {
+  validates(options) {
     return co(function* () {
       var defaults = {
         events: this.exists() !== false ? 'update' : 'create',
@@ -465,7 +465,7 @@ class Model extends Document {
       options = extend({}, defaults, options);
       var validator = this.model().validator();
 
-      var valid = yield this._valid(options);
+      var valid = yield this._validates(options);
 
       var success = yield validator.validates(this.get(), options);
       this._errors = validator.errors();
@@ -480,7 +480,7 @@ class Model extends Document {
    *                          - `'embed'` _Object_ : List of relations to validate.
    * @return Promise          The promise returns `true` if all validation rules succeed, `false` otherwise.
    */
-  _valid(options) {
+  _validates(options) {
     return co(function* () {
       var defaults = { embed: true };
       options = extend({}, defaults, options);
@@ -506,7 +506,7 @@ class Model extends Document {
   }
 
   /**
-   * Returns the errors from the last `.valid()` call.
+   * Returns the errors from the last `.validates()` call.
    *
    * @return Object The occured errors.
    */

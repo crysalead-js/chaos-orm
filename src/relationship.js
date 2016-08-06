@@ -471,7 +471,7 @@ class Relationship {
       if (!entity.has(fieldname)) {
         return true;
       }
-      return entity.get(fieldname).valid(options);
+      return entity.get(fieldname).validates(options);
     });
   }
 }

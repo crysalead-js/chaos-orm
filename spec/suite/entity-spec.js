@@ -352,7 +352,7 @@ describe("Entity", function() {
 
   });
 
-  describe(".valid()", function() {
+  describe(".validates()", function() {
 
     beforeEach(function() {
       var validator = Gallery.validator();
@@ -371,15 +371,15 @@ describe("Entity", function() {
 
       co(function*() {
         var gallery = Gallery.create();
-        expect(yield gallery.valid()).toBe(false);
+        expect(yield gallery.validates()).toBe(false);
         expect(gallery.errors()).toEqual({ name: ['is required'] });
 
         gallery.set('name', '');
-        expect(yield gallery.valid()).toBe(false);
+        expect(yield gallery.validates()).toBe(false);
         expect(gallery.errors()).toEqual({ name: ['must not be a empty'] });
 
         gallery.set('name', 'new gallery');
-        expect(yield gallery.valid()).toBe(true);
+        expect(yield gallery.validates()).toBe(true);
         expect(gallery.errors()).toEqual({});
         done();
       });
@@ -393,7 +393,7 @@ describe("Entity", function() {
         gallery.get('images').push(Image.create());
         gallery.get('images').push(Image.create());
 
-        expect(yield gallery.valid()).toBe(false);
+        expect(yield gallery.validates()).toBe(false);
         expect(gallery.errors()).toEqual({
           name: ['is required'],
           images: [
@@ -405,7 +405,7 @@ describe("Entity", function() {
         gallery.set('name', '');
         gallery.get('images.0').set('name', '');
         gallery.get('images.1').set('name', '');
-        expect(yield gallery.valid()).toBe(false);
+        expect(yield gallery.validates()).toBe(false);
         expect(gallery.errors()).toEqual({
           name: ['must not be a empty'],
           images: [
@@ -417,7 +417,7 @@ describe("Entity", function() {
         gallery.set('name', 'new gallery');
         gallery.get('images.0').set('name', 'image1');
         gallery.get('images.1').set('name', 'image2');
-        expect(yield gallery.valid()).toBe(true);
+        expect(yield gallery.validates()).toBe(true);
         expect(gallery.errors()).toEqual({
             images: [
               {},
