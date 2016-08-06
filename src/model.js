@@ -382,7 +382,7 @@ class Model extends Document {
       };
       options = extend({}, defaults, options);
       if (options.validate) {
-        var valid = yield this.validate(options);
+        var valid = yield this.valid(options);
         if (!valid) {
           return false;
         }
@@ -474,11 +474,11 @@ class Model extends Document {
   }
 
   /**
-   * Validates a relation.
+   * Check if nested relations are valid
    *
-   * @param  array   $options Available options:
-   *                          - `'embed'` _array_ : List of relations to validate.
-   * @return boolean          Returns `true` if all validation rules on all fields succeed, otherwise `false`.
+   * @param  Object   options Available options:
+   *                          - `'embed'` _Object_ : List of relations to validate.
+   * @return Promise          The promise returns `true` if all validation rules succeed, `false` otherwise.
    */
   _valid(options) {
     return co(function* () {
@@ -497,7 +497,7 @@ class Model extends Document {
         if (this.has(name)) {
           var value = embed[name];
           var rel = schema.relation(name);
-          var ok = yield rel.valid(this, extend({}, options, { embed: value }));
+          var ok = yield rel.validates(this, extend({}, options, { embed: value }));
           var success = success && ok;
         }
       }

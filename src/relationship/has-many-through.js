@@ -182,7 +182,7 @@ class HasManyThrough extends Relationship {
    * @param  Object   options Saving options.
    * @return Promise
    */
-  validate(entity, options) {
+  validates(entity, options) {
     return Promise.resolve(true);
   }
 }

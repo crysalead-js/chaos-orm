@@ -458,20 +458,20 @@ class Relationship {
   }
 
   /**
-   * Validating an entity relation.
+   * Check if an entity is valid or not.
    *
    * @param  Object  entity  The relation's entity.
    * @param  Object  options The validation options.
    * @return Promise
    */
-  validate(entity, options) {
+  validates(entity, options) {
     var name = this.name();
     return co(function*() {
       var fieldname = name;
       if (!entity.has(fieldname)) {
         return true;
       }
-      return entity.get(fieldname).validate(options);
+      return entity.get(fieldname).valid(options);
     });
   }
 }

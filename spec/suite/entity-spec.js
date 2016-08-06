@@ -352,7 +352,7 @@ describe("Entity", function() {
 
   });
 
-  describe(".validate()", function() {
+  describe(".valid()", function() {
 
     beforeEach(function() {
       var validator = Gallery.validator();
@@ -367,33 +367,33 @@ describe("Entity", function() {
       Image.reset();
     });
 
-    it("validate an entity", function(done) {
+    it("validates an entity", function(done) {
 
       co(function*() {
         var gallery = Gallery.create();
-        expect(yield gallery.validate()).toBe(false);
+        expect(yield gallery.valid()).toBe(false);
         expect(gallery.errors()).toEqual({ name: ['is required'] });
 
         gallery.set('name', '');
-        expect(yield gallery.validate()).toBe(false);
+        expect(yield gallery.valid()).toBe(false);
         expect(gallery.errors()).toEqual({ name: ['must not be a empty'] });
 
         gallery.set('name', 'new gallery');
-        expect(yield gallery.validate()).toBe(true);
+        expect(yield gallery.valid()).toBe(true);
         expect(gallery.errors()).toEqual({});
         done();
       });
 
     });
 
-    it("validate an nested entities", function(done) {
+    it("validates an nested entities", function(done) {
 
       co(function*() {
         var gallery = Gallery.create();
         gallery.get('images').push(Image.create());
         gallery.get('images').push(Image.create());
 
-        expect(yield gallery.validate()).toBe(false);
+        expect(yield gallery.valid()).toBe(false);
         expect(gallery.errors()).toEqual({
           name: ['is required'],
           images: [
@@ -405,7 +405,7 @@ describe("Entity", function() {
         gallery.set('name', '');
         gallery.get('images.0').set('name', '');
         gallery.get('images.1').set('name', '');
-        expect(yield gallery.validate()).toBe(false);
+        expect(yield gallery.valid()).toBe(false);
         expect(gallery.errors()).toEqual({
           name: ['must not be a empty'],
           images: [
@@ -417,7 +417,7 @@ describe("Entity", function() {
         gallery.set('name', 'new gallery');
         gallery.get('images.0').set('name', 'image1');
         gallery.get('images.1').set('name', 'image2');
-        expect(yield gallery.validate()).toBe(true);
+        expect(yield gallery.valid()).toBe(true);
         expect(gallery.errors()).toEqual({
             images: [
               {},
