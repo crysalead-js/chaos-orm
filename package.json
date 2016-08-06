@@ -22,7 +22,7 @@
   "jsnext:main": "src/index.js",
   "dependencies": {
     "camel-case": "^3.0.0",
-    "chaos-validator": "^1.0",
+    "chaos-validator": "^2.0",
     "co": "^4.6.0",
     "component-emitter": "^1.2.1",
     "dateformat-light": "^1.0.14",
@@ -45,7 +45,7 @@
     "coveralls": "^2.11.9",
     "isparta": "^4.0.0",
     "jasmine-kahlan": "^1.0.2",
-    "mocha": "^2.5.3"
+    "mocha": "^3.0.1"
   },
   "babel": {
     "env": {

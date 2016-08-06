@@ -439,7 +439,7 @@ class Model extends Document {
   }
 
   /**
-   * Validates the entity data.
+   * Check if an entity is valid or not.
    *
    * @param  array   options Available options:
    *                         - `'events'` _mixed_    : A string or array defining one or more validation
@@ -455,7 +455,7 @@ class Model extends Document {
    *                         - `'embed'`    _array_   : List of relations to validate.
    * @return Promise         Returns a promise.
    */
-  validate(options) {
+  valid(options) {
     return co(function* () {
       var defaults = {
         events: this.exists() !== false ? 'update' : 'create',
@@ -465,9 +465,9 @@ class Model extends Document {
       options = extend({}, defaults, options);
       var validator = this.model().validator();
 
-      var valid = yield this._validate(options);
+      var valid = yield this._valid(options);
 
-      var success = yield validator.validate(this.get(), options);
+      var success = yield validator.validates(this.get(), options);
       this._errors = validator.errors();
       return success && valid;
     }.bind(this));
@@ -480,7 +480,7 @@ class Model extends Document {
    *                          - `'embed'` _array_ : List of relations to validate.
    * @return boolean          Returns `true` if all validation rules on all fields succeed, otherwise `false`.
    */
-  _validate(options) {
+  _valid(options) {
     return co(function* () {
       var defaults = { embed: true };
       options = extend({}, defaults, options);
@@ -497,7 +497,7 @@ class Model extends Document {
         if (this.has(name)) {
           var value = embed[name];
           var rel = schema.relation(name);
-          var ok = yield rel.validate(this, extend({}, options, { embed: value }));
+          var ok = yield rel.valid(this, extend({}, options, { embed: value }));
           var success = success && ok;
         }
       }
@@ -506,7 +506,7 @@ class Model extends Document {
   }
 
   /**
-   * Returns the errors from the last `.validate()` call.
+   * Returns the errors from the last `.valid()` call.
    *
    * @return Object The occured errors.
    */
