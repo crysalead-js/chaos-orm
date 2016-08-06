@@ -1,5 +1,5 @@
 import dateFormat from 'dateformat-light';
-import { Source } from '../../src';
+import { Source, Document, Collection } from '../../src';
 
 describe("Source", function() {
 
@@ -63,6 +63,8 @@ describe("Source", function() {
       expect(this.source.convert('datasource', 'boolean', false)).toBe('0');
       expect(this.source.convert('datasource', 'null', null)).toBe('');
       expect(this.source.convert('datasource', 'string', 'abc')).toBe('abc');
+      expect(this.source.convert('datasource', 'object', new Document())).toEqual({});
+      expect(this.source.convert('datasource', 'object', new Collection())).toEqual([]);
       expect(this.source.convert('datasource', '_default_', 123)).toBe('123');
       expect(this.source.convert('datasource', '_undefined_', 123)).toBe('123');
 

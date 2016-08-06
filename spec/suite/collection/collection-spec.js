@@ -455,14 +455,14 @@ describe("Collection", function() {
 
   describe(".data()", function() {
 
-    it("calls `toArray()`", function() {
+    it("calls `to()`", function() {
 
       var collection = new Collection({ data: [1] });
-      var spy = spyOn(Collection, 'toArray').and.callThrough();
+      var spy = spyOn(collection, 'to').and.callThrough();
 
       var options = {};
       expect(collection.data(options)).toEqual([1]);
-      expect(spy).toHaveBeenCalledWith(collection, options);
+      expect(spy).toHaveBeenCalledWith('array', options);
 
     });
 

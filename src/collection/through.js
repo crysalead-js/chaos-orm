@@ -428,7 +428,41 @@ class Through {
    * @return array         Returns the array value of the data in this `Collection`.
    */
   data(options){
-    return Collection.toArray(this, options);
+    return this.to('array', options);
+  }
+
+  /**
+   * Exports a `Through` object to another format.
+   *
+   * The supported values of `format` depend on the registered handlers.
+   *
+   * Once the appropriate handlers are registered, a `Collection` instance can be converted into
+   * any handler-supported format, i.e.:
+   *
+   * ```php
+   * through.to('json'); // returns a JSON string
+   * through.to('xml'); // returns an XML string
+   * ```
+   *
+   * @param  String format  By default the only supported value is `'array'`. However, additional
+   *                        format handlers can be registered using the `formats()` method.
+   * @param  Array  options Options for converting the collection.
+   * @return mixed          The converted collection.
+   */
+  to(format, options) {
+    var defaults = {cast: true};
+    options = extend({}, defaults, options);
+
+    var formatter;
+
+    var data = options.cast ? Collection.toArray(this, options) : this;
+
+    if (typeof format === 'function') {
+      return format(data, options);
+    } else if (Collection.formats(format)) {
+      return Collection.formats(format)(data, options);
+    }
+    return data;
   }
 
   /**
