@@ -2,6 +2,8 @@ import co from 'co';
 import { extend, merge } from 'extend-merge';
 import Relationship from '../relationship';
 import Model from '../model';
+import Collection from "../collection/collection";
+import Through from "../collection/through";
 
 /**
  * The `HasMany` relationship.
@@ -62,32 +64,33 @@ class HasMany extends Relationship {
       var indexes = this._index(collection, this.keys('from'));
       options = merge({}, { fetchOptions: { collector: this._collector(collection) } }, options);
 
-      var related = yield this._find(Object.keys(indexes), options);
+      var related = yield this._find(Array.from(indexes.keys()), options);
       var name = this.name();
       var value;
 
       this._cleanup(collection);
 
       related.forEach(function(entity, index) {
-        if (entity instanceof Model) {
-          value = entity.get(this.keys('to'));
-          if (indexes[value] !== undefined) {
-            if (Array.isArray(collection)) {
-              collection[indexes[value]].get(name).push(entity);
+        var isObject = entity instanceof Model;
+        var values = isObject ? entity.get(this.keys('to')) : entity[this.keys('to')];
+        values = Array.isArray(values) || values instanceof Collection || values instanceof Through ? values : [values];
+        values.forEach(function(value) {
+          if (indexes.has(value)) {
+            if (isObject) {
+              if (Array.isArray(collection)) {
+                collection[indexes.get(value)].get(name).push(entity);
+              } else {
+                collection.get(indexes.get(value)).get(name).push(entity);
+              }
             } else {
-              collection.get(indexes[value]).get(name).push(entity);
+              if (Array.isArray(collection)) {
+                collection[indexes.get(value)][name].push(entity);
+              } else {
+                collection.get(indexes.get(value))[name].push(entity);
+              }
             }
           }
-        } else {
-          value = entity[this.keys('to')];
-          if (indexes[value] !== undefined) {
-            if (Array.isArray(collection)) {
-              collection[indexes[value]][name].push(entity);
-            } else {
-              collection.get(indexes[value])[name].push(entity);
-            }
-          }
-        }
+        });
       }.bind(this));
 
       return related;

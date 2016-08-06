@@ -419,11 +419,11 @@ class Relationship {
    *                            values the corresponding index in the collection.
    */
   _index(collection, name) {
-    var indexes = {}, value;
+    var indexes = new Map(), value;
     collection.forEach(function(entity, i) {
       value = entity instanceof Model ? entity.get(name) : entity[name];
       if (value) {
-        indexes[value] = i;
+        indexes.set(value, i);
       }
     });
     return indexes;

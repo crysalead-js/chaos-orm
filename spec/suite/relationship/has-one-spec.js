@@ -96,7 +96,7 @@ describe("HasOne", function() {
       galleries.embed(['detail']).then(function() {
 
         expect(GalleryDetail.all).toHaveBeenCalledWith({
-          conditions: { gallery_id: ['1', '2'] }
+          conditions: { gallery_id: [1, 2] }
         }, {
           collector: galleries.collector()
         });
@@ -125,7 +125,7 @@ describe("HasOne", function() {
       hasOne.embed(galleries, { fetchOptions: { 'return': 'object' } }).then(function() {
 
         expect(GalleryDetail.all).toHaveBeenCalledWith({
-          conditions: { gallery_id: ['1', '2'] }
+          conditions: { gallery_id: [1, 2] }
         }, {
           'collector': undefined,
           'return': 'object'

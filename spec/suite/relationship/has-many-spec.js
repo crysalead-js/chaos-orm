@@ -100,7 +100,7 @@ describe("HasMany", function() {
 
       galleries.embed(['images']).then(function() {
         expect(Image.all).toHaveBeenCalledWith({
-          conditions: { gallery_id: ['1', '2'] }
+          conditions: { gallery_id: [1, 2] }
         }, {
           collector: galleries.collector()
         });
@@ -130,7 +130,7 @@ describe("HasMany", function() {
 
       hasMany.embed(galleries, { fetchOptions: { 'return': 'object' } }).then(function() {
         expect(Image.all).toHaveBeenCalledWith({
-          conditions: { gallery_id: ['1', '2'] }
+          conditions: { gallery_id: [1, 2] }
         }, {
           'collector': undefined,
           'return': 'object'

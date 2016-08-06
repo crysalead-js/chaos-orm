@@ -35,7 +35,7 @@ class BelongsTo extends Relationship {
       var indexes = this._index(collection, this.keys('from'));
       options = merge({}, { fetchOptions: { collector: this._collector(collection) } }, options);
 
-      var related = yield this._find(Object.keys(indexes), options);
+      var related = yield this._find(Array.from(indexes.keys()), options);
       var name = this.name();
       var value;
 
@@ -45,13 +45,13 @@ class BelongsTo extends Relationship {
       collection.forEach(function(entity, index) {
         if (entity instanceof Model) {
           value = entity.get(this.keys('from'));
-          if (indexes[value] !== undefined) {
-            entity.set(name, Array.isArray(related) ? related[indexes[value]] : related.get(indexes[value]));
+          if (indexes.has(value)) {
+            entity.set(name, Array.isArray(related) ? related[indexes.get(value)] : related.get(indexes.get(value)));
           }
         } else {
           value = entity[this.keys('from')];
-          if (indexes[value] !== undefined) {
-            entity[name] = Array.isArray(related) ? related[indexes[value]] : related.get(indexes[value]);
+          if (indexes.has(value)) {
+            entity[name] = Array.isArray(related) ? related[indexes.get(value)] : related.get(indexes.get(value));
           }
         }
       }.bind(this));

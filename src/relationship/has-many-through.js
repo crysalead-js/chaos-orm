@@ -152,9 +152,9 @@ class HasManyThrough extends Relationship {
           });
         } else {
           entity[through].forEach(function(item, key) {
-            if (indexes[item[fromKey]] !== undefined) {
-              collection[index][name].push(related[indexes[item[fromKey]]]);
-              collection[index][through][key][using] = related[indexes[item[fromKey]]];
+            if (indexes.has(item[fromKey])) {
+              collection[index][name].push(related[indexes.get(item[fromKey])]);
+              collection[index][through][key][using] = related[indexes.get(item[fromKey])];
             }
           });
         }

@@ -142,11 +142,11 @@ describe("HasManyThrough", function() {
       images.embed(['tags']).then(function() {
 
         expect(ImageTag.all).toHaveBeenCalledWith({
-          conditions: { image_id: ['1', '2', '3', '4', '5'] }
+          conditions: { image_id: [1, 2, 3, 4, 5] }
         }, { collector: images.collector() });
 
         expect(Tag.all).toHaveBeenCalledWith({
-          conditions: { id: ['1', '3', '5', '6'] }
+          conditions: { id: [1, 3, 5, 6] }
         }, { collector: images.collector() });
 
         images.forEach(function(image) {
@@ -182,11 +182,11 @@ describe("HasManyThrough", function() {
       hasManyThrough.embed(images, { fetchOptions: { 'return': 'object' } }).then(function() {
 
         expect(ImageTag.all).toHaveBeenCalledWith({
-          conditions: { image_id: ['1', '2', '3', '4', '5'] }
+          conditions: { image_id: [1, 2, 3, 4, 5] }
         }, { 'collector': undefined, 'return': 'object' });
 
         expect(Tag.all).toHaveBeenCalledWith({
-          conditions: { id: ['1', '3', '5', '6'] }
+          conditions: { id: [1, 3, 5, 6] }
         }, { 'collector': undefined, 'return': 'object' });
 
         images.forEach(function(image) {

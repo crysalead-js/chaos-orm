@@ -99,7 +99,7 @@ describe("BelongsTo", function() {
       images.embed(['gallery']).then(function() {
 
         expect(Gallery.all).toHaveBeenCalledWith({
-          conditions: { id: ['1', '2'] }
+          conditions: { id: [1, 2] }
         }, {
           collector: images.collector()
         });
@@ -129,7 +129,7 @@ describe("BelongsTo", function() {
 
       belongsTo.embed(images, { fetchOptions: { 'return': 'object' } }).then(function() {
         expect(Gallery.all).toHaveBeenCalledWith({
-          conditions: { id: ['1', '2'] }
+          conditions: { id: [1, 2] }
         }, {
           'collector': undefined,
           'return': 'object'

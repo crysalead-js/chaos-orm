@@ -20,7 +20,7 @@ class HasOne extends Relationship {
       var indexes = this._index(collection, this.keys('from'));
       options = merge({}, { fetchOptions: { collector: this._collector(collection) } }, options);
 
-      var related = yield this._find(Object.keys(indexes), options);
+      var related = yield this._find(Array.from(indexes.keys()), options);
       var name = this.name();
       var value;
       this._cleanup(collection);
@@ -28,20 +28,20 @@ class HasOne extends Relationship {
       related.forEach(function(entity, index) {
         if (entity instanceof Model) {
           value = entity.get(this.keys('to'));
-          if (indexes[value] !== undefined) {
+          if (indexes.has(value)) {
             if (Array.isArray(collection)) {
-              collection[indexes[value]].set(name, entity);
+              collection[indexes.get(value)].set(name, entity);
             } else {
-              collection.get(indexes[value]).set(name, entity);
+              collection.get(indexes.get(value)).set(name, entity);
             }
           }
         } else {
           value = entity[this.keys('to')];
-          if (indexes[value] !== undefined) {
+          if (indexes.has(value)) {
             if (Array.isArray(collection)) {
-              collection[indexes[value]][name] = entity;
+              collection[indexes.get(value)][name] = entity;
             } else {
-              collection.get(indexes[value])[name] = entity;
+              collection.get(indexes.get(value))[name] = entity;
             }
           }
         }
