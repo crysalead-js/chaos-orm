@@ -3,7 +3,6 @@ import ImageTag from './image-tag';
 import Gallery from './gallery';
 
 class Image extends Model {
-
   static _define(schema) {
     schema.column('id', { type: 'serial' });
     schema.column('gallery_id', { type: 'integer' });
