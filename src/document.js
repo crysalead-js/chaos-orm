@@ -484,16 +484,16 @@ class Document {
     if (previous && typeof previous.removeParent === 'function') {
       previous.removeParent(this);
     }
-    this.broadcast('modified', name);
+    this.trigger('modified', name);
   }
 
   /**
-   * Broadcast an event through the graph.
+   * Trigger an event through the graph.
    *
    * @param String type The type of event.
    * @param String name The field name.
    */
-  broadcast(type, name, ignore) {
+  trigger(type, name, ignore) {
     name = Array.isArray(name) ? name : [name];
     ignore = ignore || new Map();
 
@@ -505,7 +505,7 @@ class Document {
     this.emit('modified', name);
 
     for (var [parent, field] of this.parents()) {
-      parent.broadcast(type, [field, ...name], ignore);
+      parent.trigger(type, [field, ...name], ignore);
     }
   }
 

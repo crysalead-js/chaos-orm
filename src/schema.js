@@ -4,6 +4,7 @@ import { expand, flatten } from 'expand-flatten';
 import intersect from 'intersect';
 import dateFormat from 'dateformat-light';
 import Document from './document';
+import Model from './model';
 import Conventions from './conventions';
 import Collection from "./collection/collection";
 import Through from "./collection/through";
@@ -12,6 +13,18 @@ import BelongsTo from './relationship/belongs-to';
 import HasOne from './relationship/has-one';
 import HasMany from './relationship/has-many';
 import HasManyThrough from './relationship/has-many-through';
+
+function arrayDiff(a, b) {
+  var len = a.length;
+  var arr = [];
+
+  for (var i = 0; i < len; i++) {
+    if (b.indexOf(a[i]) === -1) {
+      arr.push(a[i]);
+    }
+  }
+  return arr;
+}
 
 function normalize(array) {
   var i, len, key, result = {};
@@ -669,7 +682,7 @@ class Schema {
     config.embedded = config.link.substring(0, 3) !== 'key';
 
     if (!config.relation || !this.classes()[config.relation]) {
-      throw new Error("Unexisting binding relation `" + config.relation + "` for `'{$name}'`.");
+      throw new Error("Unexisting binding relation `" + config.relation + "` for `'" + name + "'`.");
     }
     if (!config.from) {
       throw new Error("Binding requires `'from'` option to be set.");
@@ -1147,6 +1160,150 @@ class Schema {
   }
 
   /**
+   * Inserts and/or updates an entity or a collection of entities and its direct relationship data in the datasource.
+   *
+   * @param Object   instance The entity instance to save.
+   * @param Object   options  Options:
+   *                          - `'whitelist'` _Object_ : An array of fields that are allowed to be saved to this record.
+   *                          - `'locked'`    _Boolean_: Lock data to the schema fields.
+   *                          - `'embed'`     _Object_ : List of relations to save.
+   * @return Promise          Returns a promise.
+   */
+  broadcast(instance, options) {
+    return co(function*() {
+
+      var defaults = {
+        whitelist: undefined,
+        locked: this.locked(),
+        embed: instance.schema().relations()
+      };
+
+      options = extend({}, defaults, options);
+
+      options.validate = false;
+
+      if (options.embed === true) {
+        options.embed = instance.hierarchy();
+      }
+
+      options.embed = this.treeify(options.embed);
+
+      var success = yield this.persist(instance, 'belongsTo', options);
+
+      if (!success) {
+        return false;
+      }
+
+      success = yield this.save(instance, options);
+
+      return success && this.persist(instance, ['hasMany', 'hasOne'], options);
+    }.bind(this));
+  }
+
+  /**
+   * Inserts and/or updates an entity or a collection of entities.
+   *
+   * @param Object   instance The entity instance to save.
+   * @param Object   options  Options:
+   *                          - `'whitelist'` _Object_ : An array of fields that are allowed to be saved to this record.
+   *                          - `'locked'`    _Boolean_: Lock data to the schema fields.
+   *                          - `'embed'`     _Object_ : List of relations to save.
+   * @return Promise          Returns a promise.
+   */
+  save(instance, options) {
+    return co(function*() {
+
+      var defaults = {
+        whitelist: undefined,
+        locked: this.locked(),
+        embed: instance.schema().relations()
+      };
+
+      options = extend({}, defaults, options);
+
+      var whitelist;
+
+      if (!options.whitelist) {
+        whitelist = options.locked ? this.fields() : [];
+      } else if (options.locked) {
+        whitelist = this.fields().filter(function(n) {
+          return options.whitelist.indexOf(n) !== -1;
+        });
+      } else {
+        whitelist = options.whitelist;
+      }
+
+      var collection = instance instanceof Model ? [instance] : instance;
+
+      var inserts = [];
+      var updates = [];
+
+      var filter = function(entity) {
+        var fields = arrayDiff(whitelist ? whitelist : Object.keys(entity.get()), this.relations());
+        var values = {};
+        for (var field of fields) {
+          if (entity.has(field)) {
+            values[field] = entity.get(field);
+          }
+        }
+        return values;
+      }.bind(this);
+
+      for (var entity of collection) {
+        var exists = entity.exists();
+        if (exists === false) {
+          inserts.push(entity);
+        } else if (entity.modified()) {
+          if (exists) {
+            updates.push(entity);
+          } else {
+            throw new Error("Entites must have a valid `false`/`true` existing value to be either inserted or updated.");
+          }
+        }
+      }
+      return (yield this.bulkInsert(inserts, filter)) && (yield this.bulkUpdate(updates, filter));
+
+    }.bind(this));
+  }
+
+  /**
+   * Save data related to relations.
+   *
+   * @param  Object  entity  The entity instance.
+   * @param  Array   types   Type of relations to save.
+   * @param  Object  options Options array.
+   * @return Promise         Returns a promise.
+   */
+  persist(instance, types, options) {
+
+    return co(function*() {
+      var defaults = { embed: {} };
+      options = extend({}, defaults, options);
+
+      types = Array.isArray(types) ? types : [types];
+
+      var collection = instance instanceof Model ? [instance] : instance;
+      var type, value, relName, rel;
+      var success = true;
+
+      for (var entity of collection) {
+        for (var type of types) {
+          for (relName in options.embed) {
+            value = options.embed[relName];
+            rel = this.relation(relName)
+            if (!rel || rel.type() !== type) {
+                continue;
+            }
+            var ok = yield rel.broadcast(entity, extend({}, options, { embed: value }));
+            success = success && ok;
+          }
+        }
+      }
+      return success;
+    }.bind(this));
+  }
+
+  /**
    * Returns a query to retrieve data from the connected data source.
    *
    * @param  Object options Query options.
@@ -1157,14 +1314,25 @@ class Schema {
   }
 
   /**
-   * Inserts and/or updates an entity and its direct relationship data in the datasource.
+   * Bulk inserts
    *
-   * @param  Object   entity  The entity instance to save.
-   * @param  Object   options Options.
-   * @return Promise         Returns a promise.
+   * @param  Array    inserts An array of entities to insert.
+   * @param  Function filter  The filter handler for which extract entities values for the insertion.
+   * @return boolean          Returns `true` if insert operations succeeded, `false` otherwise.
    */
-  save(entity, options) {
-    throw new Error("Missing `save()` implementation for `" + this.model.name + "`'s schema.");
+  bulkInsert($inserts, $filter) {
+    throw new Error("Missing `bulkInsert()` implementation for `" + this.model.name + "`'s schema.");
+  }
+
+  /**
+   * Bulk updates
+   *
+   * @param  Array    updates An array of entities to update.
+   * @param  Function filter  The filter handler for which extract entities values to update.
+   * @return boolean          Returns `true` if update operations succeeded, `false` otherwise.
+   */
+  bulkUpdate($updates, $filter) {
+    throw new Error("Missing `bulkUpdate()` implementation for `" + this.model.name + "`'s schema.");
   }
 
   /**
@@ -1210,15 +1378,6 @@ class Schema {
    */
   truncate(conditions, options) {
     throw new Error("Missing `truncate()` implementation for `" + this.model.name + "`'s schema.");
-  }
-
-  /**
-   * Returns the last insert id from the database.
-   *
-   * @return mixed Returns the last insert id.
-   */
-  lastInsertId() {
-    throw new Error("Missing `lastInsertId()` implementation for `" + this.model.name + "`'s schema.");
   }
 
 }

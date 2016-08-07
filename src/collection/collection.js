@@ -102,13 +102,6 @@ class Collection {
     for (i = 0; i < len; i++) {
       this.set(undefined, config.data[i]);
     }
-
-    /**
-     * Loaded items on construct.
-     *
-     * @var Array
-     */
-    this._loaded = this._data.slice(0);
   }
 
   /**
@@ -338,17 +331,17 @@ class Collection {
     if (data && typeof data.setParent === 'function') {
       data.setParent(this, name);
     }
-    this.broadcast('modified', name);
+    this.trigger('modified', name);
     return this;
   }
 
   /**
-   * Broadcast an event through the graph.
+   * Trigger an event through the graph.
    *
    * @param String type The type of event.
    * @param String name The field name.
    */
-  broadcast(type, name, ignore) {
+  trigger(type, name, ignore) {
     name = Array.isArray(name) ? name : [name];
     ignore = ignore || new Map();
 
@@ -360,7 +353,7 @@ class Collection {
     this.emit('modified', name);
 
     for (var [parent, field] of this.parents()) {
-      parent.broadcast(type, [field, ...name], ignore);
+      parent.trigger(type, [field, ...name], ignore);
     }
   }
 
@@ -419,7 +412,7 @@ class Collection {
     if (typeof value.removeParent === 'function') {
       value.removeParent(this);
     }
-    this.broadcast('modified', name);
+    this.trigger('modified', name);
   }
 
   /**
@@ -561,6 +554,68 @@ class Collection {
    */
   data(options) {
     return this.to('array', options);
+  }
+
+  /**
+   * Creates and/or updates a collection and its direct relationship data in the datasource.
+   *
+   *
+   * @param  Object  options Options:
+   *                         - `'validate'`  _boolean_: If `false`, validation will be skipped, and the record will
+   *                                                      be immediately saved. Defaults to `true`.
+   * @return Boolean         Returns `true` on a successful save operation, `false` otherwise.
+   */
+  broadcast(options) {
+    var defaults = { validate: true };
+    options = extend({}, defaults, options);
+
+    if (options.validate && !this.validates(options)) {
+      return false;
+    }
+    var schema = this.schema();
+    return schema.broadcast(this, options);
+  }
+
+  /**
+   * Similar to `.broadcast()` except the relationships has not been saved by default.
+   *
+   * @param  Object  options Same options as `.broadcast()`.
+   * @return Boolean         Returns `true` on a successful save operation, `false` on failure.
+   */
+  save(options) {
+    return this.broadcast(extend({}, { embed: false }, options));
+  }
+
+  /**
+   * Deletes the data associated with the current `Model`.
+   *
+   * @param array $options Options.
+   * @return boolean Success.
+   * @filter
+   */
+  delete(options) {
+    var schema = this.schema();
+    var key = schema.key();
+    if (!key) {
+      return false;
+    }
+    var keys = [];
+
+    for (var entity of this) {
+      if (entity.exists()) {
+        keys.push(entity.id());
+      }
+    }
+
+    if (!keys.length) {
+      return true;
+    }
+
+    if (schema.truncate({[key]: keys})) {
+      this._exists = false;
+      return true;
+    }
+    return false;
   }
 
   /**

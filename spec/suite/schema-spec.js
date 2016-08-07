@@ -1,5 +1,5 @@
+import co from 'co';
 import { Through, Schema, Model } from '../../src';
-
 import Gallery from '../fixture/model/gallery';
 import Image from '../fixture/model/image';
 import ImageTag from '../fixture/model/image-tag';
@@ -917,6 +917,35 @@ describe("Schema", function() {
       expect(this.schema.format('array', 'null', null)).toBe(null);
       expect(this.schema.format('array', 'name', 'abc')).toBe('abc');
       expect(this.schema.format('array', 'unexisting', 123)).toBe('123');
+
+    });
+
+  });
+
+  describe("->save()", function() {
+
+    it("saves an entity", function(done) {
+
+      co(function*() {
+        var data = {
+          name: 'amiga_1200.jpg',
+          title: 'Amiga 1200'
+        };
+
+        var image = Image.create(data);
+
+        var spy = spyOn(image, 'broadcast').and.callThrough();
+        spyOn(image.schema(), 'bulkInsert').and.returnValue(Promise.resolve(true));
+        spyOn(image.schema(), 'bulkUpdate').and.returnValue(Promise.resolve(true));
+
+        expect(yield image.save({ custom: 'option' })).toBe(true);
+
+        expect(spy).toHaveBeenCalledWith({
+          custom: 'option',
+          embed: false
+        });
+        done();
+      });
 
     });
 

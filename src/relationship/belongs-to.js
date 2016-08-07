@@ -68,7 +68,7 @@ class BelongsTo extends Relationship {
    * @param  Object  options Saving options.
    * @return Promise
    */
-  save(entity, options) {
+  broadcast(entity, options) {
     return co(function*() {
       if (this.link() !== this.constructor.LINK_KEY) {
         return true;
@@ -81,7 +81,7 @@ class BelongsTo extends Relationship {
 
       var related = entity.get(name);
 
-      var success = yield related.save(options);
+      var success = yield related.broadcast(options);
 
       var keys = this.keys();
       var from = this.keys('from');

@@ -336,20 +336,20 @@ class Model extends Document {
   }
 
   /**
-   * Creates and/or updates an entity and its direct relationship data in the datasource.
+   * Creates and/or updates an entity and its relationship data in the datasource.
    *
    * For example, to create a new record or document:
    * {{{
    * var post = Post.create(); // Creates a new object, which doesn't exist in the database yet
    * post.set('title', 'My post');
-   * var success = post.save();
+   * var success = post.broadcast();
    * }}}
    *
    * It is also used to update existing database objects, as in the following:
    * {{{
    * var post = Post.first(id);
    * post.set('title', 'Revised title');
-   * var success = post.save();
+   * var success = post.broadcast();
    * }}}
    *
    * By default, an object's data will be checked against the validation rules of the model it is
@@ -357,7 +357,7 @@ class Model extends Document {
    * method.
    *
    * {{{
-   * if (!post.save()) {
+   * if (!post.broadcast()) {
    *     return post.errors();
    * }
    * }}}
@@ -367,7 +367,7 @@ class Model extends Document {
    * {{{
    * post.set('title', 'We Don't Need No Stinkin' Validation');
    * post.set('body', 'I know what I'm doing.'');
-   * post.save({ validate: false });
+   * post.broadcast({ validate: false });
    * }}}
    *
    * @param  Object  options Options:
@@ -375,7 +375,7 @@ class Model extends Document {
    *                                                      be immediately saved. Defaults to `true`.
    * @return Promise
    */
-  save(options) {
+  broadcast(options) {
     return co(function*() {
       var defaults = {
         validate: true
@@ -387,18 +387,18 @@ class Model extends Document {
           return false;
         }
       }
-      return yield this.schema().save(this, options);
+      return yield this.schema().broadcast(this, options);
     }.bind(this));
   }
 
   /**
-   * Similar to `.save()` except the direct relationship has not been saved by default.
+   * Similar to `.broadcast()` except the direct relationship has not been saved by default.
    *
-   * @param  Object  options Same options as `.save()`.
+   * @param  Object  options Same options as `.broadcast()`.
    * @return Promise
    */
-  persist(options) {
-    return this.save(extend({}, { embed: false }, options));
+  save(options) {
+    return this.broadcast(extend({}, { embed: false }, options));
   }
 
   /**

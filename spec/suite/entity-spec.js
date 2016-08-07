@@ -431,7 +431,7 @@ describe("Entity", function() {
 
   });
 
-  describe(".save()", function() {
+  describe(".broadcast()", function() {
 
     afterEach(function() {
       Image.reset();
@@ -444,7 +444,7 @@ describe("Entity", function() {
         var image = Image.create();
         Image.validator().rule('name', 'not:empty');
 
-        expect(yield image.save()).toBe(false);
+        expect(yield image.broadcast()).toBe(false);
         expect(image.exists()).toBe(false);
         done();
       }.bind(this));
@@ -461,7 +461,7 @@ describe("Entity", function() {
           title: 'Amiga 1200',
           gallery: {}
         });
-        expect(yield image.save()).toBe(false);
+        expect(yield image.broadcast()).toBe(false);
         expect(image.exists()).toBe(false);
         done();
       }.bind(this));

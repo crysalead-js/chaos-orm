@@ -147,13 +147,13 @@ describe("BelongsTo", function() {
 
   });
 
-  describe(".save()", function() {
+  describe(".broadcast()", function() {
 
     it("bails out if no relation data hasn't been setted", function(done) {
 
       var belongsTo = Image.definition().relation('gallery');
       var image = Image.create({ id: 1, gallery_id: 1, title: 'Amiga 1200' });
-      belongsTo.save(image).then(function() {
+      belongsTo.broadcast(image).then(function() {
         expect(image.has('gallery')).toBe(false);
         done();
       });
@@ -167,13 +167,13 @@ describe("BelongsTo", function() {
       var image = Image.create({ id: 1, title: 'Amiga 1200' }, { exists: true });
       image.set('gallery', { name: 'Foo Gallery' });
 
-      spyOn(image.get('gallery'), 'save').and.callFake(function() {
+      spyOn(image.get('gallery'), 'broadcast').and.callFake(function() {
         image.get('gallery').set('id', 1);
         return Promise.resolve(image);
       });
 
-      belongsTo.save(image).then(function() {
-        expect(image.get('gallery').save).toHaveBeenCalled();
+      belongsTo.broadcast(image).then(function() {
+        expect(image.get('gallery').broadcast).toHaveBeenCalled();
         expect(image.get('gallery_id')).toBe(image.get('gallery').get('id'));
         done();
       });
@@ -187,11 +187,11 @@ describe("BelongsTo", function() {
       var image = Image.create({ id: 1, gallery_id: 1, title: 'Amiga 1200' }, { exists: true });
       image.set('gallery', { name: 'Foo Gallery' });
 
-      spyOn(image.get('gallery'), 'save').and.callFake(function() {
+      spyOn(image.get('gallery'), 'broadcast').and.callFake(function() {
         return Promise.resolve(image);
       });
 
-      belongsTo.save(image).catch(function(error) {
+      belongsTo.broadcast(image).catch(function(error) {
         expect(error).toEqual(new Error("The `'id'` key is missing from related data."));
         done();
       });

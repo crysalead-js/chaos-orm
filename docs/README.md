@@ -38,7 +38,7 @@ co(function* () {
   // Adding a many-to-many relation
   var image = yield Image.load(123, { 'embed': 'tags' });
   image.push({ name: 'Landscape' });
-  yield image.save();
+  yield image.broadcast();
   image.tags.forEach(function(tag) {
     console.log(tag.get('name'));
   }); // Echoes: 'Montain', 'Black&White', 'Landscape'
