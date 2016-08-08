@@ -1162,7 +1162,7 @@ class Schema {
   /**
    * Inserts and/or updates an entity or a collection of entities and its direct relationship data in the datasource.
    *
-   * @param Object   instance The entity instance to save.
+   * @param Object   instance The entity or collection instance to save.
    * @param Object   options  Options:
    *                          - `'whitelist'` _Object_ : An array of fields that are allowed to be saved to this record.
    *                          - `'locked'`    _Boolean_: Lock data to the schema fields.
@@ -1188,22 +1188,27 @@ class Schema {
 
       options.embed = this.treeify(options.embed);
 
-      var success = yield this.persist(instance, 'belongsTo', options);
-
-      if (!success) {
-        return false;
+      try {
+        yield this.persist(instance, 'belongsTo', options);
+      } catch (e) {
+        throw e;
       }
 
-      success = yield this.save(instance, options);
+      try {
+        yield this.save(instance, options);
+      } catch (e) {
+        throw e;
+      }
 
-      return success && this.persist(instance, ['hasMany', 'hasOne'], options);
+      yield this.persist(instance, ['hasMany', 'hasOne'], options);
+      return true;
     }.bind(this));
   }
 
   /**
    * Inserts and/or updates an entity or a collection of entities.
    *
-   * @param Object   instance The entity instance to save.
+   * @param Object   instance The entity or collection instance to save.
    * @param Object   options  Options:
    *                          - `'whitelist'` _Object_ : An array of fields that are allowed to be saved to this record.
    *                          - `'locked'`    _Boolean_: Lock data to the schema fields.
@@ -1261,21 +1266,19 @@ class Schema {
           }
         }
       }
-      return (yield this.bulkInsert(inserts, filter)) && (yield this.bulkUpdate(updates, filter));
-
+      yield Promise.all([this.bulkInsert(inserts, filter), this.bulkUpdate(updates, filter)]);
     }.bind(this));
   }
 
   /**
    * Save data related to relations.
    *
-   * @param  Object  entity  The entity instance.
-   * @param  Array   types   Type of relations to save.
-   * @param  Object  options Options array.
-   * @return Promise         Returns a promise.
+   * @param  Object  instance The entity or collection instance to save.
+   * @param  Array   types    Type of relations to save.
+   * @param  Object  options  Options array.
+   * @return Promise          Returns a promise.
    */
   persist(instance, types, options) {
-
     return co(function*() {
       var defaults = { embed: {} };
       options = extend({}, defaults, options);
@@ -1284,7 +1287,6 @@ class Schema {
 
       var collection = instance instanceof Model ? [instance] : instance;
       var type, value, relName, rel;
-      var success = true;
 
       for (var entity of collection) {
         for (var type of types) {
@@ -1294,12 +1296,45 @@ class Schema {
             if (!rel || rel.type() !== type) {
                 continue;
             }
-            var ok = yield rel.broadcast(entity, extend({}, options, { embed: value }));
-            success = success && ok;
+            yield rel.broadcast(entity, extend({}, options, { embed: value }));
           }
         }
       }
-      return success;
+    }.bind(this));
+  }
+
+  /**
+   * Deletes the data associated with the current `Model`.
+   *
+   * @param  Object  instance The entity or collection instance to save.
+   * @return Promise Success.
+   */
+  delete(instance) {
+    return co(function*() {
+      var collection = instance instanceof Model ? [instance] : instance;
+      var key = this.key();
+      if (!key) {
+        throw new Error("No primary key has been defined for `" + instance.model().name + "`'s schema.");
+      }
+      var keys = [];
+
+      for (var entity of collection) {
+        if (entity.exists()) {
+          keys.push(entity.id());
+        }
+      }
+
+      if (!keys.length) {
+        return true;
+      }
+
+      yield this.truncate({ [key]: keys.length === 1 ? keys[0] : keys });
+
+      for (var entity of collection) {
+        entity.sync(null, {}, { exists: false });
+      }
+
+      return true;
     }.bind(this));
   }
 
@@ -1318,7 +1353,7 @@ class Schema {
    *
    * @param  Array    inserts An array of entities to insert.
    * @param  Function filter  The filter handler for which extract entities values for the insertion.
-   * @return boolean          Returns `true` if insert operations succeeded, `false` otherwise.
+   * @return Promise          Returns `true` if insert operations succeeded, `false` otherwise.
    */
   bulkInsert($inserts, $filter) {
     throw new Error("Missing `bulkInsert()` implementation for `" + this.model.name + "`'s schema.");
@@ -1329,38 +1364,10 @@ class Schema {
    *
    * @param  Array    updates An array of entities to update.
    * @param  Function filter  The filter handler for which extract entities values to update.
-   * @return boolean          Returns `true` if update operations succeeded, `false` otherwise.
+   * @return Promise          Returns `true` if update operations succeeded, `false` otherwise.
    */
   bulkUpdate($updates, $filter) {
     throw new Error("Missing `bulkUpdate()` implementation for `" + this.model.name + "`'s schema.");
-  }
-
-  /**
-   * Inserts a records  with the given data.
-   *
-   * @param  Object  data        Typically an array of key/value pairs that specify the new data with which
-   *                             the records will be updated. For SQL databases, this can optionally be
-   *                             an SQL fragment representing the `SET` clause of an `UPDATE` query.
-   * @param  Object  options     Any database-specific options to use when performing the operation.
-   * @return boolean             Returns `true` if the update operation succeeded, otherwise `false`.
-   */
-  insert(data, options) {
-    throw new Error("Missing `insert()` implementation for `" + this.model.name + "`'s schema.");
-  }
-
-  /**
-   * Updates multiple records with the given data, restricted by the given set of criteria (optional).
-   *
-   * @param  Object  data       Typically an array of key/value pairs that specify the new data with which
-   *                            the records will be updated. For SQL databases, this can optionally be
-   *                            an SQL fragment representing the `SET` clause of an `UPDATE` query.
-   * @param  Object  conditions An array of key/value pairs representing the scope of the records
-   *                            to be updated.
-   * @param  Object  options    Any database-specific options to use when performing the operation.
-   * @return boolean            Returns `true` if the update operation succeeded, otherwise `false`.
-   */
-  update(data, conditions, options) {
-    throw new Error("Missing `update()` implementation for `" + this.model.name + "`'s schema.");
   }
 
   /**
@@ -1371,12 +1378,9 @@ class Schema {
    *
    * @param Object    conditions An array of key/value pairs representing the scope of the records or
    *                             documents to be deleted.
-   * @param Object    options    Any database-specific options to use when performing the operation. See
-   *                             the `delete()` method of the corresponding backend database for available
-   *                             options.
-   * @return boolean             Returns `true` if the remove operation succeeded, otherwise `false`.
+   * @return Promise             Returns `true` if the remove operation succeeded, otherwise `false`.
    */
-  truncate(conditions, options) {
+  truncate(conditions) {
     throw new Error("Missing `truncate()` implementation for `" + this.model.name + "`'s schema.");
   }
 

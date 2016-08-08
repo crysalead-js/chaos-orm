@@ -589,33 +589,11 @@ class Collection {
   /**
    * Deletes the data associated with the current `Model`.
    *
-   * @param array $options Options.
-   * @return boolean Success.
-   * @filter
+   * @return Promise Success.
    */
-  delete(options) {
+  delete() {
     var schema = this.schema();
-    var key = schema.key();
-    if (!key) {
-      return false;
-    }
-    var keys = [];
-
-    for (var entity of this) {
-      if (entity.exists()) {
-        keys.push(entity.id());
-      }
-    }
-
-    if (!keys.length) {
-      return true;
-    }
-
-    if (schema.truncate({[key]: keys})) {
-      this._exists = false;
-      return true;
-    }
-    return false;
+    return schema.delete(this);
   }
 
   /**

@@ -242,7 +242,7 @@ describe("HasMany", function() {
 
       var schema = ImageTag.definition();
       spyOn(toKeep, 'broadcast').and.returnValue(Promise.resolve(toKeep));
-      spyOn(schema, 'truncate').and.returnValue(Promise.resolve());
+      spyOn(schema, 'truncate').and.returnValue(Promise.resolve(true));
 
       hasMany.broadcast(image).then(function() {
         expect(toDelete.exists()).toBe(false);

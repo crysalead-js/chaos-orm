@@ -160,7 +160,6 @@ class HasManyThrough extends Relationship {
         }
       });
       return related;
-
     }.bind(this));
   }
 
@@ -172,7 +171,7 @@ class HasManyThrough extends Relationship {
    * @return Promise
    */
   broadcast(entity, options) {
-    return Promise.resolve(true);
+    return Promise.resolve();
   }
 
   /**

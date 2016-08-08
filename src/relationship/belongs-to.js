@@ -81,7 +81,7 @@ class BelongsTo extends Relationship {
 
       var related = entity.get(name);
 
-      var success = yield related.broadcast(options);
+      yield related.broadcast(options);
 
       var keys = this.keys();
       var from = this.keys('from');
@@ -94,7 +94,6 @@ class BelongsTo extends Relationship {
       conditions[from] = related.get(to);
 
       entity.set(conditions);
-      return success;
     }.bind(this));
   }
 }

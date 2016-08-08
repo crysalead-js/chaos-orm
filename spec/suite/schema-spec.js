@@ -938,7 +938,7 @@ describe("Schema", function() {
         spyOn(image.schema(), 'bulkInsert').and.returnValue(Promise.resolve(true));
         spyOn(image.schema(), 'bulkUpdate').and.returnValue(Promise.resolve(true));
 
-        expect(yield image.save({ custom: 'option' })).toBe(true);
+        yield image.save({ custom: 'option' });
 
         expect(spy).toHaveBeenCalledWith({
           custom: 'option',

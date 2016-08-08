@@ -387,7 +387,7 @@ class Model extends Document {
           return false;
         }
       }
-      return yield this.schema().broadcast(this, options);
+      yield this.schema().broadcast(this, options);
     }.bind(this));
   }
 
@@ -419,23 +419,13 @@ class Model extends Document {
   }
 
   /**
-   * Removes the data associated with the current `Model`.
+   * Deletes the data associated with the current `Model`.
    *
-   * @param  Object  options Options.
-   * @return Promise
+   * @return Promise Success.
    */
-  delete(options) {
+  delete() {
     var schema = this.schema();
-    var key = schema.key();
-    if (!key || this.exists() === false) {
-      return false;
-    }
-    var params = {};
-    params[key] = this.id();
-    return schema.truncate(params).then(function() {
-      this._exists = false;
-      this._persisted = {};
-    }.bind(this));
+    return schema.delete(this);
   }
 
   /**

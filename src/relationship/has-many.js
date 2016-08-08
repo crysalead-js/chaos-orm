@@ -151,8 +151,7 @@ class HasMany extends Relationship {
           }
         });
       }
-      yield* promises;
-      return success;
+      yield Promise.all(promises);
 
     }.bind(this));
   }
