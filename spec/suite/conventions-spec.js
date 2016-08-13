@@ -17,6 +17,7 @@ describe("Conventions", function() {
 
       expect(conventions.apply('source', 'MyPost')).toBe('my_post');
       expect(conventions.apply('reference', 'MyPost')).toBe('my_post_id');
+      expect(conventions.apply('references', 'MyPost')).toBe('my_post_ids');
       expect(conventions.apply('field', 'MyPost')).toBe('my_post');
       expect(conventions.apply('single', 'tag')).toBe('tag');
       expect(conventions.apply('multiple', 'tag')).toBe('tags');
@@ -28,6 +29,7 @@ describe("Conventions", function() {
       var conventions = new Conventions();
       expect(conventions.apply('source', 'MyComments')).toBe('my_comments');
       expect(conventions.apply('reference', 'MyComments')).toBe('my_comment_id');
+      expect(conventions.apply('references', 'MyComments')).toBe('my_comment_ids');
       expect(conventions.apply('field', 'MyComments')).toBe('my_comment');
       expect(conventions.apply('single', 'tags')).toBe('tag');
       expect(conventions.apply('multiple', 'tags')).toBe('tags');
@@ -62,6 +64,7 @@ describe("Conventions", function() {
         'key',
         'multiple',
         'reference',
+        'references',
         'single',
         'source'
       ]);

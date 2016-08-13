@@ -706,9 +706,15 @@ class Schema {
         throw new Error("Unexisting `'through'` relation, needed to be created first.");
       }
       this._relations[config.through].junction = true;
-      config.using = this._conventions.apply('single', name);
+      config.using = this.conventions().apply('single', name);
       config.type = 'through';
       this._relations[config.through].junction = true;
+    } else if (config.relation === 'belongsTo' && config.link === relationship.LINK_KEY) {
+      var fieldName = this.conventions().apply('reference', name);
+      this._columns.set(fieldName, { type: 'id', array: false, null: true });
+    } else if (config.relation === 'hasMany' && config.link === relationship.LINK_KEY_LIST) {
+      var fieldName = this.conventions().apply('references', name);
+      this._columns.set(fieldName, { type: 'id', array: true, null: true });
     }
 
     this._relations[name] = config;

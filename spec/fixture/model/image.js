@@ -5,7 +5,6 @@ import Gallery from './gallery';
 class Image extends Model {
   static _define(schema) {
     schema.column('id', { type: 'serial' });
-    schema.column('gallery_id', { type: 'integer' });
     schema.column('name', { type: 'string' });
     schema.column('title', { type: 'string', length: 50 });
     schema.column('score', { type: 'float' });

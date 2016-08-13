@@ -204,13 +204,6 @@ describe("Schema", function() {
           }
         },
         {
-          gallery_id: {
-            type: 'integer',
-            array: false,
-            null: true
-          }
-        },
-        {
           name: {
             type: 'string',
             array: false,
@@ -230,6 +223,13 @@ describe("Schema", function() {
             array: false,
             null: true,
             type: 'float'
+          }
+        },
+        {
+          gallery_id: {
+            type: 'id',
+            array: false,
+            null: true
           }
         }
       ]);
@@ -277,7 +277,7 @@ describe("Schema", function() {
       });
 
       expect(schema.column('gallery_id')).toEqual({
-        type: 'integer',
+        type: 'id',
         array: false,
         null: true
       });

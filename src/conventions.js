@@ -37,6 +37,9 @@ class Conventions {
         reference: function(name) {
             return underscore(inflector.singular(name)) + '_id';
         },
+        references: function(name) {
+            return underscore(inflector.singular(name)) + '_ids';
+        },
         field: function(name) {
             return underscore(inflector.singular(name));
         },
