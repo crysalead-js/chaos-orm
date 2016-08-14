@@ -450,6 +450,7 @@ class Model extends Document {
       var defaults = {
         events: this.exists() !== false ? 'update' : 'create',
         required: this.exists() !== false ? false : true,
+        entity: this,
         embed: true
       };
       options = extend({}, defaults, options);

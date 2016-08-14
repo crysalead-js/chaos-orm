@@ -429,6 +429,29 @@ describe("Entity", function() {
 
     });
 
+    it("passes entity instances to validator handlers", function(done) {
+
+      co(function*() {
+
+        var actual;
+
+        var validator = Gallery.validator();
+
+        validator.set('customValidationRule', function(value, options, params) {
+          actual = options;
+          return false;
+        });
+
+        validator.rule('name', ['customValidationRule']);
+
+        var gallery = Gallery.create({ name: 'test' });
+        expect(yield gallery.validates()).toBe(false);
+        expect(actual.entity).toBe(gallery);
+        done();
+      });
+
+    });
+
   });
 
   describe(".broadcast()", function() {
