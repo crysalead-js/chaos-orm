@@ -1384,9 +1384,12 @@ class Schema {
    *
    * @param Object    conditions An array of key/value pairs representing the scope of the records or
    *                             documents to be deleted.
+   * @param Object    options    Any database-specific options to use when performing the operation. See
+   *                             the `truncate()` method of the corresponding backend database for available
+   *                             options.
    * @return Promise             Returns `true` if the remove operation succeeded, otherwise `false`.
    */
-  truncate(conditions) {
+  truncate(conditions, options) {
     throw new Error("Missing `truncate()` implementation for `" + this.model.name + "`'s schema.");
   }
 
