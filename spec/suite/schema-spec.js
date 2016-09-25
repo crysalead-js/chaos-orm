@@ -630,7 +630,7 @@ describe("Schema", function() {
 
   });
 
-  describe("->virtuals()", function() {
+  describe(".virtuals()", function() {
 
     it("returns all virtual fields", function() {
 
