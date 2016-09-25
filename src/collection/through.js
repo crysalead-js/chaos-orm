@@ -1,3 +1,4 @@
+import co from 'co';
 import { extend, merge } from 'extend-merge';
 import Collection from "./collection";
 
@@ -429,6 +430,39 @@ class Through {
    */
   data(options){
     return this.to('array', options);
+  }
+
+  /**
+   * Validates the collection.
+   *
+   * @param  Array   options Validates option.
+   * @return Boolean
+   */
+  validates(options) {
+    var self = this;
+    return co(function*() {
+      var success = true;
+      for (var entity of self) {
+        var ok = yield entity.validates(options);
+        if (!ok) {
+          success = false;
+        }
+      }
+      return success;
+    });
+  }
+
+  /**
+   * Returns the errors from the last validate call.
+   *
+   * @return Array The occured errors.
+   */
+  errors(options) {
+    var errors = [];
+    for (var entity of this) {
+      errors.push(entity ? entity.errors(options) : []);
+    };
+    return errors;
   }
 
   /**

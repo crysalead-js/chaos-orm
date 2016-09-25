@@ -1,3 +1,4 @@
+import co from 'co';
 import { Document, Collection, Through, Schema, Model } from '../../../src';
 import Gallery from '../../fixture/model/gallery';
 import GalleryDetail from '../../fixture/model/gallery-detail';
@@ -389,4 +390,83 @@ describe("Through", function() {
 
   });
 
+
+  describe(".validates()", function() {
+
+    it("returns `true` when no validation error occur", function(done) {
+
+      co(function*() {
+        var image = Image.create();
+        image.get('tags').push(Tag.create());
+        image.get('tags').push(Tag.create());
+
+        expect(yield image.get('tags').validates()).toBe(true);
+        done();
+      });
+
+    });
+
+    it("returns `false` when a validation error occurs", function(done) {
+
+      co(function*() {
+        var validator = Tag.validator();
+        validator.rule('name', 'not:empty');
+
+        var image = Image.create();
+        image.get('tags').push(Tag.create());
+        image.get('tags').push(Tag.create());
+
+        expect(yield image.get('tags').validates()).toBe(false);
+
+        expect(image.get('tags').errors()).toEqual([
+          {
+            name: [
+              'is required'
+            ]
+          },
+          {
+            name: [
+              'is required'
+            ]
+          }
+        ]);
+        done();
+      });
+
+    });
+
+  });
+
+  describe(".errors()", function() {
+
+    it("returns errors", function(done) {
+
+      co(function*() {
+        var validator = Tag.validator();
+        validator.rule('name', 'not:empty');
+
+        var image = Image.create();
+        image.get('tags').push(Tag.create());
+        image.get('tags').push(Tag.create());
+
+        expect(yield image.validates()).toBe(false);
+
+        expect(image.get('tags').errors()).toEqual([
+          {
+            name: [
+              'is required'
+            ]
+          },
+          {
+            name: [
+              'is required'
+            ]
+          }
+        ]);
+        done();
+      });
+
+    });
+
+  });
 });
