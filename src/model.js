@@ -459,7 +459,8 @@ class Model extends Document {
       var valid = yield this._validates(options);
 
       var success = yield validator.validates(this.get(), options);
-      this._errors = validator.errors();
+      this._errors = {};
+      this.invalidate(validator.errors());
       return success && valid;
     }.bind(this));
   }
@@ -494,6 +495,27 @@ class Model extends Document {
       }
       return success;
     }.bind(this));
+  }
+
+  /**
+   * Invalidate a field or an array of fields.
+   *
+   * @param  String|Array field  The field to invalidate of an array of fields with associated errors.
+   * @param  String|Array errors The associated error message(s).
+   * @return self
+   */
+  invalidate(field, errors) {
+    errors = errors || {};
+    if (arguments.length === 1) {
+      for (var name in field) {
+        this.invalidate(name, field[name]);
+      }
+      return this;
+    }
+    if (errors) {
+      this._errors[field] = Array.isArray(errors) ? errors : [errors];
+    }
+    return this;
   }
 
   /**

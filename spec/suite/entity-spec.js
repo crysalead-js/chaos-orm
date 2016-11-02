@@ -454,6 +454,38 @@ describe("Entity", function() {
 
   });
 
+  describe(".invalidate()", function() {
+
+    it("invalidates an field", function() {
+
+      var image = Image.create();
+
+      expect(image.invalidate('name', 'is required')).toBe(image);
+
+      expect(image.errors()).toEqual({
+        name: ['is required']
+      });
+
+    });
+
+    it("invalidates multiple fields", function() {
+
+      var image = Image.create();
+
+      expect(image.invalidate({
+        name: 'is required',
+        title: ['error1', 'error2']
+      })).toEqual(image);
+
+      expect(image.errors()).toEqual({
+        name: ['is required'],
+        title: ['error1', 'error2']
+      });
+
+    });
+
+  });
+
   describe(".broadcast()", function() {
 
     afterEach(function() {
