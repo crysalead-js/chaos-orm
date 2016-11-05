@@ -1,18 +1,20 @@
-import co from 'co';
-import { extend, merge } from 'extend-merge';
-import { expand, flatten } from 'expand-flatten';
-import intersect from 'intersect';
-import dateFormat from 'dateformat-light';
-import Document from './document';
-import Model from './model';
-import Conventions from './conventions';
-import Collection from "./collection/collection";
-import Through from "./collection/through";
-import Relationship from './relationship';
-import BelongsTo from './relationship/belongs-to';
-import HasOne from './relationship/has-one';
-import HasMany from './relationship/has-many';
-import HasManyThrough from './relationship/has-many-through';
+var co = require('co');
+var extend = require('extend-merge').extend;
+var merge = require('extend-merge').merge;
+var expand = require('expand-flatten').expand;
+var flatten = require('expand-flatten').flatten;
+var intersect = require('intersect');
+var dateFormat = require('dateformat-light');
+var Document = require('./document');
+var Model = require('./model');
+var Conventions = require('./conventions');
+var Collection = require('./collection/collection');
+var Through = require('./collection/through');
+var Relationship = require('./relationship');
+var BelongsTo = require('./relationship/belongs-to');
+var HasOne = require('./relationship/has-one');
+var HasMany = require('./relationship/has-many');
+var HasManyThrough = require('./relationship/has-many-through');
 
 function arrayDiff(a, b) {
   var len = a.length;
@@ -1410,4 +1412,4 @@ Schema._classes = {
   hasManyThrough: HasManyThrough
 };
 
-export default Schema;
+module.exports = Schema;

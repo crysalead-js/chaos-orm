@@ -1,8 +1,9 @@
-import Emitter from 'component-emitter';
-import co from 'co';
-import dotpath from 'dotpath-parser';
-import { extend, merge } from 'extend-merge';
-import Collector from "../collector";
+var Emitter = require('component-emitter');
+var co = require('co');
+var dotpath = require('dotpath-parser');
+var extend = require('extend-merge').extend;
+var merge = require('extend-merge').merge;
+var Collector = require('../collector');
 
 /**
  * `Collection` provide context-specific features for working with sets of data persisted by a backend data store.
@@ -806,4 +807,4 @@ Collection._formats = {};
 
 Emitter(Collection.prototype);
 
-export default Collection;
+module.exports = Collection;

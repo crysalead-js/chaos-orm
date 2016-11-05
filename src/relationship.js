@@ -1,7 +1,8 @@
-import co from 'co';
-import { extend, merge } from 'extend-merge';
-import Conventions from './conventions';
-import Model from './model';
+var co = require('co');
+var extend = require('extend-merge').extend;
+var merge = require('extend-merge').merge;
+var Conventions = require('./conventions');
+var Model= require('./model');
 
 /**
  * The `Relationship` class encapsulates the data and functionality necessary to link two model together.
@@ -500,4 +501,4 @@ Relationship.LINK_EMBEDDED = 'embedded';
  */
 Relationship.LINK_CONTAINED = 'contained';
 
-export default Relationship;
+module.exports = Relationship;

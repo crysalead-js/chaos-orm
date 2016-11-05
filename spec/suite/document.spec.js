@@ -1,5 +1,6 @@
-import co from 'co';
-import { Schema, Document } from '../../src';
+var co = require('co');
+var Schema = require('../../src/schema');
+var Document = require('../../src/').Document;
 
 describe("Document", function() {
 

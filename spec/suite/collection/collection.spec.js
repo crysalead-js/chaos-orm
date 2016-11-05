@@ -1,5 +1,6 @@
-import Collection from '../../../src/collection/collection';
-import { Model, Document } from '../../../src';
+var Collection = require('../../../src/collection/collection');
+var Model = require('../../../src/index').Model;
+var Document = require('../../../src/index').Document;
 
 class MyModel extends Model {
   static _define(schema) {

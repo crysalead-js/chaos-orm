@@ -1,13 +1,15 @@
-import co from 'co';
-import dotpath from 'dotpath-parser';
-import { extend, merge } from "extend-merge";
-import { expand, flatten } from "expand-flatten";
-import { Validator } from "chaos-validator";
-import Document from "./document";
-import Conventions from "./conventions";
-import Collector from "./collector";
-import Collection from "./collection/collection";
-import Through from "./collection/through";
+var co = require('co');
+var dotpath = require('dotpath-parser');
+var extend = require('extend-merge').extend;
+var merge = require('extend-merge').merge;
+var expand = require('expand-flatten').expand;
+var flatten = require('expand-flatten').flatten;
+var Validator = require('chaos-validator').Validator;
+var Document = require('./document');
+var Conventions = require('./conventions');
+var Collector = require('./collector');
+var Collection = require('./collection/collection');
+var Through = require('./collection/through');
 
 class Model extends Document {
 
@@ -621,4 +623,4 @@ Model._connection = undefined;
  */
 Model._definition = undefined;
 
-export default Model;
+module.exports = Model;

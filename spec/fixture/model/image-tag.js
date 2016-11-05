@@ -1,6 +1,6 @@
-import { Model } from '../../../src';
-import Image from './image';
-import Tag from './tag';
+var Model = require('../../../src/model');
+var Image = require('./image');
+var Tag = require('./tag');
 
 class ImageTag extends Model {
   static _define(schema) {
@@ -13,4 +13,4 @@ class ImageTag extends Model {
 
 ImageTag.register();
 
-export default ImageTag;
+module.exports = ImageTag;

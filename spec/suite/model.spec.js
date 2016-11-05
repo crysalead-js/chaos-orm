@@ -1,4 +1,8 @@
-import { Collection, Conventions, Source, Schema, Model } from '../../src';
+var Collection = require('../../src/collection/collection');
+var Conventions = require('../../src/conventions');
+var Source = require('../../src/source');
+var Schema = require('../../src/schema');
+var Model = require('../../src/').Model;
 
 class MyModel extends Model {
   static _define(schema) {

@@ -1,7 +1,10 @@
-import { Conventions, Relationship, Model, HasOne } from '../../../src';
+var Conventions = require('../../../src/conventions');
+var Relationship = require('../../../src/relationship');
+var Model = require('../../../src/').Model;
+var HasOne = require('../../../src/relationship/has-one');
 
-import GalleryDetail from '../../fixture/model/gallery-detail';
-import Gallery from '../../fixture/model/gallery';
+var Gallery = require('../../fixture/model/gallery');
+var GalleryDetail = require('../../fixture/model/gallery-detail');
 
 describe("HasOne", function() {
 

@@ -1,8 +1,11 @@
-import { Conventions, Relationship, Model, HasManyThrough } from '../../../src';
+var Conventions = require('../../../src/conventions');
+var Relationship = require('../../../src/relationship');
+var Model = require('../../../src/').Model;
+var HasManyThrough = require('../../../src/relationship/has-many-through');
 
-import Image from '../../fixture/model/image';
-import ImageTag from '../../fixture/model/image-tag';
-import Tag from '../../fixture/model/tag';
+var Image = require('../../fixture/model/image');
+var ImageTag = require('../../fixture/model/image-tag');
+var Tag = require('../../fixture/model/tag');
 
 describe("HasManyThrough", function() {
 

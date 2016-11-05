@@ -1,9 +1,10 @@
-import co from 'co';
-import { extend, merge } from 'extend-merge';
-import Relationship from '../relationship';
-import Model from '../model';
-import Collection from "../collection/collection";
-import Through from "../collection/through";
+var co = require('co');
+var extend = require('extend-merge').extend;
+var merge = require('extend-merge').merge;
+var Relationship = require('../relationship');
+var Model = require('../model');
+var Collection = require('../collection/collection');
+var Through = require('../collection/through');
 
 /**
  * The `HasMany` relationship.
@@ -157,4 +158,4 @@ class HasMany extends Relationship {
   }
 }
 
-export default HasMany;
+module.exports = HasMany;

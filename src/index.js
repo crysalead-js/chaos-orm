@@ -1,16 +1,16 @@
-import Conventions from './conventions';
-import Collector from './collector';
-import Collection from './collection/collection';
-import Through from './collection/through';
-import Source from './source';
-import Schema from './schema';
-import Document from './document';
-import Model from './model';
-import Relationship from './relationship';
-import BelongsTo from './relationship/belongs-to';
-import HasOne from './relationship/has-one';
-import HasMany from './relationship/has-many';
-import HasManyThrough from './relationship/has-many-through';
+var Conventions = require('./conventions');
+var Collector = require('./collector');
+var Collection = require('./collection/collection');
+var Through = require('./collection/through');
+var Source = require('./source');
+var Schema = require('./schema');
+var Document = require('./document');
+var Model = require('./model');
+var Relationship = require('./relationship');
+var BelongsTo = require('./relationship/belongs-to');
+var HasOne = require('./relationship/has-one');
+var HasMany = require('./relationship/has-many');
+var HasManyThrough = require('./relationship/has-many-through');
 
 /**
  * Populates circular dependencies below since they are not supported by Babel yet.
@@ -18,7 +18,7 @@ import HasManyThrough from './relationship/has-many-through';
 Document._definition = Schema;
 Model._definition = Schema;
 
-export {
+module.exports = {
   Conventions,
   Collector,
   Collection,

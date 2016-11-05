@@ -1,8 +1,9 @@
-import { extend, merge } from 'extend-merge';
-import camelize from 'camel-case';
-import pascalize from 'pascal-case';
-import underscore from 'snake-case';
-import inflector from 'pluralize';
+var extend = require('extend-merge').extend;
+var merge = require('extend-merge').merge;
+var camelize = require('camel-case');
+var pascalize = require('pascal-case');
+var underscore = require('snake-case');
+var inflector = require('pluralize');
 
 class Conventions {
 
@@ -100,4 +101,4 @@ class Conventions {
   }
 }
 
-export default Conventions;
+module.exports = Conventions;

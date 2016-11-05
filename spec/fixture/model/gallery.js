@@ -1,6 +1,6 @@
-import { Model } from '../../../src';
-import Image from './image';
-import GalleryDetail from './gallery-detail';
+var Model = require('../../../src/model');
+var Image = require('./image');
+var GalleryDetail = require('./gallery-detail');
 
 class Gallery extends Model {
   static _define(schema) {
@@ -14,4 +14,4 @@ class Gallery extends Model {
 
 Gallery.register();
 
-export default Gallery;
+module.exports = Gallery;

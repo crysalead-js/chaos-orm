@@ -1,7 +1,10 @@
-import { Conventions, Relationship, Model, BelongsTo } from '../../../src';
+var Conventions = require('../../../src/conventions');
+var Relationship = require('../../../src/relationship');
+var Model = require('../../../src/').Model;
+var BelongsTo = require('../../../src/relationship/belongs-to');
 
-import Gallery from '../../fixture/model/gallery';
-import Image from '../../fixture/model/image';
+var Gallery = require('../../fixture/model/gallery');
+var Image = require('../../fixture/model/image');
 
 describe("BelongsTo", function() {
 

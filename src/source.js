@@ -1,5 +1,6 @@
-import dateFormat from 'dateformat-light';
-import { extend, merge } from 'extend-merge';
+var dateFormat = require('dateformat-light');
+var extend = require('extend-merge').extend;
+var merge = require('extend-merge').merge;
 
 class Source {
   /**
@@ -193,4 +194,4 @@ class Source {
   }
 }
 
-export default Source;
+module.exports = Source;

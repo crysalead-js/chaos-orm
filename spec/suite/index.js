@@ -1,6 +1,6 @@
 Promise = require('bluebird');
 
-import 'babel-polyfill';
+require('babel-polyfill');
 
 require('./conventions.spec');
 require('./collector.spec');

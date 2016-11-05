@@ -57,4 +57,4 @@ class Collector {
   }
 }
 
-export default Collector;
+module.exports = Collector;

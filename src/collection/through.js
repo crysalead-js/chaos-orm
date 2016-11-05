@@ -1,6 +1,7 @@
-import co from 'co';
-import { extend, merge } from 'extend-merge';
-import Collection from "./collection";
+var co = require('co');
+var extend = require('extend-merge').extend;
+var merge = require('extend-merge').merge;
+var Collection = require('./collection');
 
 /**
  * `Through` provide context-specific features for working with sets of data persisted by a backend data store.
@@ -517,4 +518,4 @@ class Through {
   }
 }
 
-export default Through;
+module.exports = Through;

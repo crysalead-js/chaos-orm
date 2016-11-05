@@ -1,10 +1,15 @@
-import co from 'co';
-import { Document, Collection, Through, Schema, Model } from '../../../src';
-import Gallery from '../../fixture/model/gallery';
-import GalleryDetail from '../../fixture/model/gallery-detail';
-import Image from '../../fixture/model/image';
-import ImageTag from '../../fixture/model/image-tag';
-import Tag from '../../fixture/model/tag';
+var co = require('co');
+var Model = require('../../../src/').Model;
+var Document = require('../../../src/').Document;
+var Collection = require('../../../src/collection/collection');
+var Through = require('../../../src/collection/through');
+var Schema = require('../../../src/schema');
+
+var Gallery = require('../../fixture/model/gallery');
+var GalleryDetail = require('../../fixture/model/gallery-detail');
+var Image = require('../../fixture/model/image');
+var ImageTag = require('../../fixture/model/image-tag');
+var Tag = require('../../fixture/model/tag');
 
 class MyImageTag extends ImageTag {
   static _define(schema) {

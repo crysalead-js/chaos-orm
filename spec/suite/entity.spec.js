@@ -1,11 +1,15 @@
-import co from 'co';
-import { Schema, Model, HasOne, Collection, Through } from '../../src';
+var co = require('co');
+var Schema = require('../../src/schema');
+var Model = require('../../src/').Model;
+var HasOne = require('../../src/relationship/has-one');
+var Collection = require('../../src/collection/collection');
+var Through = require('../../src/collection/through');
 
-import Gallery from '../fixture/model/gallery';
-import GalleryDetail from '../fixture/model/gallery-detail';
-import Image from '../fixture/model/image';
-import ImageTag from '../fixture/model/image-tag';
-import Tag from '../fixture/model/tag';
+var Gallery = require('../fixture/model/gallery');
+var GalleryDetail = require('../fixture/model/gallery-detail');
+var Image = require('../fixture/model/image');
+var ImageTag = require('../fixture/model/image-tag');
+var Tag = require('../fixture/model/tag');
 
 class MyModel extends Model {}
 

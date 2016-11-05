@@ -1,8 +1,8 @@
-import Gallery from '../../fixture/model/gallery';
-import GalleryDetail from '../../fixture/model/gallery-detail';
-import Image from '../../fixture/model/image';
-import ImageTag from '../../fixture/model/image-tag';
-import Tag from '../../fixture/model/tag';
+var Gallery = require('../../fixture/model/gallery');
+var GalleryDetail = require('../../fixture/model/gallery-detail');
+var Image = require('../../fixture/model/image');
+var ImageTag = require('../../fixture/model/image-tag');
+var Tag = require('../../fixture/model/tag');
 
 describe("Relationship", function() {
 

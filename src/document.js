@@ -1,14 +1,16 @@
-import Emitter from 'component-emitter';
-import Uuid from 'node-uuid';
-import co from 'co';
-import dotpath from 'dotpath-parser';
-import { extend, merge } from "extend-merge";
-import { expand, flatten } from "expand-flatten";
-import { Validator } from "chaos-validator";
-import Conventions from "./conventions";
-import Collector from "./collector";
-import Collection from "./collection/collection";
-import Through from "./collection/through";
+var Emitter = require('component-emitter');
+var Uuid = require('node-uuid');
+var co = require('co');
+var dotpath = require('dotpath-parser');
+var extend = require('extend-merge').extend;
+var merge = require('extend-merge').merge;
+var expand = require('expand-flatten').expand;
+var flatten = require('expand-flatten').flatten;
+var Validator = require('chaos-validator').Validator;
+var Conventions = require('./conventions');
+var Collector = require('./collector');
+var Collection = require('./collection/collection');
+var Through = require('./collection/through');
 
 class Document {
 
@@ -762,4 +764,4 @@ Document._definition = undefined;
 
 Emitter(Document.prototype);
 
-export default Document;
+module.exports = Document;

@@ -1,7 +1,8 @@
-import co from 'co';
-import { extend, merge } from 'extend-merge';
-import Relationship from '../relationship';
-import Model from '../model';
+var co = require('co');
+var extend = require('extend-merge').extend;
+var merge = require('extend-merge').merge;
+var Relationship = require('../relationship');
+var Model = require('../model');
 
 /**
  * The `HasOne` relationship.
@@ -75,4 +76,4 @@ class HasOne extends Relationship {
   }
 }
 
-export default HasOne;
+module.exports = HasOne;

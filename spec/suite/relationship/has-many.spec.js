@@ -1,8 +1,11 @@
-import { Conventions, Relationship, Model, HasMany } from '../../../src';
+var Conventions = require('../../../src/conventions');
+var Relationship = require('../../../src/relationship');
+var Model = require('../../../src/').Model;
+var HasMany = require('../../../src/relationship/has-many');
 
-import Gallery from '../../fixture/model/gallery';
-import Image from '../../fixture/model/image';
-import ImageTag from '../../fixture/model/image-tag';
+var Gallery = require('../../fixture/model/gallery');
+var Image = require('../../fixture/model/image');
+var ImageTag = require('../../fixture/model/image-tag');
 
 describe("HasMany", function() {
 

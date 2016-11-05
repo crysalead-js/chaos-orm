@@ -1,5 +1,7 @@
-import dateFormat from 'dateformat-light';
-import { Source, Document, Collection } from '../../src';
+var dateFormat = require('dateformat-light');
+var Source = require('../../src/source');
+var Document = require('../../src/').Document;
+var Collection = require('../../src/collection/collection');
 
 describe("Source", function() {
 

@@ -1,9 +1,12 @@
-import co from 'co';
-import { Through, Schema, Model } from '../../src';
-import Gallery from '../fixture/model/gallery';
-import Image from '../fixture/model/image';
-import ImageTag from '../fixture/model/image-tag';
-import Tag from '../fixture/model/tag';
+var co = require('co');
+var Through = require('../../src/collection/through');
+var Schema = require('../../src/schema');
+var Model = require('../../src/').Model;
+
+var Gallery = require('../fixture/model/gallery');
+var Image = require('../fixture/model/image');
+var ImageTag = require('../fixture/model/image-tag');
+var Tag = require('../fixture/model/tag');
 
 describe("Schema", function() {
 

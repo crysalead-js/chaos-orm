@@ -1,4 +1,4 @@
-import { Collector } from '../../src';
+var Collector = require('../../src/collector');
 
 describe("Collector", function() {
 

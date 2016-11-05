@@ -1,4 +1,4 @@
-import { Conventions } from '../../src';
+var Conventions = require('../../src/conventions');
 
 describe("Conventions", function() {
 
