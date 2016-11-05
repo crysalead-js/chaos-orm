@@ -4,4 +4,4 @@ mkdocs.yml
 node_modules/
 spec/
 test/
-
+.nyc_output
