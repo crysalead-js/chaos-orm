@@ -83,8 +83,9 @@ class Document {
    *
    * @param  Object data    Any data that this object should be populated with initially.
    * @param  Object options Options to be passed to item.
-   *                         - `'type'`  _string_ : can be `'entity'` or `'set'`. `'set'` is used if the passed data represent a collection
-   *                                                of entities. Default to `'entity'`.
+   *                        - `'type'`  _String_   : can be `'entity'` or `'set'`. `'set'` is used if the passed data represent a collection
+   *                                                 of entities. Default to `'entity'`.
+   *                        - `'model'` _Function_ : the model class to use to create entities.
    * @return Object         Returns a new, un-saved record or document object. In addition to
    *                        the values passed to `data`, the object will also contain any values
    *                        assigned to the `'default'` key of each field defined in the schema.
@@ -92,7 +93,8 @@ class Document {
   static create(data, options)
   {
     var defaults = {
-      type: 'entity'
+      type: 'entity',
+      model: this
     };
 
     options = extend({}, defaults, options);
@@ -101,7 +103,7 @@ class Document {
     var classname;
 
     if (type === 'entity') {
-      classname = this;
+      classname = options.model;
     } else {
       options.schema = this.definition();
       classname = this._classes[type];

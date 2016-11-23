@@ -105,6 +105,16 @@ describe("Model", function() {
 
     });
 
+    it("creates a collection of existing entities", function() {
+
+      class MySubModel extends MyModel {}
+
+      var entity = MyModel.create([], {model: MySubModel});
+
+      expect(entity instanceof MySubModel).toBe(true);
+
+    });
+
   });
 
   describe(".query()", function() {
