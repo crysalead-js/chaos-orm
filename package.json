@@ -21,10 +21,10 @@
     "expand-flatten": "^1.0.1",
     "extend-merge": "^1.0.3",
     "intersect": "^1.0.1",
-    "node-uuid": "^1.4.7",
     "pascal-case": "^2.0.0",
     "pluralize": "^3.0.0",
-    "snake-case": "^2.1.0"
+    "snake-case": "^2.1.0",
+    "uuid": "^3.0.0"
   },
   "devDependencies": {
     "bluebird": "^3.4.6",
