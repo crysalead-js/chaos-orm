@@ -521,6 +521,21 @@ class Model extends Document {
   }
 
   /**
+   * Return an indivitual error
+   *
+   * @param  String       field The field name.
+   * @param  String|Array all   Indicate whether all errors or simply the first one need to be returned.
+   * @return String             Return an array of error messages or the first one (depending on `all`) or
+   *                            an empty string for no error.
+   */
+  error(field, all) {
+    if (this._errors[field] && this._errors[field].length) {
+      return all ? this._errors[field] : this._errors[field][0];
+    }
+    return '';
+  }
+
+  /**
    * Returns the errors from the last `.validates()` call.
    *
    * @return Object The occured errors.
@@ -544,6 +559,19 @@ class Model extends Document {
       }
     }
     return errors;
+  }
+
+  /**
+   * Check if the entity or a specific field errored
+   *
+   * @param  String  field The field to check.
+   * @return Boolean
+   */
+  errored(field) {
+    if (!arguments.length) {
+      return !!Object.keys(this._errors).length;
+    }
+    return this._errors[field] !== undefined;
   }
 
   /**

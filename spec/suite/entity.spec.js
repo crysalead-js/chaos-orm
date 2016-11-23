@@ -464,8 +464,14 @@ describe("Entity", function() {
 
       var image = Image.create();
 
+      expect(image.errored()).toBe(false);
+      expect(image.errored('name')).toBe(false);
+
       expect(image.invalidate('name', 'is required')).toBe(image);
 
+      expect(image.errored()).toBe(true);
+      expect(image.errored('name')).toBe(true);
+      expect(image.error('name')).toBe('is required');
       expect(image.errors()).toEqual({
         name: ['is required']
       });
@@ -476,11 +482,17 @@ describe("Entity", function() {
 
       var image = Image.create();
 
+      expect(image.errored()).toBe(false);
+      expect(image.errored('title')).toBe(false);
+
       expect(image.invalidate({
         name: 'is required',
         title: ['error1', 'error2']
       })).toEqual(image);
 
+      expect(image.errored()).toBe(true);
+      expect(image.errored('title')).toBe(true);
+      expect(image.error('title')).toBe('error1');
       expect(image.errors()).toEqual({
         name: ['is required'],
         title: ['error1', 'error2']
