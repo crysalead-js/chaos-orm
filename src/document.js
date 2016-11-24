@@ -1,5 +1,5 @@
 var Emitter = require('component-emitter');
-var Uuid = require('node-uuid');
+var Uuid = require('uuid');
 var co = require('co');
 var dotpath = require('dotpath-parser');
 var extend = require('extend-merge').extend;
