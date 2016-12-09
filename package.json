@@ -29,10 +29,10 @@
   "devDependencies": {
     "bluebird": "^3.4.6",
     "chai-kahlan": "^1.0.4",
-    "coveralls": "^2.11.14",
+    "coveralls": "^2.11.15",
     "jasmine-kahlan": "^1.0.2",
-    "mocha": "^3.1.2",
-    "nyc": "^8.4.0"
+    "mocha": "^3.2.0",
+    "nyc": "^10.0.0"
   },
   "scripts": {
     "coverage-report": "nyc --reporter=lcov mocha",
