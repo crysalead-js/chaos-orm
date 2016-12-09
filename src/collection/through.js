@@ -11,11 +11,11 @@ class Through {
    * Creates an alias on an other collection.
    *
    * @param Object config Possible options are:
-   *                      - `'parent'`    _object_ : The parent instance.
-   *                      - `'model'`     _string_ : The attached model class name.
-   *                      - `'through'`   _string_ : The pivot relation name.
-   *                      - `'using'`     _string_ : The target relation from pivot.
-   *                      - `'data'`      _array_  : Some data to set on the collection.
+   *                      - `'parent'`    _Object_   : The parent instance.
+   *                      - `'reference'` _Function_ : The attached reference class name.
+   *                      - `'through'`   _String_   : The pivot relation name.
+   *                      - `'using'`     _String_   : The target relation from pivot.
+   *                      - `'data'`      _Array_    : Some data to set on the collection.
    */
   constructor(config) {
     var defaults = {

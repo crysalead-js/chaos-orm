@@ -14,39 +14,6 @@ var Through = require('./collection/through');
 class Model extends Document {
 
   /**
-   * Registers a model dependency.
-   *
-   * @param  String   name  The dependency name.
-   * @param  Function model The model to register.
-   * @return Object         Returns `this`.
-   */
-  static register(name, model) {
-    if (arguments.length === 2) {
-      this._models[name] = model;
-      return this;
-    }
-    this._name = name !== undefined ? name : this.name;
-    this._models[this._name] = this;
-    return this;
-  }
-
-  /**
-   * Returns a registered model dependency.
-   *
-   * @param  String   name The field name.
-   * @return Function       Returns `this`.
-   */
-  static registered(name) {
-    if (!arguments.length) {
-      return Object.keys(this._models);
-    }
-    if (this._models[name] === undefined) {
-      throw new Error("Undefined `" + name + "` as model dependency, the model need to be registered first.");
-    }
-    return this._models[name];
-  }
-
-  /**
    * Gets/sets the connection object to which this model is bound.
    *
    * @param  Object $connection The connection instance to set or nothing to get the current one.
@@ -120,7 +87,7 @@ class Model extends Document {
       classes: extend({}, this.classes(), { entity: this }),
       conventions: this.conventions(),
       connection: this._connection,
-      model: this
+      reference: this
     };
 
     config.source = this.conventions().apply('source', config.classes.entity.name);
@@ -151,7 +118,7 @@ class Model extends Document {
    * // Custom object with a dedicated class
    * schema.column('comments', {
    *    type: 'entity',
-   *    model: Comment,
+   *    reference: Comment,
    *    array: true,
    *    default: []
    * });
@@ -293,7 +260,7 @@ class Model extends Document {
   id() {
     var key = this.schema().key();
     if (!key) {
-      throw new Error("No primary key has been defined for `" + this.model().name + "`'s schema.");
+      throw new Error("No primary key has been defined for `" + this.reference().name + "`'s schema.");
     }
     return this.get(key);
   }
@@ -410,7 +377,7 @@ class Model extends Document {
    */
   reload() {
     var id = this.id();
-    return this.model().load(id).then(function(entity) {
+    return this.reference().load(id).then(function(entity) {
       if (!entity) {
         throw new Error("The entity ID:`" + id + "` doesn't exists.");
       }
@@ -456,7 +423,7 @@ class Model extends Document {
         embed: true
       };
       options = extend({}, defaults, options);
-      var validator = this.model().validator();
+      var validator = this.reference().validator();
 
       var valid = yield this._validates(options);
 
@@ -610,11 +577,6 @@ Model._name = undefined;
  * @var Object
  */
 Model._validators = {};
-
-/**
- * Registered models
- */
-Model._models = {};
 
 /**
  * Default query parameters for the model finders.

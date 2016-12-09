@@ -77,9 +77,8 @@ class Schema {
    * Configures the meta for use.
    *
    * @param Object config Possible options are:
-   *                      - `'connection'`  _Function_ : The connection instance (defaults to `undefined`).
    *                      - `'source'`      _String_   : The source name (defaults to `undefined`).
-   *                      - `'model'`       _Function_ : The fully namespaced model class name (defaults to `undefined`).
+   *                      - `'reference'`   _Function_ : The fully namespaced class name (defaults to `undefined`).
    *                      - `'locked'`      _Boolean_  : set the ability to dynamically add/remove fields (defaults to `false`).
    *                      - `'key'`         _String_   : The primary key value (defaults to `id`).
    *                      - `'columns'`     _Array_    : array of field definition where keys are field names and values are arrays
@@ -105,9 +104,8 @@ class Schema {
    */
   constructor(config) {
     var defaults = {
-      connection: undefined,
       source: undefined,
-      model: Document,
+      reference: Document,
       locked: true,
       columns: [],
       meta: {},
@@ -124,13 +122,6 @@ class Schema {
      * @var Object
      */
     this._classes = config.classes;
-
-    /**
-     * The connection instance.
-     *
-     * @var Object
-     */
-    this._connection = config.connection;
 
     /**
      * Indicates whether the schema is locked or not.
@@ -175,11 +166,11 @@ class Schema {
     this._source = config.source;
 
     /**
-     * The model to which this schema is bound.
+     * The class to which this schema is bound.
      *
      * @var Function
      */
-    this._model = config.model;
+    this._reference = config.reference;
 
     /**
      * The primary key field name.
@@ -238,10 +229,6 @@ class Schema {
     this.formatter('cast', 'boolean',  handlers['cast']['boolean']);
     this.formatter('cast', 'null',     handlers['cast']['null']);
     this.formatter('cast', 'string',   handlers['cast']['string']);
-
-    if (this._connection) {
-      this._formatters = merge({}, this._connection.formatters(), this._formatters);
-    }
   }
 
   /**
@@ -255,23 +242,6 @@ class Schema {
       this._classes = extend({}, this._classes, classes);
     }
     return this._classes;
-  }
-
-  /**
-   * Gets/sets the connection object to which this model is bound.
-   *
-   * @param  Object connection The connection instance to set or `null` to get the current one.
-   * @return mixed             Returns the connection instance on get or `this` on set.
-   */
-  connection(connection) {
-    if (arguments.length) {
-      this._connection = connection;
-      return this;
-    }
-    if (!this._connection) {
-      throw new Error("Error, missing connection for this schema.");
-    }
-    return this._connection;
   }
 
   /**
@@ -289,16 +259,16 @@ class Schema {
   }
 
   /**
-   * Gets/sets the attached model class.
+   * Gets/sets the attached reference class.
    *
-   * @param  Function model The model class to set to none to get the current model class.
-   * @return mixed          The attached model class name on get or `this`.
+   * @param  Function reference The class to set to none to get the current model class.
+   * @return mixed              The attached class name on get or `this`.
    */
-  model(model) {
+  reference(reference) {
     if (!arguments.length) {
-      return this._model;
+      return this._reference;
     }
-    this._model = model;
+    this._reference = reference;
     return this;
   }
 
@@ -472,14 +442,14 @@ class Schema {
     }
     var relationship = this.classes().relationship;
 
-    if (column.model) {
-      column.model = typeof column.model === 'string' ? this.model().registered(column.model) : column.model;
+    if (column.reference) {
+      column.reference = typeof column.reference === 'string' ? this.reference().registered(column.reference) : column.reference;
     }
 
     this.bind(name, {
       type: column.array ? 'set' : 'entity',
       relation: column.array ? 'hasMany' : 'hasOne',
-      to: column.model ? column.model : this.model(),
+      to: column.reference ? column.reference : this.reference(),
       link: relationship.LINK_EMBEDDED
     });
     this._columns.set(name, column);
@@ -597,7 +567,7 @@ class Schema {
    * Sets a BelongsTo relation.
    *
    * @param  String    name   The name of the relation (i.e. field name where it will be binded).
-   * @param  mixed     to     the model to bind.
+   * @param  mixed     to     the class reference to bind.
    * @param  Array     config The configuration that should be specified in the relationship.
    *                          See the `Relationship` class for more information.
    * @return Boolean
@@ -614,7 +584,7 @@ class Schema {
    * Sets a hasMany relation.
    *
    * @param  String    name   The name of the relation (i.e. field name where it will be binded).
-   * @param  mixed     to     the model to bind.
+   * @param  mixed     to     the class reference to bind.
    * @param  Array     config The configuration that should be specified in the relationship.
    *                          See the `Relationship` class for more information.
    * @return Boolean
@@ -631,7 +601,7 @@ class Schema {
    * Sets a hasOne relation.
    *
    * @param  String    name   The name of the relation (i.e. field name where it will be binded).
-   * @param  mixed     to     the model to bind.
+   * @param  mixed     to     the class reference to bind.
    * @param  Array     config The configuration that should be specified in the relationship.
    *                          See the `Relationship` class for more information.
    * @return Boolean
@@ -676,7 +646,7 @@ class Schema {
 
     config = extend({}, {
       type: 'entity',
-      from: this.model(),
+      from: this.reference(),
       to: undefined,
       link: relationship.LINK_KEY
     }, config);
@@ -694,7 +664,7 @@ class Schema {
         throw new Error("Binding requires `'to'` option to be set.");
       }
     } else {
-      config.to = typeof config.to === 'string' ? this.model().registered(config.to) : config.to;
+      config.to = typeof config.to === 'string' ? this.reference().registered(config.to) : config.to;
     }
 
     config.array = config.relation.match(/Many/);
@@ -930,7 +900,7 @@ class Schema {
     };
 
     options = extend({}, defaults, options);
-    options.model = this.model();
+    options.reference = this.reference();
     options.schema = this;
 
     var name;
@@ -950,10 +920,10 @@ class Schema {
       options.basePath = options.embedded ? name : undefined;
 
       if (options.relation !== 'hasManyThrough') {
-        options.model = options.to;
+        options.reference = options.to;
       } else {
         var through = this.relation(name);
-        options.model = through.to();
+        options.reference = through.to();
       }
       if (options.array && field) {
         return this._castArray(name, data, options);
@@ -996,8 +966,8 @@ class Schema {
       return data;
     }
     options.data = data ? data : {};
-    options.schema = options.model === Document ? options.schema : undefined;
-    return new options.model(options);
+    options.schema = options.reference === Document ? options.schema : undefined;
+    return new options.reference(options);
   }
 
   /**
@@ -1016,7 +986,7 @@ class Schema {
       return data;
     }
     options.data = data ? data : [];
-    options.schema = options.model.definition();
+    options.schema = options.reference.definition();
     return new Collection(options);
   }
 
@@ -1322,7 +1292,7 @@ class Schema {
       var collection = instance instanceof Model ? [instance] : instance;
       var key = this.key();
       if (!key) {
-        throw new Error("No primary key has been defined for `" + instance.model().name + "`'s schema.");
+        throw new Error("No primary key has been defined for `" + instance.reference().name + "`'s schema.");
       }
       var keys = [];
 
@@ -1353,7 +1323,7 @@ class Schema {
    * @return Object         An instance of `Query`.
    */
   query(options) {
-    throw new Error("Missing `query()` implementation for `" + this.model.name + "`'s schema.");
+    throw new Error("Missing `query()` implementation for `" + this.reference.name + "`'s schema.");
   }
 
   /**
@@ -1364,7 +1334,7 @@ class Schema {
    * @return Promise          Returns `true` if insert operations succeeded, `false` otherwise.
    */
   bulkInsert($inserts, $filter) {
-    throw new Error("Missing `bulkInsert()` implementation for `" + this.model.name + "`'s schema.");
+    throw new Error("Missing `bulkInsert()` implementation for `" + this.reference.name + "`'s schema.");
   }
 
   /**
@@ -1375,7 +1345,7 @@ class Schema {
    * @return Promise          Returns `true` if update operations succeeded, `false` otherwise.
    */
   bulkUpdate($updates, $filter) {
-    throw new Error("Missing `bulkUpdate()` implementation for `" + this.model.name + "`'s schema.");
+    throw new Error("Missing `bulkUpdate()` implementation for `" + this.reference.name + "`'s schema.");
   }
 
   /**
@@ -1392,7 +1362,7 @@ class Schema {
    * @return Promise             Returns `true` if the remove operation succeeded, otherwise `false`.
    */
   truncate(conditions, options) {
-    throw new Error("Missing `truncate()` implementation for `" + this.model.name + "`'s schema.");
+    throw new Error("Missing `truncate()` implementation for `" + this.reference.name + "`'s schema.");
   }
 
 }

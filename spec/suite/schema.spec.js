@@ -31,13 +31,11 @@ describe("Schema", function() {
 
     it("correctly sets config options", function() {
 
-      var connection = { formatters: function() { return []; }};
       var conventions = {};
 
       var schema = new Schema({
-        connection: connection,
         source: 'image',
-        model: Image,
+        reference: Image,
         key: 'key',
         locked: false,
         columns: [{ id: 'serial' }, { age: 'integer' }],
@@ -45,28 +43,13 @@ describe("Schema", function() {
         conventions: conventions
       });
 
-      expect(schema.connection()).toBe(connection);
       expect(schema.source()).toBe('image');
-      expect(schema.model()).toBe(Image);
+      expect(schema.reference()).toBe(Image);
       expect(schema.key()).toBe('key');
       expect(schema.locked()).toBe(false);
       expect(schema.fields()).toEqual(['id', 'age']);
       expect(schema.meta()).toEqual({ some: 'meta' });
       expect(schema.conventions()).toBe(conventions);
-
-    });
-
-  });
-
-  describe(".connection()", function() {
-
-    it("gets/sets the connection", function() {
-
-      var connection = {};
-      var schema = new Schema();
-
-      expect(schema.connection(connection)).toBe(schema);
-      expect(schema.connection()).toBe(connection);
 
     });
 
@@ -85,14 +68,14 @@ describe("Schema", function() {
 
   });
 
-  describe(".model()", function() {
+  describe(".reference()", function() {
 
     it("gets/sets the conventions", function() {
 
       var schema = new Schema();
 
-      expect(schema.model(Image)).toBe(schema);
-      expect(schema.model()).toBe(Image);
+      expect(schema.reference(Image)).toBe(schema);
+      expect(schema.reference()).toBe(Image);
 
     });
 
@@ -693,10 +676,10 @@ describe("Schema", function() {
 
       class MyModel extends Model {}
 
-      var schema = new Schema({ model: MyModel });
+      var schema = new Schema({ reference: MyModel });
       schema.column('embedded', {
         type: 'object',
-        model: MyModel
+        reference: MyModel
       });
 
       expect(schema.relations()).toEqual([]);

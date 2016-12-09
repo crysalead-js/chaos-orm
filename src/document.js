@@ -15,6 +15,41 @@ var Through = require('./collection/through');
 class Document {
 
   /**
+   * Registers a reference dependency
+   * (temporarily solve node circular dependency issue, will be removed once ES2015 modules will be supported).
+   *
+   * @param  String   name      The dependency name.
+   * @param  Function reference The class reference to register.
+   * @return Object             Returns `this`.
+   */
+  static register(name, reference) {
+    if (arguments.length === 2) {
+      this._references[name] = reference;
+      return this;
+    }
+    this._name = name !== undefined ? name : this.name;
+    this._references[this._name] = this;
+    return this;
+  }
+
+  /**
+   * Returns a registered reference dependency.
+   * (temporarily solve node circular dependency issue, will be removed once ES2015 modules will be supported).
+   *
+   * @param  String   name The field name.
+   * @return Function       Returns `this`.
+   */
+  static registered(name) {
+    if (!arguments.length) {
+      return Object.keys(this._references);
+    }
+    if (this._references[name] === undefined) {
+      throw new Error("Undefined `" + name + "` as reference dependency, the reference need to be registered first.");
+    }
+    return this._references[name];
+  }
+
+  /**
    * Gets/sets classes dependencies.
    *
    * @param  Object classes The classes dependencies to set or none to get it.
@@ -54,7 +89,7 @@ class Document {
     var schema = new this._definition({
       classes: extend({}, this.classes(), { entity: Document }),
       conventions: this.conventions(),
-      model: Document
+      reference: Document
     });
     schema.locked(false);
     return schema;
@@ -83,9 +118,9 @@ class Document {
    *
    * @param  Object data    Any data that this object should be populated with initially.
    * @param  Object options Options to be passed to item.
-   *                        - `'type'`  _String_   : can be `'entity'` or `'set'`. `'set'` is used if the passed data represent a collection
-   *                                                 of entities. Default to `'entity'`.
-   *                        - `'model'` _Function_ : the model class to use to create entities.
+   *                        - `'type'`      _String_   : can be `'entity'` or `'set'`. `'set'` is used if the passed data represent a collection
+   *                                                     of entities. Default to `'entity'`.
+   *                        - `'reference'` _Function_ : the class reference to use to create entities.
    * @return Object         Returns a new, un-saved record or document object. In addition to
    *                        the values passed to `data`, the object will also contain any values
    *                        assigned to the `'default'` key of each field defined in the schema.
@@ -94,7 +129,7 @@ class Document {
   {
     var defaults = {
       type: 'entity',
-      model: this
+      reference: this
     };
 
     options = extend({}, defaults, options);
@@ -103,7 +138,7 @@ class Document {
     var classname;
 
     if (type === 'entity') {
-      classname = options.model;
+      classname = options.reference;
     } else {
       options.schema = this.definition();
       classname = this._classes[type];
@@ -203,11 +238,11 @@ class Document {
   }
 
   /**
-   * Returns the document's model.
+   * Returns the document's class.
    *
    * @return Function
    */
-  model() {
+  reference() {
     return this.constructor;
   }
 
@@ -268,7 +303,7 @@ class Document {
       return this;
     }
     if (this._collector === undefined || this._collector === null) {
-      var collector = this.model().classes().collector;
+      var collector = this.reference().classes().collector;
       this._collector = new collector();
     }
     return this._collector;
@@ -737,6 +772,12 @@ class Document {
     return result;
   }
 }
+
+/**
+ * Registered references
+ * (temporarily solve node circular dependency issue, will be removed once ES2015 modules will be supported).
+ */
+Document._references = {};
 
 /**
  * Class dependencies.

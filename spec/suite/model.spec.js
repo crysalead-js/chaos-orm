@@ -109,7 +109,7 @@ describe("Model", function() {
 
       class MySubModel extends MyModel {}
 
-      var entity = MyModel.create([], {model: MySubModel});
+      var entity = MyModel.create([], {reference: MySubModel});
 
       expect(entity instanceof MySubModel).toBe(true);
 
@@ -262,7 +262,7 @@ describe("Model", function() {
 
   describe(".definition()", function() {
 
-    it("returns the model", function() {
+    it("returns the definition", function() {
 
       var schema = MyModel.definition();
       expect(schema instanceof Schema).toBe(true);

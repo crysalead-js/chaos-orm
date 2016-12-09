@@ -44,12 +44,12 @@ describe("Entity", function() {
 
   });
 
-  describe(".model()", function() {
+  describe(".reference()", function() {
 
-    it("returns the model class name", function() {
+    it("returns the reference class name", function() {
 
       var entity = MyModel.create();
-      expect(entity.model()).toBe(MyModel);
+      expect(entity.reference()).toBe(MyModel);
 
     });
 
@@ -60,7 +60,7 @@ describe("Entity", function() {
     it("returns the exists value", function() {
 
       var entity = MyModel.create({ id: 123 }, { exists: true });
-      expect(entity.model()).toBe(MyModel);
+      expect(entity.reference()).toBe(MyModel);
 
     });
 
@@ -322,7 +322,7 @@ describe("Entity", function() {
 
     });
 
-    context("when a model is defined", function() {
+    context("when a reference is defined", function() {
 
       it("autoboxes setted data", function() {
 
@@ -334,7 +334,7 @@ describe("Entity", function() {
 
         MyModel.definition().column('child', {
           type: 'object',
-          model: MyModelChild
+          reference: MyModelChild
         });
 
         var entity = MyModel.create();
