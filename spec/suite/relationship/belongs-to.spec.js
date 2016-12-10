@@ -29,11 +29,8 @@ describe("BelongsTo", function() {
 
       expect(relation.name()).toBe(this.conventions.apply('field', 'Gallery'));
 
-      var foreignKey = this.conventions.apply('reference', 'Image');
-
-      var expected = {};
-      expected[foreignKey] = this.key;
-      expect(relation.keys()).toEqual(expected);
+      var foreignKey = this.conventions.apply('reference', 'Gallery');
+      expect(relation.keys()).toEqual({[foreignKey]: this.key});
 
       expect(relation.from()).toBe(Image);
       expect(relation.to()).toBe(Gallery);
