@@ -60,7 +60,7 @@ describe("Entity", function() {
     it("returns the exists value", function() {
 
       var entity = MyModel.create({ id: 123 }, { exists: true });
-      expect(entity.reference()).toBe(MyModel);
+      expect(entity.exists()).toBe(true);
 
     });
 
