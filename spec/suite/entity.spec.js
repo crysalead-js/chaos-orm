@@ -44,12 +44,12 @@ describe("Entity", function() {
 
   });
 
-  describe(".reference()", function() {
+  describe(".document()", function() {
 
-    it("returns the reference class name", function() {
+    it("returns the document class name", function() {
 
       var entity = MyModel.create();
-      expect(entity.reference()).toBe(MyModel);
+      expect(entity.document()).toBe(MyModel);
 
     });
 
@@ -322,7 +322,7 @@ describe("Entity", function() {
 
     });
 
-    context("when a reference is defined", function() {
+    context("when a document is defined", function() {
 
       it("autoboxes setted data", function() {
 
@@ -334,7 +334,7 @@ describe("Entity", function() {
 
         MyModel.definition().column('child', {
           type: 'object',
-          reference: MyModelChild
+          document: MyModelChild
         });
 
         var entity = MyModel.create();

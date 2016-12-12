@@ -87,7 +87,7 @@ class Model extends Document {
       classes: extend({}, this.classes(), { entity: this }),
       conventions: this.conventions(),
       connection: this._connection,
-      reference: this
+      document: this
     };
 
     config.source = this.conventions().apply('source', config.classes.entity.name);
@@ -118,7 +118,7 @@ class Model extends Document {
    * // Custom object with a dedicated class
    * schema.column('comments', {
    *    type: 'entity',
-   *    reference: Comment,
+   *    document: Comment,
    *    array: true,
    *    default: []
    * });
@@ -260,7 +260,7 @@ class Model extends Document {
   id() {
     var key = this.schema().key();
     if (!key) {
-      throw new Error("No primary key has been defined for `" + this.reference().name + "`'s schema.");
+      throw new Error("No primary key has been defined for `" + this.document().name + "`'s schema.");
     }
     return this.get(key);
   }
@@ -377,7 +377,7 @@ class Model extends Document {
    */
   reload() {
     var id = this.id();
-    return this.reference().load(id).then(function(entity) {
+    return this.document().load(id).then(function(entity) {
       if (!entity) {
         throw new Error("The entity ID:`" + id + "` doesn't exists.");
       }
@@ -423,7 +423,7 @@ class Model extends Document {
         embed: true
       };
       options = extend({}, defaults, options);
-      var validator = this.reference().validator();
+      var validator = this.document().validator();
 
       var valid = yield this._validates(options);
 

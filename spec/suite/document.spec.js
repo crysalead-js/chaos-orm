@@ -24,12 +24,12 @@ describe("Document", function() {
 
   });
 
-  describe(".reference()", function() {
+  describe(".document()", function() {
 
-    it("returns the reference class name", function() {
+    it("returns the document class name", function() {
 
       var document = new Document();
-      expect(document.reference()).toBe(Document);
+      expect(document.document()).toBe(Document);
 
     });
 
@@ -206,7 +206,7 @@ describe("Document", function() {
       var document = new Document();
       var id;
       var events = 0;
-      document.on('modified', function(reference, uuid) {
+      document.on('modified', function(document, uuid) {
         if (id === undefined || id === uuid) {
           events++;
           id = uuid;

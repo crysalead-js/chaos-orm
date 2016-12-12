@@ -15,25 +15,25 @@ var Through = require('./collection/through');
 class Document {
 
   /**
-   * Registers a reference dependency
+   * Registers a document dependency
    * (temporarily solve node circular dependency issue, will be removed once ES2015 modules will be supported).
    *
    * @param  String   name      The dependency name.
-   * @param  Function reference The class reference to register.
+   * @param  Function document The class document to register.
    * @return Object             Returns `this`.
    */
-  static register(name, reference) {
+  static register(name, document) {
     if (arguments.length === 2) {
-      this._references[name] = reference;
+      this._documents[name] = document;
       return this;
     }
     this._name = name !== undefined ? name : this.name;
-    this._references[this._name] = this;
+    this._documents[this._name] = this;
     return this;
   }
 
   /**
-   * Returns a registered reference dependency.
+   * Returns a registered document dependency.
    * (temporarily solve node circular dependency issue, will be removed once ES2015 modules will be supported).
    *
    * @param  String   name The field name.
@@ -41,12 +41,12 @@ class Document {
    */
   static registered(name) {
     if (!arguments.length) {
-      return Object.keys(this._references);
+      return Object.keys(this._documents);
     }
-    if (this._references[name] === undefined) {
-      throw new Error("Undefined `" + name + "` as reference dependency, the reference need to be registered first.");
+    if (this._documents[name] === undefined) {
+      throw new Error("Undefined `" + name + "` as document dependency, the document need to be registered first.");
     }
-    return this._references[name];
+    return this._documents[name];
   }
 
   /**
@@ -89,7 +89,7 @@ class Document {
     var schema = new this._definition({
       classes: extend({}, this.classes(), { entity: Document }),
       conventions: this.conventions(),
-      reference: Document
+      document: Document
     });
     schema.locked(false);
     return schema;
@@ -118,9 +118,9 @@ class Document {
    *
    * @param  Object data    Any data that this object should be populated with initially.
    * @param  Object options Options to be passed to item.
-   *                        - `'type'`      _String_   : can be `'entity'` or `'set'`. `'set'` is used if the passed data represent a collection
+   *                        - `'type'`      _String_  : can be `'entity'` or `'set'`. `'set'` is used if the passed data represent a collection
    *                                                     of entities. Default to `'entity'`.
-   *                        - `'reference'` _Function_ : the class reference to use to create entities.
+   *                        - `'document'` _Function_ : the class document to use to create entities.
    * @return Object         Returns a new, un-saved record or document object. In addition to
    *                        the values passed to `data`, the object will also contain any values
    *                        assigned to the `'default'` key of each field defined in the schema.
@@ -129,7 +129,7 @@ class Document {
   {
     var defaults = {
       type: 'entity',
-      reference: this
+      document: this
     };
 
     options = extend({}, defaults, options);
@@ -138,7 +138,7 @@ class Document {
     var classname;
 
     if (type === 'entity') {
-      classname = options.reference;
+      classname = options.document;
     } else {
       options.schema = this.definition();
       classname = this._classes[type];
@@ -242,7 +242,7 @@ class Document {
    *
    * @return Function
    */
-  reference() {
+  document() {
     return this.constructor;
   }
 
@@ -303,7 +303,7 @@ class Document {
       return this;
     }
     if (this._collector === undefined || this._collector === null) {
-      var collector = this.reference().classes().collector;
+      var collector = this.document().classes().collector;
       this._collector = new collector();
     }
     return this._collector;
@@ -774,10 +774,10 @@ class Document {
 }
 
 /**
- * Registered references
+ * Registered documents
  * (temporarily solve node circular dependency issue, will be removed once ES2015 modules will be supported).
  */
-Document._references = {};
+Document._documents = {};
 
 /**
  * Class dependencies.
