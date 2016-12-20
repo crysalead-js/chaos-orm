@@ -35,7 +35,7 @@ describe("Schema", function() {
 
       var schema = new Schema({
         source: 'image',
-        document: Image,
+        class: Image,
         key: 'key',
         locked: false,
         columns: [{ id: 'serial' }, { age: 'integer' }],
@@ -44,7 +44,7 @@ describe("Schema", function() {
       });
 
       expect(schema.source()).toBe('image');
-      expect(schema.document()).toBe(Image);
+      expect(schema.reference()).toBe(Image);
       expect(schema.key()).toBe('key');
       expect(schema.locked()).toBe(false);
       expect(schema.fields()).toEqual(['id', 'age']);
@@ -68,14 +68,14 @@ describe("Schema", function() {
 
   });
 
-  describe(".document()", function() {
+  describe(".reference()", function() {
 
     it("gets/sets the conventions", function() {
 
       var schema = new Schema();
 
-      expect(schema.document(Image)).toBe(schema);
-      expect(schema.document()).toBe(Image);
+      expect(schema.reference(Image)).toBe(schema);
+      expect(schema.reference()).toBe(Image);
 
     });
 
@@ -676,10 +676,10 @@ describe("Schema", function() {
 
       class MyModel extends Model {}
 
-      var schema = new Schema({ document: MyModel });
+      var schema = new Schema({ class: MyModel });
       schema.column('embedded', {
         type: 'object',
-        document: MyModel
+        class: MyModel
       });
 
       expect(schema.relations()).toEqual([]);

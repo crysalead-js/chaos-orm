@@ -334,7 +334,7 @@ describe("Entity", function() {
 
         MyModel.definition().column('child', {
           type: 'object',
-          document: MyModelChild
+          class: MyModelChild
         });
 
         var entity = MyModel.create();

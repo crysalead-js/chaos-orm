@@ -24,11 +24,11 @@ class Document {
    */
   static register(name, document) {
     if (arguments.length === 2) {
-      this._documents[name] = document;
+      this._registered[name] = document;
       return this;
     }
     this._name = name !== undefined ? name : this.name;
-    this._documents[this._name] = this;
+    this._registered[this._name] = this;
     return this;
   }
 
@@ -41,12 +41,12 @@ class Document {
    */
   static registered(name) {
     if (!arguments.length) {
-      return Object.keys(this._documents);
+      return Object.keys(this._registered);
     }
-    if (this._documents[name] === undefined) {
+    if (this._registered[name] === undefined) {
       throw new Error("Undefined `" + name + "` as document dependency, the document need to be registered first.");
     }
-    return this._documents[name];
+    return this._registered[name];
   }
 
   /**
@@ -89,7 +89,7 @@ class Document {
     var schema = new this._definition({
       classes: extend({}, this.classes(), { entity: Document }),
       conventions: this.conventions(),
-      document: Document
+      class: Document
     });
     schema.locked(false);
     return schema;
@@ -118,9 +118,9 @@ class Document {
    *
    * @param  Object data    Any data that this object should be populated with initially.
    * @param  Object options Options to be passed to item.
-   *                        - `'type'`      _String_  : can be `'entity'` or `'set'`. `'set'` is used if the passed data represent a collection
+   *                        - `'type'`  _String_   : can be `'entity'` or `'set'`. `'set'` is used if the passed data represent a collection
    *                                                     of entities. Default to `'entity'`.
-   *                        - `'document'` _Function_ : the class document to use to create entities.
+   *                        - `'class'` _Function_ : the class document to use to create entities.
    * @return Object         Returns a new, un-saved record or document object. In addition to
    *                        the values passed to `data`, the object will also contain any values
    *                        assigned to the `'default'` key of each field defined in the schema.
@@ -129,7 +129,7 @@ class Document {
   {
     var defaults = {
       type: 'entity',
-      document: this
+      class: this
     };
 
     options = extend({}, defaults, options);
@@ -138,7 +138,7 @@ class Document {
     var classname;
 
     if (type === 'entity') {
-      classname = options.document;
+      classname = options.class;
     } else {
       options.schema = this.definition();
       classname = this._classes[type];
@@ -777,7 +777,7 @@ class Document {
  * Registered documents
  * (temporarily solve node circular dependency issue, will be removed once ES2015 modules will be supported).
  */
-Document._documents = {};
+Document._registered = {};
 
 /**
  * Class dependencies.

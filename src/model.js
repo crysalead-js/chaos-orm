@@ -87,7 +87,7 @@ class Model extends Document {
       classes: extend({}, this.classes(), { entity: this }),
       conventions: this.conventions(),
       connection: this._connection,
-      document: this
+      class: this
     };
 
     config.source = this.conventions().apply('source', config.classes.entity.name);
@@ -118,7 +118,7 @@ class Model extends Document {
    * // Custom object with a dedicated class
    * schema.column('comments', {
    *    type: 'entity',
-   *    document: Comment,
+   *    class: Comment,
    *    array: true,
    *    default: []
    * });

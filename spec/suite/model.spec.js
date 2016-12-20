@@ -109,7 +109,7 @@ describe("Model", function() {
 
       class MySubModel extends MyModel {}
 
-      var entity = MyModel.create([], {document: MySubModel});
+      var entity = MyModel.create([], {class: MySubModel});
 
       expect(entity instanceof MySubModel).toBe(true);
 

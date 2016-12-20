@@ -78,7 +78,7 @@ class Schema {
    *
    * @param Object config Possible options are:
    *                      - `'source'`      _String_   : The source name (defaults to `undefined`).
-   *                      - `'document'`    _Function_ : The fully namespaced class name (defaults to `undefined`).
+   *                      - `'class'`       _Function_ : The fully namespaced class name (defaults to `undefined`).
    *                      - `'locked'`      _Boolean_  : set the ability to dynamically add/remove fields (defaults to `false`).
    *                      - `'key'`         _String_   : The primary key value (defaults to `id`).
    *                      - `'columns'`     _Array_    : array of field definition where keys are field names and values are arrays
@@ -105,7 +105,7 @@ class Schema {
   constructor(config) {
     var defaults = {
       source: undefined,
-      document: Document,
+      class: Document,
       locked: true,
       columns: [],
       meta: {},
@@ -170,7 +170,7 @@ class Schema {
      *
      * @var Function
      */
-    this._document = config.document;
+    this._reference = config.class;
 
     /**
      * The primary key field name.
@@ -261,14 +261,14 @@ class Schema {
   /**
    * Gets/sets the attached document class.
    *
-   * @param  Function document The class to set to none to get the current model class.
+   * @param  Function reference The class to set to none to get the current model class.
    * @return mixed              The attached class name on get or `this`.
    */
-  document(document) {
+  reference(reference) {
     if (!arguments.length) {
-      return this._document;
+      return this._reference;
     }
-    this._document = document;
+    this._reference = reference;
     return this;
   }
 
@@ -442,14 +442,14 @@ class Schema {
     }
     var relationship = this.classes().relationship;
 
-    if (column.document) {
-      column.document = typeof column.document === 'string' ? this.document().registered(column.document) : column.document;
+    if (column.class) {
+      column.class = typeof column.class === 'string' ? this.reference().registered(column.class) : column.class;
     }
 
     this.bind(name, {
       type: column.array ? 'set' : 'entity',
       relation: column.array ? 'hasMany' : 'hasOne',
-      to: column.document ? column.document : this.document(),
+      to: column.class ? column.class : this.reference(),
       link: relationship.LINK_EMBEDDED
     });
     this._columns.set(name, column);
@@ -646,7 +646,7 @@ class Schema {
 
     config = extend({}, {
       type: 'entity',
-      from: this.document(),
+      from: this.reference(),
       to: undefined,
       link: relationship.LINK_KEY
     }, config);
@@ -664,7 +664,7 @@ class Schema {
         throw new Error("Binding requires `'to'` option to be set.");
       }
     } else {
-      config.to = typeof config.to === 'string' ? this.document().registered(config.to) : config.to;
+      config.to = typeof config.to === 'string' ? this.reference().registered(config.to) : config.to;
     }
 
     config.array = config.relation.match(/Many/);
@@ -900,7 +900,7 @@ class Schema {
     };
 
     options = extend({}, defaults, options);
-    options.document = this.document();
+    options.class = this.reference();
     options.schema = this;
 
     var name;
@@ -920,10 +920,10 @@ class Schema {
       options.basePath = options.embedded ? name : undefined;
 
       if (options.relation !== 'hasManyThrough') {
-        options.document = options.to;
+        options.class = options.to;
       } else {
         var through = this.relation(name);
-        options.document = through.to();
+        options.class = through.to();
       }
       if (options.array && field) {
         return this._castArray(name, data, options);
@@ -966,8 +966,8 @@ class Schema {
       return data;
     }
     options.data = data ? data : {};
-    options.schema = options.document === Document ? options.schema : undefined;
-    return new options.document(options);
+    options.schema = options.class === Document ? options.schema : undefined;
+    return new options.class(options);
   }
 
   /**
@@ -986,7 +986,7 @@ class Schema {
       return data;
     }
     options.data = data ? data : [];
-    options.schema = options.document.definition();
+    options.schema = options.class.definition();
     return new Collection(options);
   }
 
@@ -1289,10 +1289,10 @@ class Schema {
    */
   delete(instance) {
     return co(function*() {
-      var collection = instance instanceof Model ? [instance] : instance;
+      var collection = instance.forEach instanceof Function ? instance : [instance];
       var key = this.key();
       if (!key) {
-        throw new Error("No primary key has been defined for `" + instance.document().name + "`'s schema.");
+        throw new Error("No primary key has been defined for `" + instance.self().name + "`'s schema.");
       }
       var keys = [];
 
@@ -1323,7 +1323,7 @@ class Schema {
    * @return Object         An instance of `Query`.
    */
   query(options) {
-    throw new Error("Missing `query()` implementation for `" + this.document().name + "`'s schema.");
+    throw new Error("Missing `query()` implementation for `" + this.reference().name + "`'s schema.");
   }
 
   /**
@@ -1334,7 +1334,7 @@ class Schema {
    * @return Promise          Returns `true` if insert operations succeeded, `false` otherwise.
    */
   bulkInsert($inserts, $filter) {
-    throw new Error("Missing `bulkInsert()` implementation for `" + this.document().name + "`'s schema.");
+    throw new Error("Missing `bulkInsert()` implementation for `" + this.reference().name + "`'s schema.");
   }
 
   /**
@@ -1345,7 +1345,7 @@ class Schema {
    * @return Promise          Returns `true` if update operations succeeded, `false` otherwise.
    */
   bulkUpdate($updates, $filter) {
-    throw new Error("Missing `bulkUpdate()` implementation for `" + this.document().name + "`'s schema.");
+    throw new Error("Missing `bulkUpdate()` implementation for `" + this.reference().name + "`'s schema.");
   }
 
   /**
@@ -1362,7 +1362,7 @@ class Schema {
    * @return Promise             Returns `true` if the remove operation succeeded, otherwise `false`.
    */
   truncate(conditions, options) {
-    throw new Error("Missing `truncate()` implementation for `" + this.document().name + "`'s schema.");
+    throw new Error("Missing `truncate()` implementation for `" + this.reference().name + "`'s schema.");
   }
 
 }
