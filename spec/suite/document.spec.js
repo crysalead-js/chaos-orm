@@ -24,12 +24,12 @@ describe("Document", function() {
 
   });
 
-  describe(".document()", function() {
+  describe(".self()", function() {
 
     it("returns the document class name", function() {
 
       var document = new Document();
-      expect(document.document()).toBe(Document);
+      expect(document.self()).toBe(Document);
 
     });
 

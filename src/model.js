@@ -260,7 +260,7 @@ class Model extends Document {
   id() {
     var key = this.schema().key();
     if (!key) {
-      throw new Error("No primary key has been defined for `" + this.document().name + "`'s schema.");
+      throw new Error("No primary key has been defined for `" + this.constructor.name + "`'s schema.");
     }
     return this.get(key);
   }
@@ -377,7 +377,7 @@ class Model extends Document {
    */
   reload() {
     var id = this.id();
-    return this.document().load(id).then(function(entity) {
+    return this.constructor.load(id).then(function(entity) {
       if (!entity) {
         throw new Error("The entity ID:`" + id + "` doesn't exists.");
       }
@@ -423,7 +423,7 @@ class Model extends Document {
         embed: true
       };
       options = extend({}, defaults, options);
-      var validator = this.document().validator();
+      var validator = this.constructor.validator();
 
       var valid = yield this._validates(options);
 

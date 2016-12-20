@@ -242,7 +242,7 @@ class Document {
    *
    * @return Function
    */
-  document() {
+  self() {
     return this.constructor;
   }
 
@@ -303,7 +303,7 @@ class Document {
       return this;
     }
     if (this._collector === undefined || this._collector === null) {
-      var collector = this.document().classes().collector;
+      var collector = this.constructor.classes().collector;
       this._collector = new collector();
     }
     return this._collector;

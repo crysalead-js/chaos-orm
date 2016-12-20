@@ -44,12 +44,12 @@ describe("Entity", function() {
 
   });
 
-  describe(".document()", function() {
+  describe(".self()", function() {
 
-    it("returns the document class name", function() {
+    it("returns the entity class", function() {
 
       var entity = MyModel.create();
-      expect(entity.document()).toBe(MyModel);
+      expect(entity.self()).toBe(MyModel);
 
     });
 
