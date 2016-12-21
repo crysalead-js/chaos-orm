@@ -549,6 +549,23 @@ class Document {
   }
 
   /**
+   * Watch a path
+   *
+   * @param String   path    The path.
+   * @param Function closure The closure to run.
+   */
+  watch(path, closure) {
+    var keys = Array.isArray(path) ? path : dotpath(path);
+    this.on('modified', (path) => {
+      if (keys.every(function(value, i) {
+        return path[i] !== undefined && value === path[i];
+      })) {
+        closure(path);
+      }
+    });
+  }
+
+  /**
    * Checks if property exists.
    *
    * @param String name A field name.

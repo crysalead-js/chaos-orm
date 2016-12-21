@@ -222,6 +222,22 @@ describe("Document", function() {
 
   });
 
+  describe(".watch()", function() {
+
+    it("watch a data", function(done) {
+
+      var document = new Document();
+      document.watch('a.nested.value', function(path) {
+        expect(document.get('a.nested.value')).toBe('hello');
+        done();
+      });
+      document.set('unwatched.value', 'test');
+      document.set('a.nested.value', 'hello');
+
+    });
+
+  });
+
   describe(".has()", function() {
 
     it("returns `true` if a element has been setted", function() {
