@@ -51,6 +51,21 @@ describe("Collection", function() {
 
   });
 
+  describe("->disconnect()", function() {
+
+    it("removes a document from its graph", function() {
+
+      var parent = new Document();
+      var collection = new Collection();
+      parent.set('value', collection);
+      collection.disconnect();
+      expect(collection.parents().has(parent)).toBe(false);
+      expect(parent.has('value')).toBe(false);
+
+    });
+
+  });
+
   describe(".basePath()", function() {
 
     it("returns the root path", function() {

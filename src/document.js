@@ -326,7 +326,7 @@ class Document {
    * @return self
    */
   setParent(parent, from) {
-    this._parents.set(parent, from);
+    this.parents().set(parent, from);
     return this;
   }
 
@@ -337,9 +337,25 @@ class Document {
    * @return self
    */
   unsetParent(parent) {
-    this._parents.delete(parent);
-    if (this._parents.size === 0) {
+    var parents = this.parents();
+    parents.delete(parent);
+    if (parents.size === 0) {
       this.collector().remove(this.uuid());
+    }
+    return this;
+  }
+
+  /**
+   * Disconnect the document from its graph (i.e parents).
+   * Note: It has nothing to do with persistance
+   *
+   * @return self
+   */
+  disconnect() {
+    var parents = this.parents();
+    for (var object of parents.keys()) {
+      var path = parents.get(object);
+      object.remove(path);
     }
     return this;
   }

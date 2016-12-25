@@ -116,6 +116,17 @@ class Through {
   }
 
   /**
+   * Disconnect the collection from its graph (i.e parents).
+   * Note: It has nothing to do with persistance
+   *
+   * @return self
+   */
+  disconnect() {
+    this._parent.get(this._through).disconnect();
+    return this;
+  }
+
+  /**
    * Gets the root instance.
    *
    * @return mixed  Returns the root instance.

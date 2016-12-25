@@ -63,6 +63,21 @@ describe("Document", function() {
 
   });
 
+  describe("->disconnect()", function() {
+
+    it("removes a document from its graph", function() {
+
+      var parent = new Document();
+      var document = new Document();
+      parent.set('value', document);
+      document.disconnect();
+      expect(document.parents().has(parent)).toBe(false);
+      expect(parent.has('value')).toBe(false);
+
+    });
+
+  });
+
   describe(".basePath()", function() {
 
     it("returns the root path", function() {

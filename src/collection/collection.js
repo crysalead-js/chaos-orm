@@ -156,6 +156,21 @@ class Collection {
   }
 
   /**
+   * Disconnect the collection from its graph (i.e parents).
+   * Note: It has nothing to do with persistance
+   *
+   * @return self
+   */
+  disconnect() {
+    var parents = this.parents();
+    for (var object of parents.keys()) {
+      var path = parents.get(object);
+      object.remove(path);
+    }
+    return this;
+  }
+
+  /**
    * Gets/sets whether or not this instance has been persisted somehow.
    *
    * @param  Boolean exists The exists value to set or none to get the current one.
