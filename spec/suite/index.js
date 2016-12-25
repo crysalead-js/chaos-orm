@@ -9,6 +9,7 @@ require('./schema.spec');
 require('./model.spec');
 require('./document.spec');
 require('./entity.spec');
+require('./buffer.spec');
 require('./relationship/relationship.spec');
 require('./relationship/belongs-to.spec');
 require('./relationship/has-one.spec');
