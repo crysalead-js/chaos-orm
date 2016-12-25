@@ -49,7 +49,7 @@ describe("Document", function() {
 
   });
 
-  describe(".removeParent()", function() {
+  describe(".unsetParent()", function() {
 
     it("removes a parent", function() {
 

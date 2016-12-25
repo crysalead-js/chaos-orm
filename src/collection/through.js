@@ -110,8 +110,8 @@ class Through {
    * @param  Object parent The parent instance to remove.
    * @return self
    */
-  removeParent(parent) {
-    this._parent.get(this._through).removeParent(parent);
+  unsetParent(parent) {
+    this._parent.get(this._through).unsetParent(parent);
     return this;
   }
 

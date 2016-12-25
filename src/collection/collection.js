@@ -150,7 +150,7 @@ class Collection {
    * @param  Object parent The parent instance to remove.
    * @return self
    */
-  removeParent(parent) {
+  unsetParent(parent) {
     this._parents.delete(parent);
     return this;
   }
@@ -323,8 +323,8 @@ class Collection {
       }
       var value = this._data[name];
       this._data[name] = data;
-      if (value && typeof value.removeParent === 'function') {
-        value.removeParent(this);
+      if (value && typeof value.unsetParent === 'function') {
+        value.unsetParent(this);
       }
     } else {
       name = this._data.push(data) - 1;
@@ -410,8 +410,8 @@ class Collection {
     }
     var value = this._data[name];
     this._data.splice(name, 1);
-    if (typeof value.removeParent === 'function') {
-      value.removeParent(this);
+    if (typeof value.unsetParent === 'function') {
+      value.unsetParent(this);
     }
     this.trigger('modified', name);
   }

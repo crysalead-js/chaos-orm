@@ -336,7 +336,7 @@ class Document {
    * @param  Object parent The parent instance to remove.
    * @return self
    */
-  removeParent(parent) {
+  unsetParent(parent) {
     this._parents.delete(parent);
     if (this._parents.size === 0) {
       this.collector().remove(this.uuid());
@@ -520,8 +520,8 @@ class Document {
       value.setParent(this, name);
     }
 
-    if (previous && typeof previous.removeParent === 'function') {
-      previous.removeParent(this);
+    if (previous && typeof previous.unsetParent === 'function') {
+      previous.unsetParent(this);
     }
     this.trigger('modified', name);
   }
@@ -604,8 +604,8 @@ class Document {
       return;
     }
     var value = this._data[name];
-    if (value && typeof value.removeParent === 'function') {
-      value.removeParent(this);
+    if (value && typeof value.unsetParent === 'function') {
+      value.unsetParent(this);
     }
     delete this._data[name];
     return this;
