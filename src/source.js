@@ -70,10 +70,14 @@ class Source {
           return Number(value).toFixed(options.precision);
         },
         'date':function(value, options) {
-          return new Date(value);
-        },
+          return this.convert('cast', 'datetime', value, options);
+        }.bind(this),
         'datetime': function(value, options) {
-          return new Date(value);
+          var date = new Date(value);
+          if (Number.isNaN(date.getTime())) {
+            date = new Date(Date.UTC(70, 0, 1, 0, 0, 0));
+          }
+          return date;
         },
         'boolean': function(value, options) {
           return !!value;
@@ -97,10 +101,14 @@ class Source {
         'datetime': function(value, options) {
           options = options || {};
           options.format = options.format ? options.format : 'yyyy-mm-dd HH:MM:ss';
-          if (!value instanceof Date) {
-            value = new Date(value);
+          if (Number(Number.parseInt(value)) === value) {
+            value = Number.parseInt(value) * 1000;
           }
-          return dateFormat(value, options.format, true);
+          var date = !(value instanceof Date) ? new Date(value) : value;
+          if (Number.isNaN(date.getTime())) {
+            throw new Error("Invalid date `" + value + "`, can't be parsed.");
+          }
+          return dateFormat(date, options.format, true);
         },
         'boolean': function(value, options) {
           return !!value ? '1' : '0';
@@ -155,6 +163,7 @@ class Source {
    * @return  mixed          The formated value.
    */
   convert(mode, type, value, options) {
+    var type = value === null ? 'null' : type;
     var formatter = null;
     if (this._formatters[mode]) {
       if (this._formatters[mode][type] !== undefined) {
