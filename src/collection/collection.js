@@ -448,6 +448,16 @@ class Collection {
   }
 
   /**
+   * Clear the collection
+   *
+   * @return self This collection instance.
+   */
+  clear() {
+    this._data = [];
+    return this;
+  }
+
+  /**
    * Returns the item keys.
    *
    * @return array The keys of the items.

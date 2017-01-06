@@ -1,6 +1,7 @@
 var co = require('co');
 var Through = require('../../src/collection/through');
 var Schema = require('../../src/schema');
+var Document = require('../../src/').Document;
 var Model = require('../../src/').Model;
 
 var Gallery = require('../fixture/model/gallery');
@@ -842,6 +843,19 @@ describe("Schema", function() {
       expect(image.get('tags').schema()).toBe(Tag.definition());
       expect(image.get('tags.0').data()).toEqual({ id: 1, name: 'landscape' });
       expect(image.get('tags.1').data()).toEqual({ id: 2, name: 'mountain' });
+
+    });
+
+    it("casts arrays of integer", function() {
+
+      var schema = new Schema();
+      schema.column('list', { type: 'integer', array: true });
+
+      var document = new Document({ schema: schema });
+      document.set('list', [4, 5]);
+
+      expect(document.get('list').count()).toBe(2);
+      expect(document.get('list').data()).toEqual([4, 5]);
 
     });
 

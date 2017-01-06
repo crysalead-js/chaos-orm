@@ -450,7 +450,8 @@ class Schema {
       type: column.array ? 'set' : 'entity',
       relation: column.array ? 'hasMany' : 'hasOne',
       to: column.class ? column.class : this.reference(),
-      link: relationship.LINK_EMBEDDED
+      link: relationship.LINK_EMBEDDED,
+      config: column.config || {}
     });
     this._columns.set(name, column);
 
@@ -896,7 +897,8 @@ class Schema {
       collector: undefined,
       parent: undefined,
       basePath: undefined,
-      exists: false
+      exists: false,
+      defaults: true
     };
 
     options = extend({}, defaults, options);
@@ -962,12 +964,20 @@ class Schema {
    */
   _cast(data, options) {
     if (data instanceof Document) {
-      data.basePath(options.basePath);
-      return data;
+      if (options.class !== Document && data instanceof options.class) {
+        return data;
+      }
+      data = data.to('cast');
     }
-    options.data = data ? data : {};
-    options.schema = options.class === Document ? options.schema : undefined;
-    return new options.class(options);
+    var config = extend({
+      collector: options.collector,
+      schema: options.class === Document ? options.schema : undefined,
+      basePath: options.basePath,
+      exists: options.exists,
+      defaults: options.defaults,
+    }, options.config);
+
+    return options.class.create(data, config);
   }
 
   /**
@@ -981,13 +991,32 @@ class Schema {
   _castArray(name, data, options) {
     options.type = options.relation === 'hasManyThrough' ? 'through' : 'set';
     var Collection = this.classes()[options.type];
-    if (data instanceof Collection) {
-      data.basePath(options.basePath);
-      return data;
+    var isThrough = options.type === 'through';
+
+    var config = extend({
+      collector: options.collector,
+      schema: options.class === Document ? this : options.class.definition(),
+      basePath: options.class === Document ? name : options.basePath,
+      data: data ? data : [],
+      meta: options.meta,
+      exists: options.exists,
+      defaults: options.defaults,
+    }, options.config);
+
+    if (isThrough) {
+      config.parent = options.parent;
+      config.through = options.through;
+      config.using = options.using;
     }
-    options.data = data ? data : [];
-    options.schema = options.class.definition();
-    return new Collection(options);
+
+    if (data instanceof Collection) {
+      config.data = isThrough ? [] : data.get();
+      config.meta = data.meta();
+    } else if (isThrough) {
+      config.parent.get(config.through).clear();
+    }
+
+    return new Collection(config);
   }
 
   /**
@@ -1015,7 +1044,7 @@ class Schema {
         'datetime': function(value, options) {
           options = options || {};
           options.format = options.format ? options.format : 'yyyy-mm-dd HH:MM:ss';
-          if (!value instanceof Date) {
+          if (!(value instanceof Date)) {
             value = new Date(value);
           }
           return dateFormat(value, options.format);
@@ -1043,10 +1072,10 @@ class Schema {
           return Number(value).toFixed(options.precision);
         },
         'date':function(value, options) {
-          return new Date(value);
+          return value instanceof Date ? value : new Date(value);
         },
         'datetime': function(value, options) {
-          return new Date(value);
+          return value instanceof Date ? value : new Date(value);
         },
         'boolean': function(value, options) {
           return !!value;

@@ -282,6 +282,60 @@ describe("Entity", function() {
 
     });
 
+    it("resets a hasManyThrough array using a plain array", function() {
+
+      var image = Image.create();
+      var tags = [
+        {
+          id: '1',
+          name: 'landscape'
+        },
+        {
+          id: '2',
+          name: 'mountain'
+        }
+      ];
+      image.set('tags', tags);
+      expect(image.get('tags') instanceof Through).toBe(true);
+      expect(image.get('tags').length).toBe(2);
+      expect(image.get('tags.0').data()).toEqual({ id: 1, name: 'landscape' });
+      expect(image.get('tags.1').data()).toEqual({ id: 2, name: 'mountain' });
+
+      image.set('tags', tags);
+      expect(image.get('tags').length).toBe(2);
+      expect(image.get('tags.0').data()).toEqual({ id: 1, name: 'landscape' });
+      expect(image.get('tags.1').data()).toEqual({ id: 2, name: 'mountain' });
+
+    });
+
+    it("resets a hasManyThrough array using a Through collection", function() {
+
+      var image = Image.create();
+      var tags = [
+        {
+          id: '1',
+          name: 'landscape'
+        },
+        {
+          id: '2',
+          name: 'mountain'
+        }
+      ];
+      image.set('tags', tags);
+      expect(image.get('tags') instanceof Through).toBe(true);
+      expect(image.get('tags').length).toBe(2);
+      expect(image.get('tags.0').data()).toEqual({ id: 1, name: 'landscape' });
+      expect(image.get('tags.1').data()).toEqual({ id: 2, name: 'mountain' });
+
+      tags = image.get('tags');
+      image.set('tags', tags);
+      expect(image.get('tags').length).toBe(2);
+      expect(image.get('tags.0').data()).toEqual({ id: 1, name: 'landscape' });
+      expect(image.get('tags.1').data()).toEqual({ id: 2, name: 'mountain' });
+      expect(image.get('tags')).not.toBe(tags);
+
+    });
+
     it("throws an exception when trying to set nested arbitraty value in cascade when locked is `true`", function() {
 
       var closure = function() {

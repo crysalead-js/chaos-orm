@@ -73,7 +73,7 @@ class Source {
           return this.convert('cast', 'datetime', value, options);
         }.bind(this),
         'datetime': function(value, options) {
-          var date = new Date(value);
+          var date = value instanceof Date ? value : new Date(value);
           if (Number.isNaN(date.getTime())) {
             date = new Date(Date.UTC(70, 0, 1, 0, 0, 0));
           }

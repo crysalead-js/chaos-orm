@@ -239,6 +239,13 @@ class Through {
    * @return mixed          Returns an `Entity` object if exists otherwise returns `undefined`.
    */
   get(offset) {
+    if (!arguments.length) {
+      var data = [];
+      this.forEach(function(value) {
+        data.push(value);
+      });
+      return data;
+    }
     var entity = this._parent.get(this._through).get(offset)
     if (entity) {
       return entity.get(this._using);
@@ -317,6 +324,16 @@ class Through {
       this.push(value);
     }.bind(this));
 
+    return this;
+  }
+
+  /**
+   * Clear the collection
+   *
+   * @return self This collection instance.
+   */
+  clear() {
+    this._parent.get(this._through).clear();
     return this;
   }
 
