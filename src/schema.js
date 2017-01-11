@@ -205,7 +205,7 @@ class Schema {
 
     for(var column of config.columns) {
       var key = Object.keys(column)[0];
-      this._columns.set(key, this._initColumn(column[key]));
+      this.column(key, column[key]);
     }
 
     handlers = this._handlers;
@@ -516,13 +516,13 @@ class Schema {
   append(fields) {
     if (fields.constructor === Object) {
       for (var key in fields) {
-        this._columns.set(key, this._initColumn(fields[key]));
+        this.column(key, fields[key]);
       }
     } else {
       var columns = fields instanceof Schema ? fields.columns() : fields;
       for (var value of columns) {
         var key = Object.keys(value)[0];
-        this._columns.set(key, value[key]);
+        this.column(key, value[key]);
       }
     }
     return this;
@@ -684,10 +684,10 @@ class Schema {
       this._relations[config.through].junction = true;
     } else if (config.relation === 'belongsTo' && config.link === relationship.LINK_KEY) {
       var fieldName = this.conventions().apply('reference', name);
-      this._columns.set(fieldName, { type: 'id', array: false, null: true });
+      this.column(fieldName, { type: 'id', array: false, null: true });
     } else if (config.relation === 'hasMany' && config.link === relationship.LINK_KEY_LIST) {
       var fieldName = this.conventions().apply('references', name);
-      this._columns.set(fieldName, { type: 'id', array: true, null: true });
+      this.column(fieldName, { type: 'id', array: true, null: true });
     }
 
     this._relations[name] = config;
@@ -903,12 +903,11 @@ class Schema {
 
     options = extend({}, defaults, options);
     options.class = this.reference();
-    options.schema = this;
 
     var name;
 
     if (field) {
-      name = options.basePath ? options.basePath + '.' + field : field;
+      name = options.basePath ? options.basePath + '.' + field : String(field);
     } else {
       name = options.basePath;
     }
@@ -917,31 +916,15 @@ class Schema {
       return this._cast(data, options);
     }
 
-    if (this._relations[name]) {
-      options = extend({}, this._relations[name], options);
-      options.basePath = options.embedded ? name : undefined;
+    for (var entry of [name, name.replace(/[^.]*$/,'*')]) {
+      if (this._relations[entry]) {
+        return this._relationCast(field, entry, data, options);
+      }
+      if (this._columns.has(entry)) {
+        return this._columnCast(field, entry, data, options);
+      }
+    }
 
-      if (options.relation !== 'hasManyThrough') {
-        options.class = options.to;
-      } else {
-        var through = this.relation(name);
-        options.class = through.to();
-      }
-      if (options.array && field) {
-        return this._castArray(name, data, options);
-      }
-      return this._cast(data, options);
-    }
-    if (this._columns.has(name)) {
-      options = extend({}, this._columns.get(name), options);
-      if (typeof options.setter === 'function') {
-        data = options.setter(options.parent, data, name);
-      }
-      if (options.array && field) {
-        return this._castArray(name, data, options);
-      }
-      return this.format('cast', name, data);
-    }
     if (this.locked()) {
       throw new Error("Missing schema definition for field: `" + name + "`.");
     }
@@ -971,7 +954,7 @@ class Schema {
     }
     var config = extend({
       collector: options.collector,
-      schema: options.class === Document ? options.schema : undefined,
+      schema: options.class === Document ? this : undefined,
       basePath: options.basePath,
       exists: options.exists,
       defaults: options.defaults,
@@ -1017,6 +1000,51 @@ class Schema {
     }
 
     return new Collection(config);
+  }
+
+  /**
+   * Casting helper for relations.
+   *
+   * @param  String field      The field name to cast.
+   * @param  String name       The full field name to cast.
+   * @param  Object data       Some data to cast.
+   * @param  Object options    Options for the casting.
+   * @return mixed             The casted data.
+   */
+  _relationCast(field, name, data, options) {
+    options = extend({}, this._relations[name], options);
+    options.basePath = options.embedded ? name : undefined;
+
+    if (options.relation !== 'hasManyThrough') {
+      options.class = options.to;
+    } else {
+      var through = this.relation(name);
+      options.class = through.to();
+    }
+    if (options.array && field) {
+      return this._castArray(name, data, options);
+    }
+    return this._cast(data, options);
+  }
+
+  /**
+   * Casting helper for columns.
+   *
+   * @param  String field      The field name to cast.
+   * @param  String name       The full field name to cast.
+   * @param  Object data       Some data to cast.
+   * @param  Object options    Options for the casting.
+   * @return mixed             The casted data.
+   */
+  _columnCast(field, name, data, options) {
+    options = extend({}, this._columns.get(name), options);
+    if (typeof options.setter === 'function') {
+      data = options.setter(options.parent, data, name);
+    }
+    if (options.array && field) {
+      return this._castArray(name, data, options);
+    }
+    return this.format('cast', name, data);
   }
 
   /**
@@ -1072,10 +1100,14 @@ class Schema {
           return Number(value).toFixed(options.precision);
         },
         'date':function(value, options) {
-          return value instanceof Date ? value : new Date(value);
-        },
+          return this.convert('cast', 'datetime', value, options);
+        }.bind(this),
         'datetime': function(value, options) {
-          return value instanceof Date ? value : new Date(value);
+          var date = value instanceof Date ? value : new Date(value);
+          if (Number.isNaN(date.getTime())) {
+            date = new Date(Date.UTC(70, 0, 1, 0, 0, 0));
+          }
+          return date;
         },
         'boolean': function(value, options) {
           return !!value;

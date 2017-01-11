@@ -751,8 +751,9 @@ class Document {
   to(format, options) {
     var defaults = {
       embed: true,
-      basePath: undefined
+      basePath: this.basePath()
     };
+
     options = extend({}, defaults, options);
 
     if (options.embed === true) {
@@ -768,6 +769,9 @@ class Document {
     var fields;
     if (schema.locked()) {
       fields = schema.fields(options.basePath).concat(schema.relations());
+      if (fields.indexOf('*') !== -1) {
+        fields = Object.keys(this._data);
+      }
     } else {
       fields = Object.keys(this._data);
     }
@@ -792,10 +796,10 @@ class Document {
       var value = this.get(field);
 
       if (value instanceof Document) {
-        options.basePath = rel && rel.embedded() ? value.basePath() : '';
+        options.basePath = rel && rel.embedded() ? value.basePath() : undefined;
         result[field] = value.to(format, options);
       } else if (value && value.forEach instanceof Function) {
-        options.basePath = rel && rel.embedded() ? value.basePath() : '';
+        options.basePath = rel && rel.embedded() ? value.basePath() : undefined;
         result[field] = Collection.toArray(value, options);
       } else {
         options.basePath = path;

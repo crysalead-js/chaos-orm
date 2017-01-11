@@ -795,8 +795,10 @@ class Collection {
         case Array.isArray(item):
           result.push(this.toArray(item, options));
         break;
-        case (item && typeof item !== 'object'):
-          result.push(item);
+        case (typeof item !== 'object' || item == null):
+          if (item !== undefined) {
+            result.push(item);
+          }
         break;
         case item.constructor && options.handlers[item.constructor.name] !== undefined:
           result.push(options.handlers[item.constructor.name](item));
