@@ -6,7 +6,7 @@ var Model = require('../../src/').Model;
 
 class MyModel extends Model {
   static _define(schema) {
-    schema.locked(false);
+    schema.lock(false);
   }
 }
 

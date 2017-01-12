@@ -91,7 +91,7 @@ class Document {
       conventions: this.conventions(),
       class: Document
     });
-    schema.locked(false);
+    schema.lock(false);
     return schema;
   }
 

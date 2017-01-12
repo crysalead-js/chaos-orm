@@ -273,18 +273,25 @@ class Schema {
   }
 
   /**
-   * Gets/sets the schema lock type. When Locked all extra fields which
+   * Sets the schema lock type. When Locked all extra fields which
    * are not part of the schema should be filtered out before saving.
    *
-   * @param  Boolean locked The locked value to set to none to get the current lock value.
-   * @return mixed          A boolean value or `this`.
+   * @param  Boolean locked The locked value to set to.
+   * @return self           Return `this`.
    */
-  locked(locked) {
-    if (!arguments.length) {
-      return this._locked;
-    }
-    this._locked = locked;
+  lock(locked) {
+    this._locked = locked === false ? false : true;
     return this;
+  }
+
+  /**
+   * Gets the schema lock type. When Locked all extra fields which
+   * are not part of the schema should be filtered out before saving.
+   *
+   * @return Boolean The lock value.
+   */
+  locked() {
+    return this._locked;
   }
 
   /**

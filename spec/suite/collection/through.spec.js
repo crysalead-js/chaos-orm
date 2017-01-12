@@ -13,13 +13,13 @@ var Tag = require('../../fixture/model/tag');
 
 class MyImageTag extends ImageTag {
   static _define(schema) {
-    schema.locked(false);
+    schema.lock(false);
   }
 }
 
 class MyTag extends Tag {
   static _define(schema) {
-    schema.locked(false);
+    schema.lock(false);
   }
   tagMethod(options) {
     return options

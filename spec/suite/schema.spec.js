@@ -82,14 +82,20 @@ describe("Schema", function() {
 
   });
 
-  describe(".locked()", function() {
+  describe(".lock()/.locked()", function() {
 
     it("gets/sets the lock value", function() {
 
       var schema = new Schema();
 
-      expect(schema.locked(false)).toBe(schema);
+      expect(schema.lock(false)).toBe(schema);
       expect(schema.locked()).toBe(false);
+
+      expect(schema.lock()).toBe(schema);
+      expect(schema.locked()).toBe(true);
+
+      expect(schema.lock(true)).toBe(schema);
+      expect(schema.locked()).toBe(true);
 
     });
 

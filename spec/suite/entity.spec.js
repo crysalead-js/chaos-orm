@@ -18,7 +18,7 @@ describe("Entity", function() {
   beforeEach(function() {
     var schema = MyModel.definition();
     schema.column('id', { type: 'serial' });
-    schema.locked(false);
+    schema.lock(false);
   });
 
   afterEach(function() {
@@ -82,7 +82,7 @@ describe("Entity", function() {
     it("throws an exception if the schema has no primary key defined", function() {
 
       var schema = new Schema({ key: null });
-      schema.locked(false);
+      schema.lock(false);
       MyModel.definition(schema);
 
       var closure = function() {
@@ -194,7 +194,7 @@ describe("Entity", function() {
 
     it("sets nested arbitraty value in cascade when locked is `false`", function() {
 
-      Image.definition().locked(false);
+      Image.definition().lock(false);
 
       var image = Image.create();
       image.set('a.nested.value', 'hello');
@@ -382,7 +382,7 @@ describe("Entity", function() {
 
         class MyModelChild extends MyModel {
           static _define(schema) {
-            schema.locked(false);
+            schema.lock(false);
           }
         };
 

@@ -4,7 +4,7 @@ var Document = require('../../../src/index').Document;
 
 class MyModel extends Model {
   static _define(schema) {
-    schema.locked(false);
+    schema.lock(false);
   }
 };
 
