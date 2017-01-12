@@ -277,6 +277,17 @@ describe("Document", function() {
 
     });
 
+    it("returns `true` if a array value has been setted using a dotted notation", function() {
+
+      var document = new Document();
+      document.set('field1.field2', ['a', 'b']);
+
+      expect(document.has('field1.field2.0')).toBe(true);
+      expect(document.has('field1.field2.1')).toBe(true);
+      expect(document.has('field1.field2.2')).toBe(false);
+
+    });
+
     it("returns false if a element doesn't exist", function() {
 
       var document = new Document();

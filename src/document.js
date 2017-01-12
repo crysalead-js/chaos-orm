@@ -595,7 +595,7 @@ class Document {
     var name = keys.shift();
     if (keys.length) {
       var value = this.get(name);
-      return value instanceof Document ? value.has(keys) : false;
+      return value && value.has !== undefined ? value.has(keys) : false;
     }
     return this._data[name] !== undefined;
   }
