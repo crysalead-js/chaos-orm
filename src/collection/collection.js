@@ -639,10 +639,15 @@ class Collection {
    */
   errors(options) {
     var errors = [];
+    var errored = false;
     for (var entity of this) {
+      var result = entity.errors();
       errors.push(entity.errors());
+      if (Object.keys(result).length) {
+        errored = true;
+      }
     }
-    return errors;
+    return errored ? errors : [];
   }
 
   /**

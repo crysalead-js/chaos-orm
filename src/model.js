@@ -519,10 +519,15 @@ class Model extends Document {
     var embed = schema.treeify(options.embed);
     var errors = extend({}, this._errors);
 
-    for (var name in embed) {
-      if (this.has(name)) {
-        var value = embed[name];
-        errors[name] = this.get(name).errors(extend({}, options, { embed: value }));
+    for (var field in embed) {
+      if (!this.has(field)) {
+        continue;
+      }
+
+      var value = embed[field];
+      var err = this.get(field).errors(extend({}, options, { embed: value }));
+      if (Object.keys(err).length) {
+        errors[field] = err;
       }
     }
     return errors;

@@ -390,7 +390,36 @@ describe("Entity", function() {
 
     });
 
-    it("validates an nested entities", function(done) {
+    it("validates a belongsTo nested entity", function(done) {
+
+      co(function*() {
+        var image = Image.create();
+        image.set('gallery', Gallery.create());
+        expect(yield image.validates()).toBe(false);
+        expect(image.errors()).toEqual({
+            name: ['is required'],
+            gallery: {
+              name: ['is required']
+            }
+        });
+
+        image.set('name', 'new image');
+        expect(yield image.validates()).toBe(false);
+        expect(image.errors()).toEqual({
+            gallery: {
+              name: ['is required']
+            }
+        });
+
+        image.set('gallery.name', 'new gallery');
+        expect(yield image.validates()).toBe(true);
+        expect(image.errors()).toEqual({});
+        done();
+      });
+
+    });
+
+    it("validates a hasMany nested entities", function(done) {
 
       co(function*() {
         var gallery = Gallery.create();
@@ -420,14 +449,20 @@ describe("Entity", function() {
 
         gallery.set('name', 'new gallery');
         gallery.get('images.0').set('name', 'image1');
-        gallery.get('images.1').set('name', 'image2');
-        expect(yield gallery.validates()).toBe(true);
+        gallery.get('images.1').set('name', '');
+        expect(yield gallery.validates()).toBe(false);
         expect(gallery.errors()).toEqual({
             images: [
               {},
-              {}
+              { name: ['must not be a empty'] }
             ]
         });
+
+        gallery.set('name', 'new gallery');
+        gallery.get('images.0').set('name', 'image1');
+        gallery.get('images.1').set('name', 'image2');
+        expect(yield gallery.validates()).toBe(true);
+        expect(gallery.errors()).toEqual({});
         done();
       });
 
