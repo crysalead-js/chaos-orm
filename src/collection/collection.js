@@ -40,7 +40,8 @@ class Collection {
       schema: undefined,
       meta: {},
       data: [],
-      exists: false
+      exists: false,
+      index: undefined
     };
 
     config = extend({}, defaults, config);
@@ -53,18 +54,12 @@ class Collection {
     this._data = [];
 
     /**
-     * The collector instance.
+     * The schema to which this collection is bound. This
+     * is usually the schema that executed the query which created this object.
      *
      * @var Object
      */
-    this.collector(config.collector);
-
-    /**
-     * A reference to `Document`'s parents object.
-     *
-     * @var Object
-     */
-    this._parents = new Map();
+    this._schema = undefined;
 
     /**
      * Cached value indicating whether or not this instance exists somehow. If this instance has been loaded
@@ -73,7 +68,7 @@ class Collection {
      *
      * @var Boolean
      */
-    this.exists(config.exists);
+    this._exists = false;
 
     /**
      * If this `Collection` instance has a parent document (see `$_parent`), this value indicates
@@ -81,21 +76,32 @@ class Collection {
      *
      * @var string
      */
-    this.basePath(config.basePath);
-
-    /**
-     * The schema to which this collection is bound. This
-     * is usually the schema that executed the query which created this object.
-     *
-     * @var Object
-     */
-    this.schema(config.schema);
+    this._basePath = undefined;
 
     /**
      * Contains an array of backend-specific meta datas (like pagination datas)
      *
      * @var Object
      */
+    this._meta = {};
+
+    /**
+     * A reference to `Document`'s parents object.
+     *
+     * @var Object
+     */
+    this._parents = new Map();
+
+    this._collector = undefined;
+
+    this.collector(config.collector);
+
+    this.exists(config.exists);
+
+    this.basePath(config.basePath);
+
+    this.schema(config.schema);
+
     this.meta(config.meta);
 
     var i, len = config.data.length;
@@ -289,7 +295,7 @@ class Collection {
       }
       var value = this._data[name];
 
-      if (!value instanceof Document) {
+      if (!value instanceof this.classes().document) {
         throw new Error("The field: `" + name + "` is not a valid document or entity.");
       }
       return value.get(keys);
@@ -440,9 +446,9 @@ class Collection {
    */
   merge(collection) {
 
-    collection.forEach(function(value) {
+    collection.forEach((value) => {
       this.push(value);
-    }.bind(this));
+    });
 
     return this;
   }
@@ -486,6 +492,75 @@ class Collection {
   set length(value) {}
 
   /**
+   * Return the collection indexed by an arbitrary field name.
+   *
+   * @param  String  field   The field name to use for indexing
+   * @param  Boolean byValue If `true` returns the documents instead of their index number in the collection.
+   * @return Object          The indexed collection
+   */
+  indexBy(field, byValue) {
+    var indexes = {};
+    var Document = this.constructor.classes().document;
+    this.forEach(function(document, key) {
+      if (!(document instanceof Document)) {
+        throw new Error("Only document can be indexed.");
+      }
+
+      var index = document.get(field);
+      if (!indexes[index]) {
+        indexes[index] = [];
+      }
+      indexes[index].push(byValue ? document : key);
+    });
+    return indexes;
+  }
+
+  /**
+   * Find the index of an entity with a defined id.
+   *
+   * @param  mixed             id The entity id to look for.
+   * @return Integer|undefined    The entity's index number in the collection or `undefined` if not found.
+   */
+  indexOfId(id) {
+    var Model = this.constructor.classes().model;
+    var index = 0;
+    id = String(id);
+
+    while (index < this._data.length) {
+      var entity = this._data[index];
+      if (!(entity instanceof Model)) {
+        throw new Error('Error, `indexOfId()` is only available on models.');
+      }
+      if (String(entity.id()) === id) {
+        return index;
+      }
+      index++;
+    }
+  }
+
+  /**
+   * Find the index of an entity with a defined id.
+   *
+   * @param  String            uuid The entity id to look for.
+   * @return Integer|undefined      The entity's index number in the collection or `undefined` if not found.
+   */
+  indexOfUuid(uuid) {
+    var Document = this.constructor.classes().document;
+    var index = 0;
+
+    while (index < this._data.length) {
+      var document = this._data[index];
+      if (!(document instanceof Document)) {
+        throw new Error('Error, `indexOfUuid()` is only available on documents.');
+      }
+      if (String(document.uuid()) === uuid) {
+        return index;
+      }
+      index++;
+    }
+  }
+
+  /**
    * Filters a copy of the items in the collection.
    *
    * @param  Closure $closure The closure to use for filtering, or an array of key/value pairs to match.
@@ -509,9 +584,9 @@ class Collection {
    * @return object           This collection instance.
    */
   apply(closure) {
-    this.forEach(function(value, key) {
+    this.forEach((value, key) => {
       this._data[key] = closure(value, key, this);
-    }.bind(this));
+    });
     return this;
   }
 
@@ -721,9 +796,9 @@ class Collection {
   [Symbol.iterator]() {
     var index = 0;
     return {
-      next: function() {
+      next: () => {
         return index < this._data.length ? { value: this._data[index++], done: false } : { done: true };
-      }.bind(this)
+      }
     };
   }
 
@@ -790,7 +865,7 @@ class Collection {
     options = extend({}, defaults, options);
     var result = [];
 
-    data.forEach(function(item, key) {
+    data.forEach((item, key) => {
       switch (true) {
         case Array.isArray(item):
           result.push(this.toArray(item, options));
@@ -816,7 +891,7 @@ class Collection {
           result.push(item);
         break;
       }
-    }.bind(this));
+    });
     return result;
   }
 }

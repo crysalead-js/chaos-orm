@@ -17,6 +17,8 @@ var HasManyThrough = require('./relationship/has-many-through');
  */
 Document._definition = Schema;
 Model._definition = Schema;
+Collection._classes.document = Document;
+Collection._classes.model = Model;
 
 module.exports = {
   Conventions,

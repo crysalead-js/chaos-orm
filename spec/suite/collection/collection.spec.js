@@ -1,4 +1,4 @@
-var Collection = require('../../../src/collection/collection');
+var Collection = require('../../../src/index').Collection;
 var Model = require('../../../src/index').Model;
 var Document = require('../../../src/index').Document;
 
@@ -51,7 +51,7 @@ describe("Collection", function() {
 
   });
 
-  describe("->disconnect()", function() {
+  describe(".disconnect()", function() {
 
     it("removes a document from its graph", function() {
 
@@ -432,6 +432,102 @@ describe("Collection", function() {
           expect(collection.length).toBe(6);
 
       });
+
+  });
+
+  describe(".indexBy()", function() {
+
+    it("indexes a collection using index number", function() {
+
+      var collection = new Collection({ data: [
+        new Document({ data: { id: 1, type: 'type1'} }),
+        new Document({ data: { id: 2, type: 'type2'} }),
+        new Document({ data: { id: 3, type: 'type1'} })
+      ] });
+
+      var indexes = collection.indexBy('type');
+      expect(indexes).toEqual({
+        type1: [0, 2],
+        type2: [1]
+      });
+
+    });
+
+    it("indexes a collection using values", function() {
+
+      var a, b, c;
+      var collection = new Collection({ data: [
+        a = new Document({ data: { id: 1, type: 'type1'} }),
+        b = new Document({ data: { id: 2, type: 'type2'} }),
+        c = new Document({ data: { id: 3, type: 'type1'} })
+      ] });
+
+      var indexes = collection.indexBy('type', true);
+      expect(indexes).toEqual({
+        type1: [a, c],
+        type2: [b]
+      });
+
+    });
+
+  });
+
+  describe(".indexOfId()", function() {
+
+    it("returns the index of an entity with a defined id", function() {
+
+      var collection = new Collection({ data: [
+        new MyModel({ data: { id: 1, type: 'type1'} }),
+        new MyModel({ data: { id: 2, type: 'type2'} }),
+        new MyModel({ data: { id: 3, type: 'type1'} })
+      ] });
+
+      expect(collection.indexOfId(1)).toBe(0);
+      expect(collection.indexOfId(2)).toBe(1);
+      expect(collection.indexOfId(3)).toBe(2);
+
+    });
+
+    it("throws an error when collection doesn't contain documents", function() {
+
+      closure = function() {
+        var collection = new Collection({ data: ['a', 'b', 'c'] });
+        collection.indexOfId(1);
+      };
+      expect(closure).toThrow(new Error("Error, `indexOfId()` is only available on models."));
+
+    });
+
+  });
+
+  describe(".indexOfUuid()", function() {
+
+    it("returns the index of an entity with a defined id", function() {
+
+      var a, b, c;
+      var model = this.model;
+
+      var collection = new Collection({ data: [
+        a = new Document({ data: { id: 1, type: 'type1'} }),
+        b = new Document({ data: { id: 2, type: 'type2'} }),
+        c = new Document({ data: { id: 3, type: 'type1'} })
+      ] });
+
+      expect(collection.indexOfUuid(a.uuid())).toBe(0);
+      expect(collection.indexOfUuid(b.uuid())).toBe(1);
+      expect(collection.indexOfUuid(c.uuid())).toBe(2);
+
+    });
+
+    it("throws an error when collection doesn't contain documents", function() {
+
+        closure = function() {
+          var collection = new Collection({ data: ['a', 'b', 'c'] });
+          collection.indexOfUuid(1);
+        };
+        expect(closure).toThrow(new Error("Error, `indexOfUuid()` is only available on documents."));
+
+    });
 
   });
 
