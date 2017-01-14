@@ -1,4 +1,4 @@
-var dateFormat = require('dateformat-light');
+var dateFormat = require('dateformat');
 var Source = require('../../src/source');
 var Document = require('../../src/').Document;
 var Collection = require('../../src/collection/collection');
