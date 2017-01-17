@@ -161,7 +161,7 @@ describe("Through", function() {
 
   });
 
-  describe(".find()", function() {
+  describe(".filter()", function() {
 
     it("extracts items from a collection according a filter", function() {
 
@@ -169,7 +169,7 @@ describe("Through", function() {
         return item.get('name') % 2 === 0;
       };
 
-      var result = this.through.find(filter);
+      var result = this.through.filter(filter);
 
       expect(result instanceof Collection).toBe(true);
       expect(result.data()).toEqual([

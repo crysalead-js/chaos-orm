@@ -136,7 +136,7 @@ describe("Collection", function() {
 
   });
 
-  describe(".find()", function() {
+  describe(".filter()", function() {
 
     it("extracts items from a collection according a filter", function() {
 
@@ -146,7 +146,7 @@ describe("Collection", function() {
 
       var filter = function(item) { return item === 1; };
 
-      var result = collection.find(filter);
+      var result = collection.filter(filter);
       expect(result instanceof Collection).toBe(true);
       expect(result.data()).toEqual(Array(10).fill(1, 0, 10));
 

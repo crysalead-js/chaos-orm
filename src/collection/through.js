@@ -372,7 +372,7 @@ class Through {
    * @param  Closure $closure The closure to use for filtering, or an array of key/value pairs to match.
    * @return object           Returns a collection of the filtered items.
    */
-  find(closure) {
+  filter(closure) {
     var data = [];
 
     this.forEach(function(value) {
