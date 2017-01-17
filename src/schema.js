@@ -980,7 +980,7 @@ class Schema {
    */
   _castArray(name, data, options) {
     options.type = options.relation === 'hasManyThrough' ? 'through' : 'set';
-    var Collection = this.classes()[options.type];
+    var Collection = options.class.classes()[options.type];
     var isThrough = options.type === 'through';
 
     var config = extend({
@@ -1441,8 +1441,6 @@ class Schema {
  * @var array
  */
 Schema._classes = {
-  set: Collection,
-  through: Through,
   relationship: Relationship,
   belongsTo: BelongsTo,
   hasOne: HasOne,

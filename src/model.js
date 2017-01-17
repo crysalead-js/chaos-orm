@@ -84,13 +84,12 @@ class Model extends Document {
     }
 
     var config = {
-      classes: extend({}, this.classes(), { entity: this }),
       conventions: this.conventions(),
       connection: this._connection,
       class: this
     };
 
-    config.source = this.conventions().apply('source', config.classes.entity.name);
+    config.source = this.conventions().apply('source', this.name);
 
     var schema = new this._definition(config);
     this._definitions.set(this, schema);

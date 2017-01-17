@@ -115,6 +115,27 @@ describe("Model", function() {
 
     });
 
+    it("creates an entity using a custom collection class", function() {
+
+      class MyModel extends Model {
+        static _define(schema) {
+          schema.lock(false);
+        }
+      }
+      class MyCollection extends Collection {}
+
+      MyModel.classes({ set: MyCollection });
+
+      var data = [
+        { id: '1', title: 'Amiga 1200' },
+        { id: '2', title: 'Las Vegas' }
+      ];
+      var collection = MyModel.create(data, { type: 'set' });
+
+      expect(collection).toBeAnInstanceOf(MyCollection);
+
+    });
+
   });
 
   describe(".query()", function() {
