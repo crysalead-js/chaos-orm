@@ -3,7 +3,8 @@ var extend = require('extend-merge').extend;
 var merge = require('extend-merge').merge;
 var Conventions = require('../conventions');
 var Relationship = require('../relationship');
-var Model = require('../model');
+var Through = require('../collection/through');
+var Document = require('../document');
 
 /**
  * The `HasManyThrough` relationship.
@@ -129,8 +130,6 @@ class HasManyThrough extends Relationship {
       var from = this.from();
       var relThrough = from.definition().relation(through);
 
-      this._cleanup(collection);
-
       var middle = yield relThrough.embed(collection, options);
 
       var pivot = relThrough.to();
@@ -138,27 +137,37 @@ class HasManyThrough extends Relationship {
 
       var related = yield relUsing.embed(middle, options);
 
+      var to = relUsing.to();
+      var toSchema = to.definition();
+
+      collection.forEach(function(entity) {
+        if (entity instanceof Document) {
+          entity.set(name, new Through({
+            parent: entity,
+            schema: toSchema,
+            through: through,
+            using: using
+          }));
+        } else {
+          entity[name] = [];
+        }
+      });
+
       var fromKey = this.keys('from');
       var indexes = this._index(related, this.keys('to'));
 
       var value;
 
       collection.forEach(function(entity, index) {
-        if (entity instanceof Model) {
-          entity.get(through).forEach(function(item) {
-            if (item.has(using)) {
-              var value = item.get(using);
-              value.get(name); // It's not a useless statement.
-            }
-          });
-        } else {
-          entity[through].forEach(function(item, key) {
-            if (indexes.has(item[fromKey])) {
-              collection[index][name].push(related[indexes.get(item[fromKey])]);
-              collection[index][through][key][using] = related[indexes.get(item[fromKey])];
-            }
-          });
+        if (entity instanceof Document) {
+          return;
         }
+        entity[through].forEach(function(item, key) {
+          if (indexes.has(item[fromKey])) {
+            collection[index][name].push(related[indexes.get(item[fromKey])]);
+            collection[index][through][key][using] = related[indexes.get(item[fromKey])];
+          }
+        });
       });
       return related;
     }.bind(this));
