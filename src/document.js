@@ -796,10 +796,10 @@ class Document {
       var value = this.get(field);
 
       if (value instanceof Document) {
-        options.basePath = rel && rel.embedded() ? value.basePath() : undefined;
+        options.basePath = value.basePath();
         result[field] = value.to(format, options);
       } else if (value && value.forEach instanceof Function) {
-        options.basePath = rel && rel.embedded() ? value.basePath() : undefined;
+        options.basePath = value.basePath();
         result[field] = Collection.toArray(value, options);
       } else {
         options.basePath = path;
