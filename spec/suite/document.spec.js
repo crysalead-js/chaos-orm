@@ -262,7 +262,7 @@ describe("Document", function() {
 
   describe(".watch()", function() {
 
-    it("watch a data", function(done) {
+    it("watches a data", function(done) {
 
       var document = new Document();
       document.watch('a.nested.value', function(path) {
@@ -271,6 +271,19 @@ describe("Document", function() {
       });
       document.set('unwatched.value', 'test');
       document.set('a.nested.value', 'hello');
+
+    });
+
+    it("watches the root instance when no path is defined", function(done) {
+
+      var document = new Document();
+      document.set('a.nested.value', 'hello');
+
+      document.watch(function(path) {
+        expect(path).toEqual(['a', 'nested', 'value']);
+        done();
+      });
+      document.set('a.nested.value', 'test');
 
     });
 

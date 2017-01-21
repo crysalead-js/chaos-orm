@@ -582,7 +582,13 @@ class Document {
    * @param Function closure The closure to run.
    */
   watch(path, closure) {
-    var keys = Array.isArray(path) ? path : dotpath(path);
+    var keys = [];
+    if (arguments.length === 1) {
+      closure = path;
+    } else {
+      keys = Array.isArray(path) ? path : dotpath(path);
+    }
+    var self = this;
     this.on('modified', (path) => {
       if (keys.every(function(value, i) {
         return path[i] !== undefined && value === path[i];
