@@ -640,7 +640,10 @@ class Document {
     if (value && typeof value.removeParent === 'function') {
       value.removeParent(this);
     }
-    delete this._data[name];
+    if (this._data[name] !== undefined) {
+      delete this._data[name];
+      this.trigger('modified', name);
+    }
     return this;
   }
 

@@ -368,6 +368,19 @@ describe("Document", function() {
 
     });
 
+    it("triggers a modified event when removing an attribute", function(done) {
+
+      var document = new Document();
+      document.set('a.nested.value', 'hello');
+
+      document.on('modified', function(path) {
+        expect(path).toEqual(['a', 'nested', 'value']);
+        done();
+      });
+      document.remove('a.nested.value', 'hello');
+
+    });
+
   });
 
   describe(".persisted()", function() {
