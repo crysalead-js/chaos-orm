@@ -461,7 +461,7 @@ class Schema {
     this.bind(name, {
       type: column.array ? 'set' : 'entity',
       relation: column.array ? 'hasMany' : 'hasOne',
-      to: column.class ? column.class : this.reference(),
+      to: column.class ? column.class : Document,
       link: relationship.LINK_EMBEDDED,
       config: column.config || {}
     });
@@ -959,7 +959,7 @@ class Schema {
    */
   _cast(data, options) {
     if (data instanceof Document) {
-      if (options.class !== Document && data instanceof options.class) {
+      if (options.class !== Document) {
         return data;
       }
       data = data.to('cast');

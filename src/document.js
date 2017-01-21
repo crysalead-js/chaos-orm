@@ -425,13 +425,7 @@ class Document {
     } else if (this._data[name] !== undefined) {
       return this._data[name];
     } else if(schema.hasRelation(fieldName)) {
-      var value = schema.cast(name, undefined, {
-        collector: this.collector(),
-        parent: this,
-        basePath: this.basePath()
-      });
-      this._data[name] = value;
-      value.setParent(this, name);
+      value = undefined;
     } else if (field.type === 'object') {
       value = {};
     } else {

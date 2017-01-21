@@ -1,5 +1,6 @@
 var co = require('co');
 var Schema = require('../../src/schema');
+var Document = require('../../src/').Document;
 var Model = require('../../src/').Model;
 var HasOne = require('../../src/relationship/has-one');
 var Collection = require('../../src/collection/collection');
@@ -376,35 +377,67 @@ describe("Entity", function() {
 
     });
 
-    context("when a document is defined", function() {
+    it("autoboxes setted object column", function() {
 
-      it("autoboxes setted data", function() {
-
-        class MyModelChild extends MyModel {
-          static _define(schema) {
-            schema.lock(false);
-          }
-        };
-
-        MyModel.definition().column('child', {
-          type: 'object',
-          class: MyModelChild
-        });
-
-        var entity = MyModel.create();
-
-        entity.set('child', {
-          id: 1,
-          title: 'child record',
-          enabled: true
-        });
-
-        var child = entity.get('child');
-        expect(child instanceof MyModelChild).toBe(true);
-        expect(child.parents().get(entity)).toBe('child');
-        expect(child.basePath()).toBe(undefined);
-
+      MyModel.definition().column('child', {
+        type: 'object'
       });
+
+      var entity = MyModel.create();
+
+      entity.set('child', {
+        id: 1,
+        title: 'child record',
+        enabled: true
+      });
+
+      var child = entity.get('child');
+      expect(child.constructor === Document).toBe(true);
+      expect(child.parents().get(entity)).toBe('child');
+      expect(child.basePath()).toBe('child');
+
+    });
+
+    it("autoboxes setted object column using a custom model name", function() {
+
+      class MyModelChild extends MyModel {
+        static _define(schema) {
+          schema.lock(false);
+        }
+      };
+
+      MyModel.definition().column('child', {
+        type: 'object',
+        class: MyModelChild
+      });
+
+      var entity = MyModel.create();
+
+      entity.set('child', {
+        id: 1,
+        title: 'child record',
+        enabled: true
+      });
+
+      var child = entity.get('child');
+      expect(child.constructor === MyModelChild).toBe(true);
+      expect(child.parents().get(entity)).toBe('child');
+      expect(child.basePath()).toBe(undefined);
+
+    });
+
+    it("cast object column", function() {
+
+      MyModel.definition().column('child', {
+        type: 'object'
+      });
+
+      var entity = MyModel.create();
+
+      var child = entity.get('child');
+      expect(child.constructor === Document).toBe(true);
+      expect(child.parents().get(entity)).toBe('child');
+      expect(child.basePath()).toBe('child');
 
     });
 
