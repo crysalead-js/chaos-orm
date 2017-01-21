@@ -15,10 +15,10 @@ describe("Schema", function() {
     this.schema = Image.definition();
 
     this.preferences = new Schema();
-    this.preferences.column('preferences', { type: 'object' });
-    this.preferences.column('preferences.blacklist', { type: 'object' });
+    this.preferences.column('preferences', { type: 'object', default: {} });
+    this.preferences.column('preferences.blacklist', { type: 'object', default: {} });
     this.preferences.column('preferences.blacklist.projects', { type: 'id', array: true, 'default': [] });
-    this.preferences.column('preferences.mail', { type: 'object' });
+    this.preferences.column('preferences.mail', { type: 'object', default: {} });
     this.preferences.column('preferences.mail.enabled', { type: 'boolean', 'default': true });
     this.preferences.column('preferences.mail.frequency', { type: 'integer', 'default': 24 });
 
@@ -231,14 +231,32 @@ describe("Schema", function() {
 
   });
 
-  it("returns defaults", function() {
+  describe(".defaults()", function() {
 
-    this.schema.column('name', { type: 'string', default: 'Enter The Name Here' });
-    this.schema.column('title', { type: 'string', default: 'Enter The Title Here', length: 50 });
+    it("returns defaults", function() {
 
-    expect(this.schema.defaults()).toEqual({
-      name: 'Enter The Name Here',
-      title: 'Enter The Title Here'
+      this.schema.column('name', { type: 'string', default: 'Enter The Name Here' });
+      this.schema.column('title', { type: 'string', default: 'Enter The Title Here', length: 50 });
+
+      expect(this.schema.defaults()).toEqual({
+        name: 'Enter The Name Here',
+        title: 'Enter The Title Here'
+      });
+
+    });
+
+    it("correctly sets default values with stars", function() {
+
+      var schema = new Schema();
+      schema.column('data', { type: 'object' });
+      schema.column('data.*', { type: 'object' });
+      schema.column('data.*.checked', { type: 'boolean', default: true });
+      schema.locked(true);
+
+      var document = new Document({ schema: schema });
+
+      expect(document.get('data.value1.checked')).toBe(true);
+
     });
 
   });
@@ -941,6 +959,26 @@ describe("Schema", function() {
 
       document.set('key', { a: 'b' });
       expect(document.get('key')).toEqual({ a: 'b' });
+
+    });
+
+    it("correctly sets base path with stars", function() {
+
+      var schema = new Schema();
+      schema.column('data', { type: 'object' });
+      schema.column('data.*', { type: 'object' });
+      schema.column('data.*.checked', { type: 'boolean' });
+      schema.column('data.*.test', { type: 'object' });
+      schema.column('data.*.test.*', { type: 'object' });
+      schema.column('data.*.test.*.nested', { type: 'object' });
+      schema.column('data.*.test.*.nested.*', { type: 'boolean', array: true });
+      schema.locked(true);
+
+      var document = new Document({ schema: schema });
+
+      expect(document.get('data').basePath()).toBe('data');
+      expect(document.get('data.value1').basePath()).toBe('data.*');
+      expect(document.get('data.value3.test.deeply.nested').basePath()).toBe('data.*.test.*.nested');
 
     });
 

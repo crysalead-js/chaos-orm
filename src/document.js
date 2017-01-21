@@ -222,8 +222,8 @@ class Document {
 
     this.schema(config.schema);
 
-    if (config.defaults && !config.basePath) {
-      config.data = extend(this.schema().defaults(), config.data);
+    if (config.defaults) {
+      config.data = extend(this.schema().defaults(config.basePath), config.data);
     }
 
     this.set(config.data);
@@ -403,23 +403,35 @@ class Document {
       return value.get(keys);
     }
 
-    var fieldname = this.basePath() ? this.basePath() + '.' + name : name;
+    var fieldName = this.basePath() ? this.basePath() + '.' + name : name;
+
     var schema = this.schema();
-    var field = schema.has(fieldname) ? schema.column(fieldname) : {};
+    var field;
+    if (schema.has(fieldName)) {
+      field = schema.column(fieldName);
+    } else {
+      var genericFieldName = this.basePath() ? this.basePath() + '.*' : '*';
+      if (schema.has(genericFieldName)) {
+        field = schema.column(genericFieldName);
+        fieldName = genericFieldName;
+      } else {
+        field = {};
+      }
+    }
     var value;
 
     if (typeof field.getter === 'function') {
       value = field.getter(this, this._data[name], name);
     } else if (this._data[name] !== undefined) {
       return this._data[name];
-    } else if(schema.hasRelation(fieldname)) {
+    } else if(schema.hasRelation(fieldName)) {
       return this._data[name] = schema.cast(name, undefined, {
         collector: this.collector(),
         parent: this,
         basePath: this.basePath()
       });
     } else if (field.type === 'object') {
-      value = [];
+      value = {};
     } else {
       return;
     }
@@ -525,10 +537,10 @@ class Document {
     if (previous === value) {
       return;
     }
-    var fieldname = this.basePath() ? this.basePath() + '.' + name : name;
+    var fieldName = this.basePath() ? this.basePath() + '.' + name : name;
     this._data[name] = value;
 
-    if (schema.isVirtual(fieldname)) {
+    if (schema.isVirtual(fieldName)) {
       return;
     }
 

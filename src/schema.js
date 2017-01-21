@@ -3,6 +3,7 @@ var extend = require('extend-merge').extend;
 var merge = require('extend-merge').merge;
 var expand = require('expand-flatten').expand;
 var flatten = require('expand-flatten').flatten;
+var dotpath = require('dotpath-parser');
 var intersect = require('intersect');
 var dateFormat = require('dateformat');
 var Document = require('./document');
@@ -396,17 +397,21 @@ class Schema {
   /**
    * Returns the schema default values.
    *
-   * @param  String name An optionnal field name.
-   * @return mixed       Returns all default values or a specific one if `name` is set.
+   * @param  String basePath The basePath to extract default values from.
+   * @return mixed           Returns all default values.
    */
-  defaults(name) {
-    if (arguments.length === 1) {
-      return this._columns.has(name) ? this._columns.get(name)['default'] : undefined;
-    }
+  defaults(basePath) {
     var defaults = {};
     for (var [name, value] of this._columns) {
+      if (basePath && name.indexOf(basePath) !== 0) {
+        continue;
+      }
+      var fieldName = basePath ? name.substr(basePath.length + 1) : name;
+      if (!fieldName || fieldName === '*' || fieldName.indexOf('.') !== -1) {
+        continue;
+      }
       if (value['default'] !== undefined) {
-        defaults[name] = value['default'];
+        defaults[fieldName] = value['default'];
       }
     }
     return defaults;
@@ -959,10 +964,11 @@ class Schema {
       }
       data = data.to('cast');
     }
+    var isDocument = options.class === Document;
     var config = extend({
       collector: options.collector,
-      schema: options.class === Document ? this : undefined,
-      basePath: options.basePath,
+      schema: isDocument ? this : options.class.definition(),
+      basePath: isDocument ? options.basePath : undefined,
       exists: options.exists,
       defaults: options.defaults,
     }, options.config);
@@ -983,10 +989,11 @@ class Schema {
     var Collection = options.class.classes()[options.type];
     var isThrough = options.type === 'through';
 
+    var isDocument = options.class === Document;
     var config = extend({
       collector: options.collector,
-      schema: options.class === Document ? this : options.class.definition(),
-      basePath: options.class === Document ? name : options.basePath,
+      schema: isDocument ? this : options.class.definition(),
+      basePath: isDocument ? name : undefined,
       data: data ? data : [],
       meta: options.meta,
       exists: options.exists,
