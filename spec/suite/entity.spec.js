@@ -377,7 +377,7 @@ describe("Entity", function() {
 
     });
 
-    it("autoboxes setted object column", function() {
+    it("autoboxes object columns", function() {
 
       MyModel.definition().column('child', {
         type: 'object'
@@ -398,7 +398,7 @@ describe("Entity", function() {
 
     });
 
-    it("autoboxes setted object column using a custom model name", function() {
+    it("autoboxes object columns with a custom model name", function() {
 
       class MyModelChild extends MyModel {
         static _define(schema) {
@@ -426,7 +426,39 @@ describe("Entity", function() {
 
     });
 
-    it("cast object column", function() {
+    it("lazy applies object columns schema to support single table inheritance", function() {
+
+      class MyModelChild extends MyModel {
+        static _define(schema) {
+          schema.column('id', { type: 'serial' });
+        }
+        static create(data, options) {
+          options.class = Document;
+          return super.create(data, options);
+        }
+      };
+
+      MyModel.definition().column('child', {
+        type: 'object',
+        class: MyModelChild
+      });
+
+      var entity = MyModel.create();
+
+      entity.set('child', {
+        id: 1,
+        title: 'child record'
+      });
+
+      var child = entity.get('child');
+      expect(child.constructor === Document).toBe(true);
+      expect(child.schema()).not.toBe(MyModelChild.definition());
+      expect(child.parents().get(entity)).toBe('child');
+      expect(child.basePath()).toBe('child');
+
+    });
+
+    it("casts object columns", function() {
 
       MyModel.definition().column('child', {
         type: 'object'

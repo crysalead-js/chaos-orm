@@ -219,7 +219,7 @@ class Model extends Document {
       exists: false
     };
     config = extend({}, defaults, config);
-
+    delete config.basePath;
     super(config);
 
     /**

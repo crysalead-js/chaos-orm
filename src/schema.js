@@ -964,11 +964,10 @@ class Schema {
       }
       data = data.to('cast');
     }
-    var isDocument = options.class === Document;
     var config = extend({
       collector: options.collector,
-      schema: isDocument ? this : options.class.definition(),
-      basePath: isDocument ? options.basePath : undefined,
+      schema: options.class === Document ? this : undefined,
+      basePath: options.basePath,
       exists: options.exists,
       defaults: options.defaults,
     }, options.config);
