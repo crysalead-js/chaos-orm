@@ -495,10 +495,10 @@ class Collection {
    * Return the collection indexed by an arbitrary field name.
    *
    * @param  String  field   The field name to use for indexing
-   * @param  Boolean byValue If `true` returns the documents instead of their index number in the collection.
+   * @param  boolean byIndex If `true` return index numbers attached to the index instead of documents.
    * @return Object          The indexed collection
    */
-  indexBy(field, byValue) {
+  indexBy(field, byIndex) {
     var indexes = {};
     var Document = this.constructor.classes().document;
     this.forEach(function(document, key) {
@@ -510,7 +510,7 @@ class Collection {
       if (!indexes[index]) {
         indexes[index] = [];
       }
-      indexes[index].push(byValue ? document : key);
+      indexes[index].push(byIndex ? key : document);
     });
     return indexes;
   }

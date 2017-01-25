@@ -445,7 +445,7 @@ describe("Collection", function() {
         new Document({ data: { id: 3, type: 'type1'} })
       ] });
 
-      var indexes = collection.indexBy('type');
+      var indexes = collection.indexBy('type', true);
       expect(indexes).toEqual({
         type1: [0, 2],
         type2: [1]
@@ -462,7 +462,7 @@ describe("Collection", function() {
         c = new Document({ data: { id: 3, type: 'type1'} })
       ] });
 
-      var indexes = collection.indexBy('type', true);
+      var indexes = collection.indexBy('type');
       expect(indexes).toEqual({
         type1: [a, c],
         type2: [b]
