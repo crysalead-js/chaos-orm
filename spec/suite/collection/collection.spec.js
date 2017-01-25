@@ -363,6 +363,24 @@ describe("Collection", function() {
 
   });
 
+  describe(".watch()", function() {
+
+    it("watches collection", function(done) {
+
+      var collection = new Collection();
+      var document = new Document();
+
+      collection.watch(function(path) {
+        expect(path).toEqual([0]);
+        done();
+      });
+
+      collection.push(document);
+
+    });
+
+  });
+
   describe(".remove()", function() {
 
     it("removes items", function() {

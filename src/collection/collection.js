@@ -380,6 +380,29 @@ class Collection {
   }
 
   /**
+   * Watch a path
+   *
+   * @param String   path    The path.
+   * @param Function closure The closure to run.
+   */
+  watch(path, closure) {
+    var keys = [];
+    if (arguments.length === 1) {
+      closure = path;
+    } else {
+      keys = Array.isArray(path) ? path : dotpath(path);
+    }
+    var self = this;
+    this.on('modified', (path) => {
+      if (keys.every(function(value, i) {
+        return path[i] !== undefined && value === path[i];
+      })) {
+        closure(path);
+      }
+    });
+  }
+
+  /**
    * Adds data into the `Collection` instance.
    *
    * @param  mixed data The entity object to add.
