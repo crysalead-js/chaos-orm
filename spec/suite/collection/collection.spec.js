@@ -211,7 +211,7 @@ describe("Collection", function() {
 
       var collection = new Collection({ data: ['Alan', 'Dave', 'betsy', 'carl'] });
       var result = collection.sort(function(a, b) {
-        return a < b;
+        return a < b ? 1 : (a > b ? -1 : 0);
       });
       expect(result.data()).toEqual(['carl', 'betsy', 'Dave', 'Alan']);
 
