@@ -959,10 +959,7 @@ class Schema {
    */
   _cast(data, options) {
     if (data instanceof Document) {
-      if (options.class !== Document) {
-        return data;
-      }
-      data = data.to('cast');
+      return data;
     }
     var config = extend({
       collector: options.collector,
@@ -1006,8 +1003,7 @@ class Schema {
     }
 
     if (data instanceof Collection) {
-      config.data = isThrough ? [] : data.get();
-      config.meta = data.meta();
+      return data;
     } else if (isThrough) {
       config.parent.get(config.through).clear();
     }

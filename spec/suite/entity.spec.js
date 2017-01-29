@@ -333,7 +333,6 @@ describe("Entity", function() {
       expect(image.get('tags').length).toBe(2);
       expect(image.get('tags.0').data()).toEqual({ id: 1, name: 'landscape' });
       expect(image.get('tags.1').data()).toEqual({ id: 2, name: 'mountain' });
-      expect(image.get('tags')).not.toBe(tags);
 
     });
 

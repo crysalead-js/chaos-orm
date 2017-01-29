@@ -258,6 +258,23 @@ describe("Document", function() {
 
     });
 
+    it("sets documents by references", function() {
+
+      var document1 = new Document();
+      var document2 = new Document();
+
+      document1.set('data.value1.test', true);
+      document2.set('data', document1.get('data'));
+
+      expect(document1.get('data')).toBe(document2.get('data'));
+
+      document2.set('data.value1.test', false);
+
+      expect(document1.get('data.value1.test')).toBe(false);
+      expect(document2.get('data.value1.test')).toBe(false);
+
+    });
+
   });
 
   describe(".watch()", function() {
