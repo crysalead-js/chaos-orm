@@ -560,7 +560,7 @@ class Document {
    * @param String name The field name.
    */
   trigger(type, name, ignore) {
-    name = Array.isArray(name) ? name : [name];
+    name = Array.isArray(name) ? name : (name != null ? [name] : []);
     ignore = ignore || new Map();
 
     if (ignore.has(this)) {

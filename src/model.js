@@ -481,7 +481,11 @@ class Model extends Document {
       return this;
     }
     if (errors) {
+      var previous = this._errors[field];
       this._errors[field] = Array.isArray(errors) ? errors : [errors];
+      if (this._errors[field] !== previous) {
+        this.trigger('modified');
+      }
     }
     return this;
   }
