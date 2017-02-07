@@ -1,5 +1,4 @@
 var Emitter = require('component-emitter');
-var Uuid = require('uuid');
 var co = require('co');
 var dotpath = require('dotpath-parser');
 var extend = require('extend-merge').extend;
@@ -158,7 +157,6 @@ class Document {
    *
    * @param array $config Possible options are:
    *                      - `'collector'`  _Object_  : A collector instance.
-   *                      - `'uuid'`       _Object_  : The object UUID.
    *                      - `'schema'`     _Object_  : The schema instance.
    *                      - `'basePath'`   _String_  : A dotted field names path (for embedded entities).
    *                      - `'defaults'`   _Boolean_ : Populates or not the fields default values.
@@ -168,7 +166,6 @@ class Document {
   constructor(config) {
     var defaults = {
       collector: undefined,
-      uuid: undefined,
       schema: undefined,
       basePath: undefined,
       defaults: true,
@@ -229,12 +226,6 @@ class Document {
     this.set(config.data);
     this._persisted = extend({}, this._data);
 
-    /**
-     * Collect the UUID.
-     *
-     * @var String
-     */
-    this.uuid(config.uuid);
   }
 
   /**

@@ -539,6 +539,52 @@ class Collection {
   }
 
   /**
+   * Find the index of an item.
+   *
+   * @param  mixed   item      The item to look for.
+   * @param  Integer fromIndex The index to start the search at If the provided index value is a negative number,
+   *                           it is taken as the offset from the end of the array.
+   *                           Note: if the provided index is negative, the array is still searched from front to back
+   * @return Integer           The first index of the element in the array; -1 if not found.
+   */
+  indexOf(item, fromIndex) {
+    var n = Math.abs(+fromIndex) || 0;
+    var index = Math.max(n >= 0 ? n : len - n, 0);
+
+    while (index < this._data.length) {
+      if (this._data[index] === item) {
+        return index;
+      }
+      index++;
+    }
+    return -1;
+  }
+
+  /**
+   * Find the last index of an item.
+   *
+   * @param  mixed   item      The item to look for.
+   * @param  Integer fromIndex The index to start the search at If the provided index value is a negative number,
+   *                           it is taken as the offset from the end of the array.
+   *                           Note: if the provided index is negative, the array is still searched from front to back
+   * @return Integer           The first index of the element in the array; -1 if not found.
+   */
+  lastIndexOf(item, fromIndex) {
+    var n = Math.abs(+fromIndex) || 0;
+    var index = Math.max(n >= 0 ? n : len - n, 0);
+
+    var result = -1;
+
+    while (index < this._data.length) {
+      if (this._data[index] === item) {
+        result = index;
+      }
+      index++;
+    }
+    return result;
+  }
+
+  /**
    * Find the index of an entity with a defined id.
    *
    * @param  mixed             id The entity id to look for.
@@ -555,28 +601,6 @@ class Collection {
         throw new Error('Error, `indexOfId()` is only available on models.');
       }
       if (String(entity.id()) === id) {
-        return index;
-      }
-      index++;
-    }
-  }
-
-  /**
-   * Find the index of an entity with a defined id.
-   *
-   * @param  String            uuid The entity id to look for.
-   * @return Integer|undefined      The entity's index number in the collection or `undefined` if not found.
-   */
-  indexOfUuid(uuid) {
-    var Document = this.constructor.classes().document;
-    var index = 0;
-
-    while (index < this._data.length) {
-      var document = this._data[index];
-      if (!(document instanceof Document)) {
-        throw new Error('Error, `indexOfUuid()` is only available on documents.');
-      }
-      if (String(document.uuid()) === uuid) {
         return index;
       }
       index++;

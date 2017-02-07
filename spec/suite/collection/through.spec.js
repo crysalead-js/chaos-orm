@@ -360,6 +360,83 @@ describe("Through", function() {
 
   });
 
+  describe(".indexBy()", function() {
+
+    it("indexes a collection using index number", function() {
+
+      var indexes = this.through.indexBy('name', true);
+      expect(indexes).toEqual({
+        '0': [0],
+        '1': [1],
+        '2': [2],
+        '3': [3],
+        '4': [4]
+      });
+
+    });
+
+    it("indexes a collection using values", function() {
+
+      var indexes = this.through.indexBy('name');
+
+      expect(indexes).toEqual({
+        '0': [this.through.get(0)],
+        '1': [this.through.get(1)],
+        '2': [this.through.get(2)],
+        '3': [this.through.get(3)],
+        '4': [this.through.get(4)]
+      });
+
+    });
+
+  });
+
+  describe(".indexOf()", function() {
+
+    it("returns the index of an item", function() {
+
+      expect(this.through.indexOf(this.through.get(0))).toBe(0);
+      expect(this.through.indexOf(this.through.get(1))).toBe(1);
+      expect(this.through.indexOf(this.through.get(2))).toBe(2);
+      expect(this.through.indexOf(this.through.get(3))).toBe(3);
+      expect(this.through.indexOf(this.through.get(4))).toBe(4);
+
+    });
+
+  });
+
+  describe(".lastIndexOf()", function() {
+
+    it("returns the last index of an item", function() {
+
+      this.through.push(this.through.get(2));
+
+      expect(this.through.lastIndexOf(this.through.get(2))).toBe(5);
+
+    });
+
+  });
+
+  describe(".indexOfId()", function() {
+
+    it("returns the index of an entity with a defined id", function() {
+
+      var filter = function(item) {
+        item.set('id', Number.parseInt(item.get('name')));
+        return item;
+      };
+      var result = this.through.apply(filter);
+
+      expect(this.through.indexOfId(0)).toBe(0);
+      expect(this.through.indexOfId(1)).toBe(1);
+      expect(this.through.indexOfId(2)).toBe(2);
+      expect(this.through.indexOfId(3)).toBe(3);
+      expect(this.through.indexOfId(4)).toBe(4);
+
+    });
+
+  });
+
   describe(".merge()", function() {
 
     it("merges two collection", function() {

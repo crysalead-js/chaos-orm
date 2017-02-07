@@ -503,6 +503,44 @@ describe("Collection", function() {
 
   });
 
+  describe(".indexOf()", function() {
+
+    it("returns the index of an item", function() {
+
+      var a, b, c;
+
+      var collection = new Collection({ data: [
+        a = new MyModel({ data: { id: 1, type: 'type1'} }),
+        b = new MyModel({ data: { id: 2, type: 'type2'} }),
+        c = new MyModel({ data: { id: 3, type: 'type1'} })
+      ] });
+
+      expect(collection.indexOf(a)).toBe(0);
+      expect(collection.indexOf(b)).toBe(1);
+      expect(collection.indexOf(c)).toBe(2);
+
+    });
+
+  });
+
+  describe(".lastIndexOf()", function() {
+
+    it("returns the last index of an item", function() {
+
+      var a, b;
+
+      var collection = new Collection({ data: [
+        a = new MyModel({ data: { id: 1, type: 'type1'} }),
+        b = new MyModel({ data: { id: 2, type: 'type2'} }),
+        a
+      ] });
+
+      expect(collection.lastIndexOf(a)).toBe(2);
+
+    });
+
+  });
+
   describe(".indexOfId()", function() {
 
     it("returns the index of an entity with a defined id", function() {
@@ -526,37 +564,6 @@ describe("Collection", function() {
         collection.indexOfId(1);
       };
       expect(closure).toThrow(new Error("Error, `indexOfId()` is only available on models."));
-
-    });
-
-  });
-
-  describe(".indexOfUuid()", function() {
-
-    it("returns the index of an entity with a defined id", function() {
-
-      var a, b, c;
-      var model = this.model;
-
-      var collection = new Collection({ data: [
-        a = new Document({ data: { id: 1, type: 'type1'} }),
-        b = new Document({ data: { id: 2, type: 'type2'} }),
-        c = new Document({ data: { id: 3, type: 'type1'} })
-      ] });
-
-      expect(collection.indexOfUuid(a.uuid())).toBe(0);
-      expect(collection.indexOfUuid(b.uuid())).toBe(1);
-      expect(collection.indexOfUuid(c.uuid())).toBe(2);
-
-    });
-
-    it("throws an error when collection doesn't contain documents", function() {
-
-        closure = function() {
-          var collection = new Collection({ data: ['a', 'b', 'c'] });
-          collection.indexOfUuid(1);
-        };
-        expect(closure).toThrow(new Error("Error, `indexOfUuid()` is only available on documents."));
 
     });
 

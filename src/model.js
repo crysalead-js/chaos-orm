@@ -238,8 +238,6 @@ class Model extends Document {
     if (!id) {
       throw new Error("Existing entities must have a valid ID.");
     }
-    var source = this.schema().source();
-    this.uuid(source + ':' + id);
   }
 
   /**

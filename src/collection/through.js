@@ -365,6 +365,103 @@ class Through {
    */
   set length(value) {}
 
+  /**
+   * Return the collection indexed by an arbitrary field name.
+   *
+   * @param  String  field   The field name to use for indexing
+   * @param  boolean byIndex If `true` return index numbers attached to the index instead of documents.
+   * @return Object          The indexed collection
+   */
+  indexBy(field, byIndex) {
+    var indexes = {};
+    var collection = this._parent.get(this._through);
+    var Document = collection.constructor.classes().document;
+    this.forEach(function(document, key) {
+      if (!(document instanceof Document)) {
+        throw new Error("Only document can be indexed.");
+      }
+
+      var index = document.get(field);
+      if (!indexes[index]) {
+        indexes[index] = [];
+      }
+      indexes[index].push(byIndex ? key : document);
+    });
+    return indexes;
+  }
+
+  /**
+   * Find the index of an item.
+   *
+   * @param  mixed   item      The item to look for.
+   * @param  Integer fromIndex The index to start the search at If the provided index value is a negative number,
+   *                           it is taken as the offset from the end of the array.
+   *                           Note: if the provided index is negative, the array is still searched from front to back
+   * @return Integer           The first index of the element in the array; -1 if not found.
+   */
+  indexOf(item, fromIndex) {
+    var n = Math.abs(+fromIndex) || 0;
+    var index = Math.max(n >= 0 ? n : len - n, 0);
+    var collection = this._parent.get(this._through);
+
+    while (index < collection.length) {
+      if (collection.get(index).get(this._using) === item) {
+        return index;
+      }
+      index++;
+    }
+    return -1;
+  }
+
+  /**
+   * Find the last index of an item.
+   *
+   * @param  mixed   item      The item to look for.
+   * @param  Integer fromIndex The index to start the search at If the provided index value is a negative number,
+   *                           it is taken as the offset from the end of the array.
+   *                           Note: if the provided index is negative, the array is still searched from front to back
+   * @return Integer           The first index of the element in the array; -1 if not found.
+   */
+  lastIndexOf(item, fromIndex) {
+    var n = Math.abs(+fromIndex) || 0;
+    var index = Math.max(n >= 0 ? n : len - n, 0);
+    var collection = this._parent.get(this._through);
+
+    var result = -1;
+
+    while (index < collection.length) {
+      if (collection.get(index).get(this._using) === item) {
+        result = index;
+      }
+      index++;
+    }
+    return result;
+  }
+
+  /**
+   * Find the index of an entity with a defined id.
+   *
+   * @param  mixed             id The entity id to look for.
+   * @return Integer|undefined    The entity's index number in the collection or `undefined` if not found.
+   */
+  indexOfId(id) {
+    var index = 0;
+    var collection = this._parent.get(this._through);
+    var Model = collection.constructor.classes().model;
+
+    id = String(id);
+
+    while (index < collection.length) {
+      var entity = collection.get(index).get(this._using);
+      if (!(entity instanceof Model)) {
+        throw new Error('Error, `indexOfId()` is only available on models.');
+      }
+      if (String(entity.id()) === id) {
+        return index;
+      }
+      index++;
+    }
+  }
 
   /**
    * Filters a copy of the items in the collection.
