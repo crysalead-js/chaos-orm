@@ -389,7 +389,7 @@ class Document {
       }
       return result;
     }
-    var keys = Array.isArray(name) ? name : dotpath(name);
+    var keys = Array.isArray(name) ? name.slice() : dotpath(name);
     name = keys.shift();
     if (!name) {
       throw new Error("Field name can't be empty.");
@@ -505,7 +505,7 @@ class Document {
    * @param Array  options An options array.
    */
   _set(name, data) {
-    var keys = Array.isArray(name) ? name : dotpath(name);
+    var keys = Array.isArray(name) ? name.slice() : dotpath(name);
     var name = keys.shift();
 
     if (!name) {
@@ -560,7 +560,7 @@ class Document {
    * @param String name The field name.
    */
   trigger(type, name, ignore) {
-    name = Array.isArray(name) ? name : (name != null ? [name] : []);
+    name = Array.isArray(name) ? name.slice() : (name != null ? [name] : []);
     ignore = ignore || new Map();
 
     if (ignore.has(this)) {
@@ -604,7 +604,7 @@ class Document {
    * @param String name A field name.
    */
   has(name) {
-    var keys = Array.isArray(name) ? name : dotpath(name);
+    var keys = Array.isArray(name) ? name.slice() : dotpath(name);
     if (!keys.length) {
       return;
     }
@@ -623,7 +623,7 @@ class Document {
    * @param String name A field name.
    */
   remove(name) {
-    var keys = Array.isArray(name) ? name : dotpath(name);
+    var keys = Array.isArray(name) ? name.slice() : dotpath(name);
     if (!keys.length) {
       return;
     }
