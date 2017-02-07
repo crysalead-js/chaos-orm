@@ -636,14 +636,26 @@ class Collection {
   }
 
   /**
-   * Extracts a slice of length items starting at position offset from the Collection.
+   * Extracts a slice of length items containing the elements from the given start index up the one right before the specified end index.
    *
-   * @param  integer offset The offset value.
-   * @param  integer length The number of element to extract.
-   * @return Object         Returns a collection instance.
+   * @param  integer start The start offset.
+   * @param  integer end   The end offset.
+   * @return Object        Returns a sliced collection instance.
    */
-  slice(offset, length) {
-    return new this.constructor({ data: this._data.splice(offset, length) });
+  slice(start, end) {
+    return new this.constructor({ data: this._data.slice(start, end) });
+  }
+
+  /**
+   * Changes the contents of an array by removing existing elements and/or adding new elements.
+   *
+   * @param  integer  offset The offset value.
+   * @param  integer  length The number of element to extract.
+   * @return Array           An array containing the deleted elements.
+   */
+  splice(offset, length) {
+    var result = this._data.splice(offset, length);
+    return result;
   }
 
   /**

@@ -225,12 +225,41 @@ describe("Through", function() {
 
     it("extracts a slice of items", function() {
 
-      var result = this.through.slice(2, 2);
+      var result = this.through.slice(2, 4);
 
       expect(result instanceof Collection).toBe(true);
       expect(result.data()).toEqual([
         { name: '2' },
         { name: '3' }
+      ]);
+
+    });
+
+  });
+
+  describe(".splice()", function() {
+
+    it("removes some items", function() {
+
+      this.through.splice(2, 2);
+      expect(this.through.data()).toEqual([
+        { name: '0' },
+        { name: '1' },
+        { name: '4' }
+      ]);
+
+    });
+
+    it("removes & adds some items", function() {
+
+      var tag = new MyTag();
+      tag.set('name', 'new');
+
+      this.through.splice(2, 2, tag);
+      expect(this.through.data()).toEqual([
+        { name: '0' },
+        { name: '1' },
+        { name: '4' }
       ]);
 
     });
@@ -319,7 +348,6 @@ describe("Through", function() {
     });
 
   });
-
 
   describe(".count()", function() {
 

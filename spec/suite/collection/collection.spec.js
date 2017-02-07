@@ -188,10 +188,23 @@ describe("Collection", function() {
     it("extracts a slice of items", function() {
 
       var collection = new Collection({ data: [1, 2, 3, 4, 5] });
-      var result = collection.slice(2, 2);
+      var result = collection.slice(2, 4);
 
       expect(result).not.toBe(collection);
       expect(result.data()).toEqual([3, 4]);
+
+    });
+
+  });
+
+  describe(".splice()", function() {
+
+    it("removes some items", function() {
+
+      var collection = new Collection({ data: [1, 2, 3, 4, 5] });
+      collection.splice(2, 2);
+
+      expect(collection.data()).toEqual([1, 2, 5]);
 
     });
 

@@ -443,6 +443,24 @@ class Through {
   }
 
   /**
+   * Changes the contents of an array by removing existing elements and/or adding new elements.
+   *
+   * @param  integer  offset The offset value.
+   * @param  integer  length The number of element to extract.
+   * @return Array           An array containing the deleted elements.
+   */
+  splice(offset, length) {
+    this._parent.get(this._through).splice(offset, length);
+
+    var data = [];
+    this.forEach(function(value, key) {
+      data.push(value.get(this._using));
+    }.bind(this));
+
+    return new Collection({ data: data });
+  }
+
+  /**
    * Eager loads relations.
    *
    * @param Array relations The relations to eager load.
