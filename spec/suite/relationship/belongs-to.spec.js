@@ -74,7 +74,7 @@ describe("BelongsTo", function() {
           { id: 1, name: 'Foo Gallery' },
           { id: 2, name: 'Bar Gallery' }
         ], {
-          type: 'set', exists: true, collector: fetchOptions.collector
+          type: 'set', exists: true
         });
         if (fetchOptions['return'] && fetchOptions['return'] === 'object') {
           return Promise.resolve(galleries.data());
@@ -100,13 +100,10 @@ describe("BelongsTo", function() {
 
         expect(Gallery.all).toHaveBeenCalledWith({
           conditions: { id: [1, 2] }
-        }, {
-          collector: images.collector()
-        });
+        }, {});
 
         images.forEach(function(image) {
           expect(image.get('gallery').get('id')).toBe(image.get('gallery_id'));
-          expect(image.get('gallery').collector()).toBe(image.collector());
         });
         done();
       });
@@ -131,7 +128,6 @@ describe("BelongsTo", function() {
         expect(Gallery.all).toHaveBeenCalledWith({
           conditions: { id: [1, 2] }
         }, {
-          'collector': undefined,
           'return': 'object'
         });
 

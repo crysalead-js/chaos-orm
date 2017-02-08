@@ -77,7 +77,7 @@ describe("HasOne", function() {
           { id: 1, description: 'Foo Gallery Description', gallery_id: 1 },
           { id: 2, description: 'Bar Gallery Description', gallery_id: 2 }
         ], {
-          type: 'set', exists: true, collector: fetchOptions.collector
+          type: 'set', exists: true
         });
         if (fetchOptions['return'] && fetchOptions['return'] === 'object') {
           return Promise.resolve(details.data());
@@ -100,14 +100,10 @@ describe("HasOne", function() {
 
         expect(GalleryDetail.all).toHaveBeenCalledWith({
           conditions: { gallery_id: [1, 2] }
-        }, {
-          collector: galleries.collector()
-        });
+        }, {});
 
         galleries.forEach(function(gallery) {
           expect(gallery.get('detail').get('gallery_id')).toBe(gallery.get('id'));
-          expect(gallery.get('detail').collector()).toBe(gallery.collector());
-          expect(gallery.get('detail').collector()).toBe(galleries.collector());
         });
         done();
       });
@@ -130,7 +126,6 @@ describe("HasOne", function() {
         expect(GalleryDetail.all).toHaveBeenCalledWith({
           conditions: { gallery_id: [1, 2] }
         }, {
-          'collector': undefined,
           'return': 'object'
         });
 

@@ -82,7 +82,7 @@ describe("HasMany", function() {
           { id: 4, gallery_id: 2, title: 'Silicon Valley' },
           { id: 5, gallery_id: 2, title: 'Unknown' }
         ], {
-          type: 'set', exists: true, collector: fetchOptions.collector
+          type: 'set', exists: true
         });
         if (fetchOptions['return'] && fetchOptions['return'] === 'object') {
           return Promise.resolve(images.data());
@@ -104,15 +104,11 @@ describe("HasMany", function() {
       galleries.embed(['images']).then(function() {
         expect(Image.all).toHaveBeenCalledWith({
           conditions: { gallery_id: [1, 2] }
-        }, {
-          collector: galleries.collector()
-        });
+        }, {});
 
         galleries.forEach(function(gallery) {
           gallery.get('images').forEach(function(image) {
             expect(image.get('gallery_id')).toBe(gallery.get('id'));
-            expect(gallery.collector()).toBe(galleries.collector());
-            expect(image.collector()).toBe(galleries.collector());
           });
         });
         done();
@@ -135,7 +131,6 @@ describe("HasMany", function() {
         expect(Image.all).toHaveBeenCalledWith({
           conditions: { gallery_id: [1, 2] }
         }, {
-          'collector': undefined,
           'return': 'object'
         });
 

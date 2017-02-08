@@ -1,5 +1,5 @@
-var Emitter = require('component-emitter');
 var co = require('co');
+var Emitter = require('component-emitter');
 var dotpath = require('dotpath-parser');
 var extend = require('extend-merge').extend;
 var merge = require('extend-merge').merge;
@@ -7,7 +7,6 @@ var expand = require('expand-flatten').expand;
 var flatten = require('expand-flatten').flatten;
 var Validator = require('chaos-validator').Validator;
 var Conventions = require('./conventions');
-var Collector = require('./collector');
 var Collection = require('./collection/collection');
 var Through = require('./collection/through');
 
@@ -156,7 +155,6 @@ class Document {
    * Creates a new record object with default values.
    *
    * @param array $config Possible options are:
-   *                      - `'collector'`  _Object_  : A collector instance.
    *                      - `'schema'`     _Object_  : The schema instance.
    *                      - `'basePath'`   _String_  : A dotted field names path (for embedded entities).
    *                      - `'defaults'`   _Boolean_ : Populates or not the fields default values.
@@ -165,7 +163,6 @@ class Document {
    */
   constructor(config) {
     var defaults = {
-      collector: undefined,
       schema: undefined,
       basePath: undefined,
       defaults: true,
@@ -197,13 +194,6 @@ class Document {
     this._errors = {};
 
     /**
-     * The collector instance.
-     *
-     * @var Object
-     */
-    this.collector(config.collector);
-
-    /**
      * A reference to `Document`'s parents object.
      *
      * @var Object
@@ -223,9 +213,16 @@ class Document {
       config.data = extend(this.schema().defaults(config.basePath), config.data);
     }
 
-    this.set(config.data);
-    this._persisted = extend({}, this._data);
+    var data = config.data;
+    if (typeof data !== 'object' || data.constructor !== Object) {
+      throw new Error("The `'data'` option need to be a valid plain object.");
+    }
 
+    for (var name in data) {
+      this._set(name, data[name], config.exists);
+    }
+
+    this._persisted = extend({}, this._data);
   }
 
   /**
@@ -252,52 +249,6 @@ class Document {
       this._schema = this.constructor.definition();
     }
     return this._schema;
-  }
-
-  /**
-   * Gets/sets the instance uuid.
-   *
-   * @param  String uuid The uuid to set or none to get it.
-   * @return mixed       The uuid on get or `this` otherwise.
-   */
-  uuid(uuid) {
-    if (arguments.length) {
-      if (this._uuid === uuid) {
-        return this;
-      }
-
-      var collector = this.collector();
-      if (this._uuid) {
-        collector.remove(this._uuid);
-      }
-      this._uuid = uuid;
-      if (this._uuid) {
-        collector.set(this.uuid(), this);
-      }
-      return this;
-    }
-    if (!this._uuid) {
-      this._uuid = Uuid.v4();
-    }
-    return this._uuid;
-  }
-
-  /**
-   * Gets/sets the collector instance.
-   *
-   * @param  Object collector The collector instance to set or none to get it.
-   * @return Object           The collector instance on get and this on set.
-   */
-  collector(collector) {
-    if (arguments.length) {
-      this._collector = collector;
-      return this;
-    }
-    if (this._collector === undefined || this._collector === null) {
-      var collector = this.constructor.classes().collector;
-      this._collector = new collector();
-    }
-    return this._collector;
   }
 
   /**
@@ -330,9 +281,6 @@ class Document {
   removeParent(parent) {
     var parents = this.parents();
     parents.delete(parent);
-    if (parents.size === 0) {
-      this.collector().remove(this.uuid());
-    }
     return this;
   }
 
@@ -424,7 +372,6 @@ class Document {
     }
 
     value = schema.cast(name, value, {
-      collector: this.collector(),
       parent: this,
       basePath: this.basePath(),
       defaults: true
@@ -495,7 +442,7 @@ class Document {
    * @param mixed  data    The value to set.
    * @param Array  options An options array.
    */
-  _set(name, data) {
+  _set(name, data, exists) {
     var keys = Array.isArray(name) ? name.slice() : dotpath(name);
     var name = keys.shift();
 
@@ -519,7 +466,7 @@ class Document {
 
     var previous = this._data[name];
     var value = this.schema().cast(name, data, {
-      collector: this.collector(),
+      exists: !!exists,
       parent: this,
       basePath: this.basePath(),
       defaults: true
@@ -833,7 +780,6 @@ Document._registered = {};
  * @var Object
  */
 Document._classes = {
-  collector: Collector,
   set: Collection,
   through: Through,
   conventions: Conventions

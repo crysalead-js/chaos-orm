@@ -7,7 +7,6 @@ var flatten = require('expand-flatten').flatten;
 var Validator = require('chaos-validator').Validator;
 var Document = require('./document');
 var Conventions = require('./conventions');
-var Collector = require('./collector');
 var Collection = require('./collection/collection');
 var Through = require('./collection/through');
 
@@ -22,7 +21,7 @@ class Model extends Document {
   static connection(connection) {
     if (arguments.length) {
       this._connection = connection;
-      this._definitions.delete(this);
+      Model._definitions.delete(this);
       return this;
     }
     return this._connection;
@@ -36,15 +35,15 @@ class Model extends Document {
    */
   static validator(validator) {
     if (arguments.length) {
-      this._validators[this.name] = validator;
+      Model._validators[this.name] = validator;
       return;
     }
 
-    if (this._validators[this.name]) {
-      return this._validators[this.name];
+    if (Model._validators[this.name]) {
+      return Model._validators[this.name];
     }
     var classname = this.classes().validator;
-    var validator = this._validators[this.name] = new classname();
+    var validator = Model._validators[this.name] = new classname();
     this._rules(validator);
     return validator;
   }
@@ -73,14 +72,14 @@ class Model extends Document {
       if (typeof schema === 'function') {
         this._definition = schema;
       } else if (schema) {
-        this._definitions.set(this, schema);
+        Model._definitions.set(this, schema);
       } else {
-        this._definitions.delete(this);
+        Model._definitions.delete(this);
       }
       return this;
     }
-    if (this._definitions.has(this)) {
-      return this._definitions.get(this);
+    if (Model._definitions.has(this)) {
+      return Model._definitions.get(this);
     }
 
     var config = {
@@ -92,9 +91,43 @@ class Model extends Document {
     config.source = this.conventions().apply('source', this.name);
 
     var schema = new this._definition(config);
-    this._definitions.set(this, schema);
+    Model._definitions.set(this, schema);
     this._define(schema);
     return schema;
+  }
+
+  /**
+   * Gets/sets the collector instance for the model.
+   *
+   * @param  Object collector The collector instance to set or none to get it.
+   * @return Object           The collector instance on get and `this` on set.
+   */
+  static unicity(enable) {
+    if (!arguments.length) {
+      return this._unicity;
+    }
+    this._unicity = !!enable;
+  }
+
+  /**
+   * Get the shard attached to the model.
+   *
+   * @param  Object collector The collector instance to set or none to get it.
+   * @return Object           The collector instance on get and `this` on set.
+   */
+  static shard(collector) {
+    if (arguments.length) {
+      if (collector) {
+        Model._shards.set(this, collector);
+      } else {
+        Model._shards.delete(this);
+      }
+      return this;
+    }
+    if (!Model._shards.has(this)) {
+      Model._shards.set(this, new Map());
+    }
+    return Model._shards.get(this);
   }
 
   /**
@@ -138,6 +171,70 @@ class Model extends Document {
    * @param Object validator The validator instance.
    */
   static _rules(validator) {
+  }
+
+  /**
+   * Instantiates a new record or document object, initialized with any data passed in. For example:
+   *
+   * ```php
+   * var post = Post.create({ title: 'New post' });
+   * echo post.get('title'); // echoes 'New post'
+   * var success = post.save();
+   * ```
+   *
+   * Note that while this method creates a new object, there is no effect on the database until
+   * the `save()` method is called.
+   *
+   * In addition, this method can be used to simulate loading a pre-existing object from the
+   * database, without actually querying the database:
+   *
+   * ```php
+   * var post = Post::create({ id: id, moreData: 'foo' }, { exists: true });
+   * post.set('title', 'New title');
+   * var success = post.save();
+   * ```
+   *
+   * @param  Object data    Any data that this object should be populated with initially.
+   * @param  Object options Options to be passed to item.
+   *                        - `'type'`  _String_   : can be `'entity'` or `'set'`. `'set'` is used if the passed data represent a collection
+   *                                                     of entities. Default to `'entity'`.
+   *                        - `'class'` _Function_ : the class document to use to create entities.
+   * @return Object         Returns a new, un-saved record or document object. In addition to
+   *                        the values passed to `data`, the object will also contain any values
+   *                        assigned to the `'default'` key of each field defined in the schema.
+   */
+  static create(data, options)
+  {
+    var defaults = {
+      type: 'entity',
+      class: this,
+      exists: false,
+    };
+
+    options = extend({}, defaults, options);
+
+    var type = options.type;
+    var classname;
+
+    if (type === 'entity') {
+      classname = options.class;
+      if (this.unicity() && options.exists) {
+        data = data || {};
+        var id = data[this.definition().key()];
+        var collector = this.shard();
+        if (id != null && collector.has(id)) {
+          var instance = collector.get(id);
+          instance.sync(null, data);
+          return instance;
+        }
+      }
+    } else {
+      options.schema = this.definition();
+      classname = this._classes[type];
+    }
+
+    options = extend({}, options, { data: data });
+    return new classname(options);
   }
 
   /**
@@ -199,7 +296,13 @@ class Model extends Document {
     this.definition(undefined);
     this.validator(undefined);
     this.query({});
-    this._definitions.delete(this);
+    if (this === Model) {
+      this._unicity = false;
+    } else {
+      delete this._unicity;
+    }
+    Model._definitions.delete(this);
+    Model._shards.delete(this);
   }
 
   /***************************
@@ -238,6 +341,14 @@ class Model extends Document {
     if (!id) {
       throw new Error("Existing entities must have a valid ID.");
     }
+    if (!this.constructor.unicity()) {
+      return;
+    }
+    var shard = this.constructor.shard();
+    if (shard.has(id)) {
+      throw new Error("Entities duplication is not allowed when unicity is enabled.");
+    }
+    shard.set(id, this);
   }
 
   /**
@@ -298,6 +409,17 @@ class Model extends Document {
     }
     this.set(extend({}, this._data, data));
     this._persisted = extend({}, this._data);
+    if (!this.constructor.unicity()) {
+      return this;
+    }
+    id = this.get(key);
+    if (id != null) {
+      if (this.exists()) {
+        this.constructor.shard().set(id, this);
+      } else {
+        this.constructor.shard().delete(id);
+      }
+    }
     return this;
   }
 
@@ -563,19 +685,11 @@ class Model extends Document {
  * @var Object
  */
 Model._classes = {
-  collector: Collector,
   set: Collection,
   through: Through,
   conventions: Conventions,
   validator: Validator
 };
-
-/**
- * Registered name.
- *
- * @var Object
- */
-Model._name = undefined;
 
 /**
  * Stores validator instances.
@@ -585,6 +699,34 @@ Model._name = undefined;
 Model._validators = {};
 
 /**
+ * Stores model's schema.
+ *
+ * @var Map
+ */
+Model._definitions = new Map();
+
+/**
+ * Enable entities unicity
+ *
+ * @var Boolean
+ */
+Model._unicity = false;
+
+/**
+ * Source of truths when unicity is enabled.
+ *
+ * @var Map.
+ */
+Model._shards = new Map();
+
+/**
+ * Registered name.
+ *
+ * @var Object
+ */
+Model._name = undefined;
+
+/**
  * Default query parameters for the model finders.
  *
  * @var Object
@@ -592,28 +734,21 @@ Model._validators = {};
 Model._query = {};
 
 /**
- * Stores model's schema.
- *
- * @var Object
- */
-Model._definitions = new Map();
-
-/**
- * MUST BE re-defined in sub-classes which require some different conventions.
+ * Naming conventions.
  *
  * @var Object A naming conventions.
  */
 Model._conventions = undefined;
 
 /**
- * MUST BE re-defined in sub-classes which require a different connection.
+ * Connection.
  *
  * @var Object The connection instance.
  */
 Model._connection = undefined;
 
 /**
- * MUST BE re-defined in sub-classes which require a different schema.
+ * Schema.
  *
  * @var Function
  */

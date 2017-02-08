@@ -102,7 +102,7 @@ describe("HasManyThrough", function() {
           { id: 5, image_id: 4, tag_id: 6 },
           { id: 6, image_id: 4, tag_id: 3 },
           { id: 7, image_id: 4, tag_id: 1 }
-        ], { type: 'set', exists: true, collector: fetchOptions.collector });
+        ], { type: 'set', exists: true });
         if (!fetchOptions['return']) {
           return Promise.resolve(imagesTags);
         }
@@ -120,7 +120,7 @@ describe("HasManyThrough", function() {
           { id: 4, name: 'Art' },
           { id: 5, name: 'Science' },
           { id: 6, name: 'City' }
-        ], { type: 'set', exists: true, collector: fetchOptions.collector });
+        ], { type: 'set', exists: true });
         if (!fetchOptions['return']) {
           return Promise.resolve(tags);
         }
@@ -146,20 +146,16 @@ describe("HasManyThrough", function() {
 
         expect(ImageTag.all).toHaveBeenCalledWith({
           conditions: { image_id: [1, 2, 3, 4, 5] }
-        }, { collector: images.collector() });
+        }, {});
 
         expect(Tag.all).toHaveBeenCalledWith({
           conditions: { id: [1, 3, 5, 6] }
-        }, { collector: images.collector() });
+        }, {});
 
         images.forEach(function(image) {
           image.get('images_tags').forEach(function(image_tag, index) {
             expect(image_tag.get('tag')).not.toBe(undefined);
             expect(image.get('tags').get(index)).toBe(image_tag.get('tag'));
-            expect(image.get('tags').get(index).collector()).toBe(image_tag.get('tag').collector());
-            expect(image.get('tags').get(index).collector()).toBe(image_tag.collector());
-            expect(image.get('tags').get(index).collector()).toBe(image.collector());
-            expect(image.get('tags').get(index).collector()).toBe(images.collector());
           });
         });
         done();
@@ -186,11 +182,11 @@ describe("HasManyThrough", function() {
 
         expect(ImageTag.all).toHaveBeenCalledWith({
           conditions: { image_id: [1, 2, 3, 4, 5] }
-        }, { 'collector': undefined, 'return': 'object' });
+        }, { 'return': 'object' });
 
         expect(Tag.all).toHaveBeenCalledWith({
           conditions: { id: [1, 3, 5, 6] }
-        }, { 'collector': undefined, 'return': 'object' });
+        }, { 'return': 'object' });
 
         images.forEach(function(image) {
           image['images_tags'].forEach(function(image_tag, index) {

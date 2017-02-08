@@ -3,6 +3,7 @@ var Conventions = require('../../src/conventions');
 var Source = require('../../src/source');
 var Schema = require('../../src/schema');
 var Model = require('../../src/').Model;
+var Image = require('../fixture/model/image');
 
 class MyModel extends Model {
   static _define(schema) {
@@ -133,6 +134,33 @@ describe("Model", function() {
       var collection = MyModel.create(data, { type: 'set' });
 
       expect(collection).toBeAnInstanceOf(MyCollection);
+
+    });
+
+    context("when unicity is enabled", function() {
+
+      it("keeps a single reference of entities with the same ID", function() {
+
+        MyModel.unicity(true);
+        var data = { id: '1', title: 'Amiga 1200' };
+        var entity = MyModel.create(data, { exists: true });
+
+        expect(entity instanceof MyModel).toBe(true);
+        expect(entity.data()).toEqual(data);
+        expect(entity.exists()).toBe(true);
+
+        var shard = MyModel.shard();
+        expect(shard.has(entity.id())).toBe(true);
+
+        var entity2 = MyModel.create(data, { exists: true });
+
+        expect(entity).toEqual(entity2);
+
+        expect(shard.size).toBe(1);
+
+        MyModel.reset();
+
+      });
 
     });
 
@@ -300,5 +328,59 @@ describe("Model", function() {
     });
 
   });
+
+  describe(".unicity()", function() {
+
+    it("gets/sets unicity", function() {
+
+      MyModel.unicity(true);
+      expect(MyModel.unicity()).toBe(true);
+
+      MyModel.reset();
+      expect(MyModel.unicity()).toBe(false);
+
+    });
+
+  });
+
+  describe(".shard()", function() {
+
+    beforeEach(function() {
+      MyModel.unicity(true);
+    });
+
+    afterEach(function() {
+      MyModel.reset();
+    })
+
+    it("gets/sets a shard", function() {
+
+      var shard = new Map();
+      expect(MyModel.shard(shard)).toBe(MyModel);
+      expect(MyModel.shard()).toBe(shard);
+
+    });
+
+    it("gets the default shard", function() {
+
+      var shard = MyModel.shard();
+      expect(MyModel.shard()).toBeAnInstanceOf(Map);
+      expect(MyModel.shard()).toBe(shard);
+
+      expect(Image.shard()).not.toBe(shard);
+
+    });
+
+    it("deletes a shard", function() {
+
+      var shard = MyModel.shard();
+
+      MyModel.shard(false);
+      expect(MyModel.shard()).not.toBe(shard);
+
+    });
+
+  });
+
 
 });

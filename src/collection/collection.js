@@ -3,7 +3,6 @@ var co = require('co');
 var dotpath = require('dotpath-parser');
 var extend = require('extend-merge').extend;
 var merge = require('extend-merge').merge;
-var Collector = require('../collector');
 
 /**
  * `Collection` provide context-specific features for working with sets of data persisted by a backend data store.
@@ -27,7 +26,6 @@ class Collection {
    * Creates a collection.
    *
    * @param Object config Possible options are:
-   *                      - `'collector'` _Object_ : A collector instance.
    *                      - `'basePath'`  _String_ : A dotted string field path.
    *                      - `'schema'`    _String_ : The attached schema.
    *                      - `'meta'`      _Array_  : Some meta data.
@@ -35,7 +33,6 @@ class Collection {
    */
   constructor(config) {
     var defaults = {
-      collector: undefined,
       basePath: undefined,
       schema: undefined,
       meta: {},
@@ -92,10 +89,6 @@ class Collection {
      */
     this._parents = new Map();
 
-    this._collector = undefined;
-
-    this.collector(config.collector);
-
     this.exists(config.exists);
 
     this.basePath(config.basePath);
@@ -109,24 +102,6 @@ class Collection {
     for (i = 0; i < len; i++) {
       this.set(undefined, config.data[i]);
     }
-  }
-
-  /**
-   * Gets/sets the collector.
-   *
-   * @param  Object collector The collector instance to set or none to get the current one.
-   * @return Object           A collector instance on get or `this` otherwise.
-   */
-  collector(collector) {
-    if (arguments.length) {
-      this._collector = collector;
-      return this;
-    }
-    if (this._collector === undefined || this._collector === null) {
-      var collector = this.constructor.classes().collector;
-      this._collector = new collector();
-    }
-    return this._collector;
   }
 
   /**
@@ -327,13 +302,11 @@ class Collection {
 
     if (this.schema()) {
       data = this.schema().cast(undefined, data, {
-        collector: this.collector(),
         basePath: this.basePath(),
         exists: this.exists(),
         defaults: true
       });
-    } else if (data && data.collector) {
-      data.collector(this.collector());
+    } else if (data && data.setParent) {
       data.setParent(this, offset);
       data.basePath(this.basePath());
     }
@@ -960,9 +933,7 @@ class Collection {
  *
  * @var Object
  */
-Collection._classes = {
-  collector: Collector
-};
+Collection._classes = {};
 
 /**
  * Contains all exportable formats and their handler

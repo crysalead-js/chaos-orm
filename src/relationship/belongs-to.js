@@ -33,7 +33,6 @@ class BelongsTo extends Relationship {
   embed(collection, options) {
     return co(function*() {
       var indexes = this._index(collection, this.keys('from'));
-      options = merge({}, { fetchOptions: { collector: this._collector(collection) } }, options);
 
       var related = yield this._find(Array.from(indexes.keys()), options);
       var name = this.name();

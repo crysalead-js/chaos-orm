@@ -1,5 +1,4 @@
 var Conventions = require('./conventions');
-var Collector = require('./collector');
 var Collection = require('./collection/collection');
 var Through = require('./collection/through');
 var Source = require('./source');
@@ -22,7 +21,6 @@ Collection._classes.model = Model;
 
 module.exports = {
   Conventions,
-  Collector,
   Collection,
   Through,
   Source,

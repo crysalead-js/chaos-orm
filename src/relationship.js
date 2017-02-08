@@ -318,8 +318,6 @@ class Relationship {
 
   //   strategies[this.constructor.LINK_KEY] = function(entity, relationship, options) {
   //     return Promise(function(resolve, reject) {
-
-  //       options = extend({}, { fetchOptions: { collector: this._collector(entity) } }, options);
   //       var collection;
 
   //       if (relationship.type() === 'hasManyThrough') {
@@ -348,11 +346,7 @@ class Relationship {
   //   }.bind(this);
 
   //   strategies[this.constructor.LINK_KEY_LIST] = function(object, relationship, options) {
-  //     return this._find(entity.get(relationship.keys('from')), extend({}, {
-  //       fetchOptions: {
-  //         collector: this._collector(entity)
-  //       }
-  //     }, options));
+  //     return this._find(entity.get(relationship.keys('from')), options);
   //   }.bind(this);
 
   //   return strategies;
@@ -390,25 +384,13 @@ class Relationship {
     var to = this.to();
 
     if (!id || !id.length) {
-      return Promise.resolve(to.create([], { type: 'set', collector: fetchOptions.collector }));
+      return Promise.resolve(to.create([], { type: 'set' }));
     }
     var query, defaultQuery = { conditions: {} };
 
     defaultQuery.conditions[this.keys('to')] = id;
     query = extend({}, defaultQuery, options.query);
     return to.all(query, fetchOptions);
-  }
-
-  /**
-   * Extracts the collector from an object
-   *
-   * @param  mixed            object An instance.
-   * @return Object|undefined        The collector instance or `undefined` if unavailable.
-   */
-  _collector(object) {
-    if (typeof object.collector === 'function') {
-      return object.collector();
-    }
   }
 
   /**

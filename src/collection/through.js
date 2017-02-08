@@ -70,20 +70,6 @@ class Through {
   }
 
   /**
-   * Gets/sets the collector.
-   *
-   * @param  Object collector The collector instance to set or none to get the current one.
-   * @return Object           A collector instance on get or `this` otherwise.
-   */
-  collector(collector) {
-    if (!arguments.length) {
-      return this._parent.get(this._through).collector();
-    }
-    this._parent.get(this._through).collector(collector);
-    return this;
-  }
-
-  /**
    * Get parents.
    *
    * @return Map Returns the parents map.

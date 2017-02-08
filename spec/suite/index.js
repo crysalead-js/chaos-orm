@@ -1,7 +1,6 @@
 Promise = require('bluebird');
 
 require('./conventions.spec');
-require('./collector.spec');
 require('./collection/collection.spec');
 require('./collection/through.spec');
 require('./source.spec');

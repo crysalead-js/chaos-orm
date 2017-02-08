@@ -906,7 +906,6 @@ class Schema {
    */
   cast(field, data, options) {
     var defaults = {
-      collector: undefined,
       parent: undefined,
       basePath: undefined,
       exists: false,
@@ -943,6 +942,8 @@ class Schema {
     if (Array.isArray(data)) {
       return this._castArray(name, data, options);
     }
+
+    options.class = Document;
     if (data !== null && typeof data === 'object' && data.constructor === Object) {
       options.basePath = name;
       return this._cast(data, options);
@@ -962,7 +963,6 @@ class Schema {
       return data;
     }
     var config = extend({
-      collector: options.collector,
       schema: options.class === Document ? this : undefined,
       basePath: options.basePath,
       exists: options.exists,
@@ -987,7 +987,6 @@ class Schema {
 
     var isDocument = options.class === Document;
     var config = extend({
-      collector: options.collector,
       schema: isDocument ? this : options.class.definition(),
       basePath: isDocument ? name : undefined,
       data: data ? data : [],

@@ -121,8 +121,6 @@ class HasManyThrough extends Relationship {
    */
   embed(collection, options) {
     return co(function*() {
-      options = merge({}, { fetchOptions: { collector: this._collector(collection) } }, options);
-
       var name = this.name();
       var through = this.through();
       var using = this.using();

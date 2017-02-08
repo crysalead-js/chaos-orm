@@ -43,6 +43,45 @@ describe("Entity", function() {
 
     });
 
+    it("applies same `exists` value for children", function() {
+
+      var image = Image.create({
+        id: 123,
+        name: 'amiga_1200.jpg',
+        title: 'Amiga 1200',
+        gallery: { id: 456, name: 'MyGallery' }
+      }, {
+        exists: true
+      });
+
+      expect(image.exists()).toBe(true);
+      expect(image.get('gallery').exists()).toBe(true);
+
+    });
+
+    context("when unicity is enabled", function() {
+
+      it("throws an exception when trying to make duplications", function() {
+
+        MyModel.unicity(true);
+        var data = { id: '1', title: 'Amiga 1200' };
+        var entity = MyModel.create(data, { exists: true });
+
+        var closure = function() {
+          new MyModel({
+            data: data,
+            exists: true
+          });
+        };
+
+        expect(closure).toThrow(new Error('Entities duplication is not allowed when unicity is enabled.'));
+
+        MyModel.reset();
+
+      });
+
+    });
+
   });
 
   describe(".self()", function() {
@@ -154,6 +193,52 @@ describe("Entity", function() {
 
     });
 
+    context("when unicity is enabled", function() {
+
+      it("stores the entity in the shard when the entity has been persisted", function() {
+
+        MyModel.unicity(true);
+        var shard = MyModel.shard();
+
+        var data = { id: '1', title: 'Amiga 1200' };
+        var entity = MyModel.create(data);
+
+        expect(shard.has(entity.id())).toBe(false);
+
+        entity.sync(undefined, { name: 'file.jpg' }, {exists: true});
+
+        expect(shard.has(entity.id())).toBe(true);
+        expect(shard.size).toBe(1);
+
+        expect(entity.get('name')).toBe('file.jpg');
+
+        MyModel.reset();
+
+      });
+
+      it("removes the entity from the shard when the entity has been deleted", function() {
+
+        MyModel.unicity(true);
+        var shard = MyModel.shard();
+
+        var data = { id: '1', title: 'Amiga 1200' };
+        var entity = MyModel.create(data, { exists: true });
+
+        expect(shard.has(entity.id())).toBe(true);
+        expect(shard.size).toBe(1);
+
+        entity.sync(undefined, { name: 'file.jpg' }, { exists: false });
+
+        expect(shard.has(entity.id())).toBe(false);
+
+        expect(entity.get('name')).toBe('file.jpg');
+
+        MyModel.reset();
+
+      });
+
+    });
+
   });
 
   describe(".get()/.set()", function() {
@@ -207,6 +292,10 @@ describe("Entity", function() {
           }
         }
       });
+
+      expect(image).toBeAnInstanceOf(Image);
+      expect(image.get('a')).toBeAnInstanceOf(Document);
+      expect(image.get('a.nested')).toBeAnInstanceOf(Document);
 
     });
 
