@@ -145,7 +145,7 @@ class HasMany extends Relationship {
         var toKey = this.keys('to');
         previous.forEach(function (item, index) {
           if (!existing[index]) {
-            item.remove(toKey);
+            item.unset(toKey);
             promises.push(item.broadcast());
           }
         });

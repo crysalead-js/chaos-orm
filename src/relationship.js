@@ -433,7 +433,7 @@ class Relationship {
 
     collection.forEach(function(entity) {
       if (entity instanceof Model) {
-        entity.remove(name);
+        entity.unset(name);
       } else {
         delete entity[name];
       }

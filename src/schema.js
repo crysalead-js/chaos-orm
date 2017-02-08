@@ -490,12 +490,12 @@ class Schema {
   }
 
   /**
-   * Removes a field/some fields from the schema.
+   * Unset a field/some fields from the schema.
    *
    * @param  string|array name The field name or an array of field names to remove.
    * @return object             Returns `this`.
    */
-  remove(name) {
+  unset(name) {
     var names = Array.isArray(name) ? name : [name];
     var i, len = name.length;
     for (var i = 0; i < len; i++) {

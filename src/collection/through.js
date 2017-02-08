@@ -96,8 +96,8 @@ class Through {
    * @param  Object parent The parent instance to remove.
    * @return self
    */
-  removeParent(parent) {
-    this._parent.get(this._through).removeParent(parent);
+  unsetParent(parent) {
+    this._parent.get(this._through).unsetParent(parent);
     return this;
   }
 
@@ -289,12 +289,12 @@ class Through {
   }
 
   /**
-   * Unsets an offset.
+   * Unset an offset.
    *
    * @param integer offset The offset to remove.
    */
-  remove(offset) {
-    this._parent.get(this._through).remove(offset);
+  unset(offset) {
+    this._parent.get(this._through).unset(offset);
   }
 
   /**

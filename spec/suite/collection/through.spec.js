@@ -77,9 +77,9 @@ describe("Through", function() {
 
   describe(".unsetParent()", function() {
 
-    it("removes a parent", function() {
+    it("unsets a parent", function() {
 
-      this.image.remove('tags');
+      this.image.unset('tags');
       expect(this.through.parents().has(this.image)).toBe(false);
 
     });
@@ -321,12 +321,12 @@ describe("Through", function() {
 
   });
 
-  describe(".remove()", function() {
+  describe(".unset()", function() {
 
-    it("removes items", function() {
+    it("unsets items", function() {
 
-      this.through.remove(1);
-      this.through.remove(1);
+      this.through.unset(1);
+      this.through.unset(1);
 
       expect(this.through.count()).toBe(3);
       expect(this.through.data()).toEqual([

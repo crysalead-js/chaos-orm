@@ -278,7 +278,7 @@ class Document {
    * @param  Object parent The parent instance to remove.
    * @return self
    */
-  removeParent(parent) {
+  unsetParent(parent) {
     var parents = this.parents();
     parents.delete(parent);
     return this;
@@ -294,7 +294,7 @@ class Document {
     var parents = this.parents();
     for (var object of parents.keys()) {
       var path = parents.get(object);
-      object.remove(path);
+      object.unset(path);
     }
     return this;
   }
@@ -485,8 +485,8 @@ class Document {
       value.setParent(this, name);
     }
 
-    if (previous && typeof previous.removeParent === 'function') {
-      previous.removeParent(this);
+    if (previous && typeof previous.unsetParent === 'function') {
+      previous.unsetParent(this);
     }
     this.trigger('modified', name);
   }
@@ -556,11 +556,11 @@ class Document {
   }
 
   /**
-   * Unsets a property.
+   * Unset a property.
    *
    * @param String name A field name.
    */
-  remove(name) {
+  unset(name) {
     var keys = Array.isArray(name) ? name.slice() : dotpath(name);
     if (!keys.length) {
       return;
@@ -570,13 +570,13 @@ class Document {
     if (keys.length) {
       var value = this.get(name);
       if (value instanceof Document) {
-        value.remove(keys);
+        value.unset(keys);
       }
       return;
     }
     var value = this._data[name];
-    if (value && typeof value.removeParent === 'function') {
-      value.removeParent(this);
+    if (value && typeof value.unsetParent === 'function') {
+      value.unsetParent(this);
     }
     if (this._data[name] !== undefined) {
       delete this._data[name];

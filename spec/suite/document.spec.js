@@ -49,14 +49,14 @@ describe("Document", function() {
 
   });
 
-  describe(".removeParent()", function() {
+  describe(".unsetParent()", function() {
 
-    it("removes a parent", function() {
+    it("unsets a parent", function() {
 
       var parent = new Document();
       var document = new Document();
       parent.set('value', document);
-      parent.remove('value');
+      parent.unset('value');
       expect(document.parents().has(parent)).toBe(false);
 
     });
@@ -350,9 +350,9 @@ describe("Document", function() {
 
   });
 
-  describe(".remove()", function() {
+  describe(".unset()", function() {
 
-    it("removes items", function() {
+    it("unsets items", function() {
 
       var data = {
         id: 1,
@@ -362,8 +362,8 @@ describe("Document", function() {
       };
 
       var document = new Document({ data: data });
-      document.remove('body');
-      document.remove('enabled');
+      document.unset('body');
+      document.unset('enabled');
 
       expect(document.data()).toEqual({
         id: 1,
@@ -372,13 +372,13 @@ describe("Document", function() {
 
     });
 
-    it("removes items using a dotted notation", function() {
+    it("unsets items using a dotted notation", function() {
 
       var document = new Document();
       document.set('field1.field1', 'foo');
       document.set('field2.field2', null);
-      document.remove('field1.field1');
-      document.remove('field2.field2');
+      document.unset('field1.field1');
+      document.unset('field2.field2');
 
       expect(document.has('field1.field1')).toBe(false);
       expect(document.has('field2.field2')).toBe(false);
@@ -394,7 +394,7 @@ describe("Document", function() {
         expect(path).toEqual(['a', 'nested', 'value']);
         done();
       });
-      document.remove('a.nested.value', 'hello');
+      document.unset('a.nested.value', 'hello');
 
     });
 
@@ -533,7 +533,7 @@ describe("Document", function() {
 
     });
 
-    it("returns `true` when a field is removed", function() {
+    it("returns `true` when a field is unsetted", function() {
 
       var document = new Document({
         data: {
@@ -543,7 +543,7 @@ describe("Document", function() {
 
       expect(document.modified('title')).toBe(false);
 
-      document.remove('title');
+      document.unset('title');
       expect(document.modified('title')).toBe(true);
 
     });
