@@ -211,6 +211,13 @@ class Document {
     this._parents = new Map();
 
     /**
+     * A reference to `Document`'s watches.
+     *
+     * @var Map
+     */
+    this._watches = new Map();
+
+    /**
      * If this instance has a parent, this value indicates the parent field path.
      *
      * @var String
@@ -526,24 +533,67 @@ class Document {
   /**
    * Watch a path
    *
-   * @param String   path    The path.
-   * @param Function closure The closure to run.
+   * @param  String   path    The path.
+   * @param  Function closure The closure to run.
+   * @return self
    */
   watch(path, closure) {
     var keys = [];
     if (arguments.length === 1) {
       closure = path;
+      path = '';
     } else {
       keys = Array.isArray(path) ? path : dotpath(path);
     }
-    var self = this;
-    this.on('modified', (path) => {
+
+    if (!this._watches.has(path)) {
+      this._watches.set(path, new Map());
+    }
+
+    var watches = this._watches.get(path);
+
+    if (watches.has(closure)) {
+      this.unwatch(path, closure);
+    }
+
+    var handler = (path) => {
       if (keys.every(function(value, i) {
         return path[i] !== undefined && value === path[i];
       })) {
         closure(path);
       }
-    });
+    };
+    watches.set(closure, handler);
+    this.on('modified', handler);
+    return this;
+  }
+
+  /**
+   * Unwatch a path
+   *
+   * @param  String   path    The path.
+   * @param Function closure The closure to unwatch.
+   * @return self
+   */
+  unwatch(path, closure) {
+    if (arguments.length === 1) {
+      closure = path;
+      path = '';
+    }
+
+    if (!this._watches.has(path)) {
+      return this;
+    }
+
+    var watches = this._watches.get(path);
+
+    if (!watches.has(closure)) {
+      return this;
+    }
+    var handler = watches.get(closure);
+
+    this.off('modified', handler);
+    return this;
   }
 
   /**

@@ -291,6 +291,24 @@ describe("Document", function() {
 
     });
 
+    it("doesn't watch unwatched data", function(done) {
+
+      var count = 0;
+      var handler = function() {
+        count++;
+      };
+      var document = new Document();
+      document.watch('a', handler);
+
+      document.set('b', 'test');
+
+      setTimeout(function() {
+        expect(count).toBe(0);
+        done();
+      }, 25);
+
+    });
+
     it("watches the root instance when no path is defined", function(done) {
 
       var document = new Document();
@@ -301,6 +319,82 @@ describe("Document", function() {
         done();
       });
       document.set('a.nested.value', 'test');
+
+    });
+
+    it("overwrite previously watches", function(done) {
+
+      var count = 0;
+      var handler = function() {
+        count++;
+      };
+      var document = new Document();
+      document.watch('a', handler);
+      document.watch('a', handler);
+
+      document.set('a', 'test');
+
+      setTimeout(function() {
+        expect(count).toBe(1);
+        done();
+      }, 25);
+
+    });
+
+  });
+
+  describe(".unwatch()", function() {
+
+    it("unwatches data", function(done) {
+
+      var count = 0;
+      var document = new Document();
+      var handler = function() {
+        count++;
+      };
+      document.watch('a', handler);
+
+      document.watch('b', handler);
+      document.unwatch('b', handler);
+
+      document.set('a', 'test');
+      document.set('b', 'hello');
+
+      setTimeout(function() {
+        expect(count).toBe(1);
+        done();
+      }, 25);
+
+    });
+
+    it("unwatches all data", function(done) {
+
+      var count = 0;
+      var document = new Document();
+      var handler = function() {
+        count++;
+      };
+      document.watch(handler);
+      document.unwatch(handler);
+
+      document.set('unwatched.value', 'test');
+      document.set('a.nested.value', 'hello');
+
+      setTimeout(function() {
+        expect(count).toBe(0);
+        done();
+      }, 25);
+
+    });
+
+    it("bails out when unwatching unwatched data", function() {
+
+      var document = new Document();
+      expect(document.unwatch(function(){})).toBe(document);
+
+      var document = new Document();
+      document.watch('abc', function(){});
+      expect(document.unwatch('abc', function(){})).toBe(document);
 
     });
 
