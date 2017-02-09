@@ -170,6 +170,25 @@ describe("Entity", function() {
 
     });
 
+    it("syncs associated data", function() {
+
+      var image = Image.create({
+        name: 'amiga_1200.jpg',
+        title: 'Amiga 1200'
+      });
+
+      expect(image.exists()).toBe(false);
+
+      image.sync(123, {
+        gallery: { id: 456, name: 'MyGallery' }
+      }, {exists: true});
+
+      expect(image.id()).toBe(123);
+      expect(image.exists()).toBe(true);
+      expect(image.get('gallery').exists()).toBe(true);
+
+    });
+
     context("when there's no primary key", function() {
 
       it("syncs an entity to its persisted value", function() {

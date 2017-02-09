@@ -337,21 +337,22 @@ class Model extends Document {
   sync(id, data, options) {
     data = data || {};
     options = options || {};
-    if (options.exists !== undefined) {
-      this._exists = options.exists;
-    }
+    var exists = options.exists !== undefined ? options.exists : this._exists;
+    this._exists = exists;
+
     var key = this.schema().key();
     if (id && key) {
       data[key] = id;
     }
-    this.set(extend({}, this._data, data));
+
+    this.set(extend({}, this._data, data), exists);
     this._persisted = extend({}, this._data);
     if (!this.constructor.unicity()) {
       return this;
     }
     id = this.get(key);
     if (id != null) {
-      if (this.exists()) {
+      if (exists) {
         this.constructor.shard().set(id, this);
       } else {
         this.constructor.shard().delete(id);

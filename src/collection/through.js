@@ -251,25 +251,28 @@ class Through {
    * Adds the specified object to the `Collection` instance, and assigns associated metadata to
    * the added object.
    *
-   * @param  integer offset The offset to assign the value to.
+   * @param  Integer offset The offset to assign the value to.
    * @param  mixed   data   The entity object to add.
-   * @return mixed          Returns the set `Entity` object.
+   * @param  Boolean exists Define existence mode of added data.
+   * @return self           Return `this`.
    */
-  set(offset, data) {
+  set(offset, data, exists) {
     var name = this._through;
-    this._parent.get(name).set(offset, this._item(data));
+    this._parent.get(name).set(offset, this._item(data), exists);
     return this;
   }
 
   /**
    * Adds data into the `Collection` instance.
    *
-   * @param  mixed data The entity object to add.
-   * @return mixed      Returns the set `Entity` object.
+   * @param  mixed   data   The entity object to add.
+   * @param  Boolean exists Define existence mode of added data.
+   * @return self           Return `this`.
    */
-  push(data) {
+  push(data, exists) {
     var name = this._through;
-    return this._parent.get(name).push(this._item(data));
+    this._parent.get(name).push(this._item(data), exists);
+    return this;
   }
 
   /**

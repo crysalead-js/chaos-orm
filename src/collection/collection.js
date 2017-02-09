@@ -100,7 +100,7 @@ class Collection {
     var i, len = config.data.length;
 
     for (i = 0; i < len; i++) {
-      this.set(undefined, config.data[i]);
+      this.set(undefined, config.data[i], !!config.exists);
     }
   }
 
@@ -284,11 +284,12 @@ class Collection {
   /**
    * Sets data inside the `Collection` instance.
    *
-   * @param  mixed offset The offset.
-   * @param  mixed data   The entity object or data to set.
-   * @return mixed        Returns `this`.
+   * @param  mixed   offset The offset.
+   * @param  mixed   data   The entity object or data to set.
+   * @param  Boolean exists Define existence mode of related data
+   * @return mixed          Returns `this`.
    */
-  set(offset, data) {
+  set(offset, data, exists) {
     var keys = Array.isArray(offset) ? offset : (offset !== undefined ? dotpath(offset) : []);
     var name = keys.shift();
 
@@ -303,7 +304,7 @@ class Collection {
     if (this.schema()) {
       data = this.schema().cast(undefined, data, {
         basePath: this.basePath(),
-        exists: this.exists(),
+        exists: !!exists,
         defaults: true
       });
     } else if (data && data.setParent) {
@@ -378,11 +379,12 @@ class Collection {
   /**
    * Adds data into the `Collection` instance.
    *
-   * @param  mixed data The entity object to add.
-   * @return mixed      Returns the set `Entity` object.
+   * @param  mixed   data   The entity object to add.
+   * @param  Boolean exists Define existence mode of added data.
+   * @return mixed          Returns the set `Entity` object.
    */
-  push(data) {
-    this.set(undefined, data);
+  push(data, exists) {
+    this.set(undefined, data, exists);
     return this;
   }
 

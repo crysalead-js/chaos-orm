@@ -235,9 +235,7 @@ class Document {
       throw new Error("The `'data'` option need to be a valid plain object.");
     }
 
-    for (var name in data) {
-      this._set(name, data[name], config.exists);
-    }
+    this.set(data, !!config.exists);
 
     this._persisted = extend({}, this._data);
   }
@@ -406,22 +404,23 @@ class Document {
   /**
    * Sets one or several properties.
    *
-   * @param  mixed name    A field name or an associative array of fields and values.
-   * @param  Array data    An associative array of fields and values or an options array.
-   * @param  Array options An options array.
-   * @return object        Returns `this`.
+   * @param  mixed   name   A dotted field name or an associative array of fields and values.
+   * @param  Array   data   An associative array of fields and values or an options array.
+   * @param  Boolean exists Define existence mode of related data
+   * @return object         Returns `this`.
    */
-  set(name, data) {
-    if (arguments.length !== 1) {
-      this._set(name, data);
+  set(name, data, exists) {
+    if (typeof name === 'string' || Array.isArray(name)) {
+      this._set(name, data, !!exists);
       return this;
     }
+    exists = !!data;
     data = name || {};
     if (data === null || typeof data !== 'object' || data.constructor !== Object) {
       throw new Error('A plain object is required to set data in bulk.');
     }
     for (var name in data) {
-      this._set(name, data[name]);
+      this._set(name, data[name], exists);
     }
     return this;
   }
@@ -455,9 +454,9 @@ class Document {
    * ];
    * ```
    *
-   * @param String offset  The field name.
-   * @param mixed  data    The value to set.
-   * @param Array  options An options array.
+   * @param mixed   name   A dotted field name or an array of field names.
+   * @param Array   data   An associative array of fields and values or an options array.
+   * @param Boolean exists Define existence mode of related data
    */
   _set(name, data, exists) {
     var keys = Array.isArray(name) ? name.slice() : dotpath(name);
@@ -469,13 +468,13 @@ class Document {
 
     if (keys.length) {
       if (this.get(name) === undefined) {
-        this._set(name, {});
+        this._set(name, {}, exists);
       }
       var value = this._data[name];
       if (!value || value.set === undefined) {
         throw new Error("The field: `" + name + "` is not a valid document or entity.");
       }
-      value.set(keys, data);
+      value.set(keys, data, exists);
       return;
     }
 
