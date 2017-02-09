@@ -74,7 +74,7 @@ describe("Entity", function() {
           });
         };
 
-        expect(closure).toThrow(new Error('Entities duplication is not allowed when unicity is enabled.'));
+        expect(closure).toThrow(new Error('Trying to create a duplicate of `my_model` ID `1` which is not allowed when unicity is enabled.'));
 
         MyModel.reset();
 

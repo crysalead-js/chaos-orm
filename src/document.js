@@ -137,6 +137,16 @@ class Document {
 
     if (type === 'entity') {
       classname = options.class;
+      if (classname.unicity && classname.unicity() && options.exists) {
+        data = data || {};
+        var id = data[classname.definition().key()];
+        var shard = classname.shard();
+        if (id != null && shard.has(id)) {
+          var instance = shard.get(id);
+          instance.sync(null, data);
+          return instance;
+        }
+      }
     } else {
       options.schema = this.definition();
       classname = this._classes[type];
@@ -786,14 +796,14 @@ Document._classes = {
 }
 
 /**
- * MUST BE re-defined in sub-classes which require some different conventions.
+ * Document conventions.
  *
  * @var Object A naming conventions.
  */
 Document._conventions = undefined;
 
 /**
- * MUST BE re-defined in sub-classes which require a different schema.
+ * Document schema.
  *
  * @var Function
  */

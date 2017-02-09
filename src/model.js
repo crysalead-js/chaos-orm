@@ -174,70 +174,6 @@ class Model extends Document {
   }
 
   /**
-   * Instantiates a new record or document object, initialized with any data passed in. For example:
-   *
-   * ```php
-   * var post = Post.create({ title: 'New post' });
-   * echo post.get('title'); // echoes 'New post'
-   * var success = post.save();
-   * ```
-   *
-   * Note that while this method creates a new object, there is no effect on the database until
-   * the `save()` method is called.
-   *
-   * In addition, this method can be used to simulate loading a pre-existing object from the
-   * database, without actually querying the database:
-   *
-   * ```php
-   * var post = Post::create({ id: id, moreData: 'foo' }, { exists: true });
-   * post.set('title', 'New title');
-   * var success = post.save();
-   * ```
-   *
-   * @param  Object data    Any data that this object should be populated with initially.
-   * @param  Object options Options to be passed to item.
-   *                        - `'type'`  _String_   : can be `'entity'` or `'set'`. `'set'` is used if the passed data represent a collection
-   *                                                     of entities. Default to `'entity'`.
-   *                        - `'class'` _Function_ : the class document to use to create entities.
-   * @return Object         Returns a new, un-saved record or document object. In addition to
-   *                        the values passed to `data`, the object will also contain any values
-   *                        assigned to the `'default'` key of each field defined in the schema.
-   */
-  static create(data, options)
-  {
-    var defaults = {
-      type: 'entity',
-      class: this,
-      exists: false,
-    };
-
-    options = extend({}, defaults, options);
-
-    var type = options.type;
-    var classname;
-
-    if (type === 'entity') {
-      classname = options.class;
-      if (this.unicity() && options.exists) {
-        data = data || {};
-        var id = data[this.definition().key()];
-        var collector = this.shard();
-        if (id != null && collector.has(id)) {
-          var instance = collector.get(id);
-          instance.sync(null, data);
-          return instance;
-        }
-      }
-    } else {
-      options.schema = this.definition();
-      classname = this._classes[type];
-    }
-
-    options = extend({}, options, { data: data });
-    return new classname(options);
-  }
-
-  /**
    * Finds a record by its primary key.
    *
    * @param  Object  options Options for the query.
@@ -346,7 +282,8 @@ class Model extends Document {
     }
     var shard = this.constructor.shard();
     if (shard.has(id)) {
-      throw new Error("Entities duplication is not allowed when unicity is enabled.");
+      var source = this.constructor.definition().source();
+      throw new Error("Trying to create a duplicate of `" + source + "` ID `" + String(id) + "` which is not allowed when unicity is enabled.");
     }
     shard.set(id, this);
   }
