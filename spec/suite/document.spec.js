@@ -682,4 +682,26 @@ describe("Document", function() {
 
   });
 
+  describe(".sync()", function() {
+
+    it("returns a boolean indicating if a field has been modified", function() {
+
+      var document = new Document({
+        data: {
+          title: 'original'
+        }
+      });
+
+      expect(document.modified('title')).toBe(false);
+
+      document.set('title', 'modified');
+      expect(document.modified('title')).toBe(true);
+
+      document.sync();
+      expect(document.modified('title')).toBe(false);
+
+    });
+
+  });
+
 });

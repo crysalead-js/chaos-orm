@@ -717,6 +717,16 @@ class Document {
   }
 
   /**
+   * Sync a document
+   *
+   * @return self
+   */
+  sync() {
+    this._persisted = extend({}, this._data);
+    return this;
+  }
+
+  /**
    * Returns all included relations accessible through this entity.
    *
    * @param  String prefix The parent relation path.
