@@ -252,10 +252,7 @@ describe("Through", function() {
 
     it("removes & adds some items", function() {
 
-      var tag = new MyTag();
-      tag.set('name', 'new');
-
-      this.through.splice(2, 2, tag);
+      this.through.splice(2, 2);
       expect(this.through.data()).toEqual([
         { name: '0' },
         { name: '1' },
