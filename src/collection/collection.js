@@ -100,7 +100,7 @@ class Collection {
     var i, len = config.data.length;
 
     for (i = 0; i < len; i++) {
-      this.set(undefined, config.data[i], !!config.exists);
+      this.set(undefined, config.data[i], config.exists);
     }
   }
 
@@ -303,8 +303,9 @@ class Collection {
 
     if (this.schema()) {
       data = this.schema().cast(undefined, data, {
+        exists: exists,
+        parent: this,
         basePath: this.basePath(),
-        exists: !!exists,
         defaults: true
       });
     } else if (data && data.setParent) {

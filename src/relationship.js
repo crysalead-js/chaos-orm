@@ -285,7 +285,7 @@ class Relationship {
    */
   // get(entity, options) {
   //   var name = this.name();
-
+  //   yield entity->sync();
   //   var model = entity.model();
 
   //   if (!entity.exists()) {

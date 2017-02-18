@@ -908,7 +908,7 @@ class Schema {
     var defaults = {
       parent: undefined,
       basePath: undefined,
-      exists: false,
+      exists: null,
       defaults: true
     };
 
@@ -945,7 +945,6 @@ class Schema {
 
     options.class = Document;
     if (data !== null && typeof data === 'object' && data.constructor === Object) {
-      options.basePath = name;
       return this._cast(data, options);
     }
     return data;
@@ -1302,15 +1301,12 @@ class Schema {
       }.bind(this);
 
       for (var entity of collection) {
+        yield entity.sync();
         var exists = entity.exists();
-        if (exists === false) {
+        if (!exists) {
           inserts.push(entity);
         } else if (entity.modified()) {
-          if (exists) {
-            updates.push(entity);
-          } else {
-            throw new Error("Entites must have a valid `false`/`true` existing value to be either inserted or updated.");
-          }
+          updates.push(entity);
         }
       }
       yield Promise.all([this.bulkInsert(inserts, filter), this.bulkUpdate(updates, filter)]);
@@ -1366,6 +1362,7 @@ class Schema {
       var keys = [];
 
       for (var entity of collection) {
+        yield entity.sync();
         if (entity.exists()) {
           keys.push(entity.id());
         }
@@ -1378,7 +1375,7 @@ class Schema {
       yield this.truncate({ [key]: keys.length === 1 ? keys[0] : keys });
 
       for (var entity of collection) {
-        entity.sync(null, {}, { exists: false });
+        entity.amend(null, {}, { exists: false });
       }
 
       return true;

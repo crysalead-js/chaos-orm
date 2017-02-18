@@ -154,7 +154,7 @@ describe("Model", function() {
 
         var entity2 = MyModel.create(data, { exists: true });
 
-        expect(entity).toEqual(entity2);
+        expect(entity).toBe(entity2);
 
         expect(shard.size).toBe(1);
 

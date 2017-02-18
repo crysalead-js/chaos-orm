@@ -43,7 +43,7 @@ describe("Entity", function() {
 
     });
 
-    it("applies same `exists` value for children", function() {
+    it("sets `exists` value to `null` for children", function() {
 
       var image = Image.create({
         id: 123,
@@ -55,7 +55,12 @@ describe("Entity", function() {
       });
 
       expect(image.exists()).toBe(true);
-      expect(image.get('gallery').exists()).toBe(true);
+
+      var closure = function() {
+        image.get('gallery').exists();
+      };
+
+      expect(closure).toThrow(new Error("No persitance information is available for this entity use `sync()` to get an accurate existence value."));
 
     });
 
@@ -149,9 +154,9 @@ describe("Entity", function() {
 
   });
 
-  describe(".sync()", function() {
+  describe(".amend()", function() {
 
-    it("syncs an entity to its persisted value", function() {
+    it("amends an entity to its persisted value", function() {
 
       var entity = MyModel.create();
       entity.set('modified', 'modified');
@@ -160,7 +165,7 @@ describe("Entity", function() {
       expect(entity.id()).toBe(undefined);
       expect(entity.modified('modified')).toBe(true);
 
-      entity.sync(123, { added: 'added' }, { exists: true });
+      entity.amend(123, { added: 'added' }, { exists: true });
 
       expect(entity.exists()).toBe(true);
       expect(entity.id()).toBe(123);
@@ -170,28 +175,9 @@ describe("Entity", function() {
 
     });
 
-    it("syncs associated data", function() {
-
-      var image = Image.create({
-        name: 'amiga_1200.jpg',
-        title: 'Amiga 1200'
-      });
-
-      expect(image.exists()).toBe(false);
-
-      image.sync(123, {
-        gallery: { id: 456, name: 'MyGallery' }
-      }, {exists: true});
-
-      expect(image.id()).toBe(123);
-      expect(image.exists()).toBe(true);
-      expect(image.get('gallery').exists()).toBe(true);
-
-    });
-
     context("when there's no primary key", function() {
 
-      it("syncs an entity to its persisted value", function() {
+      it("amends an entity to its persisted value", function() {
 
         var entity = MyModel.create();
         entity.set('modified', 'modified');
@@ -200,7 +186,7 @@ describe("Entity", function() {
         expect(entity.id()).toBe(undefined);
         expect(entity.modified('modified')).toBe(true);
 
-        entity.sync(undefined, { added: 'added' }, { exists: true });
+        entity.amend(undefined, { added: 'added' }, { exists: true });
 
         expect(entity.exists()).toBe(true);
         expect(entity.id()).toBe(undefined);
@@ -224,7 +210,7 @@ describe("Entity", function() {
 
         expect(shard.has(entity.id())).toBe(false);
 
-        entity.sync(undefined, { name: 'file.jpg' }, {exists: true});
+        entity.amend(undefined, { name: 'file.jpg' }, {exists: true});
 
         expect(shard.has(entity.id())).toBe(true);
         expect(shard.size).toBe(1);
@@ -246,7 +232,7 @@ describe("Entity", function() {
         expect(shard.has(entity.id())).toBe(true);
         expect(shard.size).toBe(1);
 
-        entity.sync(undefined, { name: 'file.jpg' }, { exists: false });
+        entity.amend(undefined, { name: 'file.jpg' }, { exists: false });
 
         expect(shard.has(entity.id())).toBe(false);
 

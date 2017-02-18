@@ -258,7 +258,7 @@ class Through {
    */
   set(offset, data, exists) {
     var name = this._through;
-    this._parent.get(name).set(offset, this._item(data), exists);
+    this._parent.get(name).set(offset, this._item(data, exists), exists);
     return this;
   }
 
@@ -271,23 +271,26 @@ class Through {
    */
   push(data, exists) {
     var name = this._through;
-    this._parent.get(name).push(this._item(data), exists);
+    this._parent.get(name).push(this._item(data, exists), exists);
     return this;
   }
 
   /**
    * Creates a pivot instance.
    *
-   * @param  mixed data The data.
-   * @return mixed      The pivot instance.
+   * @param  mixed   data   The data.
+   * @param  boolean exists The exists value.
+   * @return mixed          The pivot instance.
    */
-  _item(data) {
+  _item(data, exists) {
     var name = this._through;
     var parent = this._parent;
     var relThrough = this._parent.schema().relation(name);
     var through = relThrough.to();
-    var item = through.create(this._parent.exists() ? relThrough.match(this._parent) : {});
+    var id = this._parent.id();
+    var item = through.create(id != null ? relThrough.match(this._parent) : {}, { exists: exists });
     item.set(this._using, data);
+    item.get(this._using).exists(exists);
     return item;
   }
 

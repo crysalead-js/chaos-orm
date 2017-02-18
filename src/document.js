@@ -94,6 +94,15 @@ class Document {
   }
 
   /**
+   * Get/set the unicity .
+   *
+   * @return boolean
+   */
+  static unicity(enable) {
+    return false;
+  }
+
+  /**
    * Instantiates a new record or document object, initialized with any data passed in. For example:
    *
    * ```php
@@ -137,16 +146,6 @@ class Document {
 
     if (type === 'entity') {
       classname = options.class;
-      if (classname.unicity && classname.unicity() && options.exists) {
-        data = data || {};
-        var id = data[classname.definition().key()];
-        var shard = classname.shard();
-        if (id != null && shard.has(id)) {
-          var instance = shard.get(id);
-          instance.sync(null, data);
-          return instance;
-        }
-      }
     } else {
       options.schema = this.definition();
       classname = this._classes[type];
@@ -235,7 +234,7 @@ class Document {
       throw new Error("The `'data'` option need to be a valid plain object.");
     }
 
-    this.set(data, !!config.exists);
+    this.set(data);
 
     this._persisted = extend({}, this._data);
   }
@@ -406,21 +405,19 @@ class Document {
    *
    * @param  mixed   name   A dotted field name or an associative array of fields and values.
    * @param  Array   data   An associative array of fields and values or an options array.
-   * @param  Boolean exists Define existence mode of related data
-   * @return object         Returns `this`.
+   * @return self           Returns `this`.
    */
-  set(name, data, exists) {
+  set(name, data) {
     if (typeof name === 'string' || Array.isArray(name)) {
-      this._set(name, data, !!exists);
+      this._set(name, data);
       return this;
     }
-    exists = !!data;
     data = name || {};
     if (data === null || typeof data !== 'object' || data.constructor !== Object) {
       throw new Error('A plain object is required to set data in bulk.');
     }
     for (var name in data) {
-      this._set(name, data[name], exists);
+      this._set(name, data[name]);
     }
     return this;
   }
@@ -456,9 +453,8 @@ class Document {
    *
    * @param mixed   name   A dotted field name or an array of field names.
    * @param Array   data   An associative array of fields and values or an options array.
-   * @param Boolean exists Define existence mode of related data
    */
-  _set(name, data, exists) {
+  _set(name, data) {
     var keys = Array.isArray(name) ? name.slice() : dotpath(name);
     var name = keys.shift();
 
@@ -468,13 +464,13 @@ class Document {
 
     if (keys.length) {
       if (this.get(name) === undefined) {
-        this._set(name, {}, exists);
+        this._set(name, {});
       }
       var value = this._data[name];
       if (!value || value.set === undefined) {
         throw new Error("The field: `" + name + "` is not a valid document or entity.");
       }
-      value.set(keys, data, exists);
+      value.set(keys, data);
       return;
     }
 
@@ -482,7 +478,6 @@ class Document {
 
     var previous = this._data[name];
     var value = this.schema().cast(name, data, {
-      exists: !!exists,
       parent: this,
       basePath: this.basePath(),
       defaults: true
@@ -720,7 +715,7 @@ class Document {
    *
    * @return self
    */
-  sync() {
+  amend() {
     this._persisted = extend({}, this._data);
     return this;
   }

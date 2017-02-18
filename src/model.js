@@ -97,10 +97,10 @@ class Model extends Document {
   }
 
   /**
-   * Gets/sets the collector instance for the model.
+   * Get/set the unicity value.
    *
-   * @param  Object collector The collector instance to set or none to get it.
-   * @return Object           The collector instance on get and `this` on set.
+   * @param  Boolean      $enable The unicity value or none to get it.
+   * @return Boolean|self         The unicity value on get and `this` on set.
    */
   static unicity(enable) {
     if (!arguments.length) {
@@ -171,6 +171,63 @@ class Model extends Document {
    * @param Object validator The validator instance.
    */
   static _rules(validator) {
+  }
+
+  /**
+   * Instantiates a new record or document object, initialized with any data passed in. For example:
+   *
+   * ```php
+   * var post = Post.create({ title: 'New post' });
+   * echo post.get('title'); // echoes 'New post'
+   * var success = post.save();
+   * ```
+   *
+   * Note that while this method creates a new object, there is no effect on the database until
+   * the `save()` method is called.
+   *
+   * In addition, this method can be used to simulate loading a pre-existing object from the
+   * database, without actually querying the database:
+   *
+   * ```php
+   * var post = Post.create({ id: id, moreData: 'foo' }, { exists: true });
+   * post.set('title', 'New title');
+   * var success = post.save();
+   * ```
+   *
+   * @param  Object data    Any data that this object should be populated with initially.
+   * @param  Object options Options to be passed to item.
+   *                        - `'type'`  _String_   : can be `'entity'` or `'set'`. `'set'` is used if the passed data represent a collection
+   *                                                     of entities. Default to `'entity'`.
+   *                        - `'class'` _Function_ : the class document to use to create entities.
+   * @return Object         Returns a new, un-saved record or document object. In addition to
+   *                        the values passed to `data`, the object will also contain any values
+   *                        assigned to the `'default'` key of each field defined in the schema.
+   */
+  static create(data, options) {
+    var defaults = {
+      type: 'entity',
+      class: this,
+      exists: false
+    };
+
+    options = extend({}, defaults, options);
+
+    var type = options.type;
+    var classname = options.class;
+
+    if (type === 'entity' && options.exists !== false && classname.unicity()) {
+      data = data || {};
+      var schema = classname.definition();
+      var shard = classname.shard();
+      var key = classname.definition().key();
+      var id = data[key];
+      if (id != null && shard.has(id)) {
+        var instance = shard.get(id);
+        instance.amend(null, data, { exists: options.exists });
+        return instance;
+      }
+    }
+    return super.create(data, options);
   }
 
   /**
@@ -270,7 +327,7 @@ class Model extends Document {
      */
     this.exists(config.exists);
 
-    if (!this.exists()) {
+    if (this._exists !== true) {
       return;
     }
     var id = this.id();
@@ -321,6 +378,9 @@ class Model extends Document {
       this._exists = exists;
       return this;
     }
+    if (this._exists == null) {
+      throw new Error("No persitance information is available for this entity use `sync()` to get an accurate existence value.");
+    }
     return this._exists;
   }
 
@@ -334,7 +394,7 @@ class Model extends Document {
    *                      - `'exists'` _boolean_: Determines whether or not this entity exists
    *                        in data store.
    */
-  sync(id, data, options) {
+  amend(id, data, options) {
     data = data || {};
     options = options || {};
     var exists = options.exists !== undefined ? options.exists : this._exists;
@@ -428,19 +488,27 @@ class Model extends Document {
   }
 
   /**
-   * Reloads the entity from the datasource.
+   * Sync the entity existence from the database.
    *
+   * @param  boolean data Indicate whether the data need to by synced or not.
    * @return Promise
    */
-  reload() {
-    var id = this.id();
-    return this.constructor.load(id).then(function(entity) {
-      if (!entity) {
-        throw new Error("The entity ID:`" + id + "` doesn't exists.");
+  sync(data) {
+    return co(function* () {
+      if (this._exists != null) {
+        return;
       }
-      this._exists = true;
-      this.set(entity.get());
-      this._persisted = extend({}, this._data);
+      var id = this.id();
+      if (id != null) {
+        var persisted = yield this.constructor.load(id);
+        if (persisted && data) {
+          this.amend(undefined, persisted.data(), { exists: true });
+        } else {
+          this._exists = !!persisted;
+        }
+      } else {
+        this._exists = false;
+      }
     }.bind(this));
   }
 
@@ -473,15 +541,16 @@ class Model extends Document {
    */
   validates(options) {
     return co(function* () {
+      yield this.sync();
+      var exists = this.exists();
       var defaults = {
-        events: this.exists() !== false ? 'update' : 'create',
-        required: this.exists() !== false ? false : true,
+        events: exists ? 'update' : 'create',
+        required: exists ? false : true,
         entity: this,
         embed: true
       };
       options = extend({}, defaults, options);
       var validator = this.constructor.validator();
-
       var valid = yield this._validates(options);
 
       var success = yield validator.validates(this.get(), options);

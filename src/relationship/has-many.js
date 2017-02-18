@@ -125,6 +125,7 @@ class HasMany extends Relationship {
       var success = true;
 
       for (var item of collection) {
+        yield item.sync();
         if (item.exists() && indexes.get(item.id()) !== undefined) {
           existing[indexes.get(item.id())] = true;
         }

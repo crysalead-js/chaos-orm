@@ -682,7 +682,7 @@ describe("Document", function() {
 
   });
 
-  describe(".sync()", function() {
+  describe(".amend()", function() {
 
     it("returns a boolean indicating if a field has been modified", function() {
 
@@ -697,7 +697,7 @@ describe("Document", function() {
       document.set('title', 'modified');
       expect(document.modified('title')).toBe(true);
 
-      document.sync();
+      document.amend();
       expect(document.modified('title')).toBe(false);
 
     });
