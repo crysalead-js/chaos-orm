@@ -769,11 +769,20 @@ class Schema {
   /**
    * Checks if a relation exists.
    *
-   * @param  String  name The name of a relation.
-   * @return Boolean      Returns `true` if the relation exists, `false` otherwise.
+   * @param  String  name     The name of a relation.
+   * @param  Boolean embedded Check for embedded relations or not. `undefined` means indifferent, `true` means embedded only
+   *                          and `false` mean external only.
+   * @return Boolean          Returns `true` if the relation exists, `false` otherwise.
    */
-  hasRelation(name) {
-    return !!this._relations[name];
+  hasRelation(name, embedded) {
+    if (!this._relations[name]) {
+      return false;
+    }
+    var relation = this._relations[name];
+    if (embedded == null) {
+      return true;
+    }
+    return embedded === relation.embedded;
   }
 
   /**
@@ -842,7 +851,7 @@ class Schema {
     var num, name, rel, relPath;
     relations = normalize(relations);
     for (var path in relations) {
-      num = path.lastIndexOf('.');
+      num = path.indexOf('.');
       name = num !== -1 ? path.substr(0, num) : path;
       var rel = this.relation(name);
       if (rel.type() !== 'hasManyThrough') {
@@ -915,6 +924,10 @@ class Schema {
     options = extend({}, defaults, options);
     options.class = this.reference();
 
+    if (arguments.length < 2) {
+      data = {};
+    }
+
     var name;
 
     if (field) {
@@ -968,7 +981,7 @@ class Schema {
       defaults: options.defaults,
     }, options.config);
 
-    return options.class.create(data, config);
+    return options.class.create(data ? data : {}, config);
   }
 
   /**

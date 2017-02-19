@@ -256,7 +256,7 @@ class Collection {
    */
   get(offset) {
     if (!arguments.length) {
-      return this._data;
+      return this._data.slice();
     }
     var keys = Array.isArray(offset) ? offset : dotpath(offset);
     if (!keys.length) {
@@ -270,7 +270,7 @@ class Collection {
       }
       var value = this._data[name];
 
-      if (!value instanceof this.classes().document) {
+      if (!value instanceof this.constructor.classes().document) {
         throw new Error("The field: `" + name + "` is not a valid document or entity.");
       }
       return value.get(keys);

@@ -1,3 +1,4 @@
+var co = require('co');
 var Conventions = require('../../../src/conventions');
 var Relationship = require('../../../src/relationship');
 var Model = require('../../../src/').Model;
@@ -144,6 +145,53 @@ describe("HasMany", function() {
       });
 
     });
+
+  });
+
+  describe(".get()", function() {
+
+      it("returns an empty collection when no hasMany relation exists", function(done) {
+
+        co(function*()  {
+          spyOn(Image, 'all').and.callFake(function(options, fetchOptions) {
+            var images =  Image.create({}, { type: 'set', exists: true });
+            return Promise.resolve(images);
+          });
+
+          var gallery = Gallery.create({ id: 1, name: 'Foo Gallery' }, { exists: true });
+          var images = yield gallery.fetch('images');
+
+          expect(Image.all).toHaveBeenCalledWith({ conditions: { gallery_id: 1 } }, {});
+          expect(images.count()).toBe(0);
+          done();
+        });
+
+      });
+
+      it("lazy loads a hasMany relation", function(done) {
+
+        co(function*()  {
+          spyOn(Image, 'all').and.callFake(function(options, fetchOptions) {
+            var images =  Image.create([
+              { id: 1, gallery_id: 1, title: 'Amiga 1200' },
+              { id: 2, gallery_id: 1, title: 'Srinivasa Ramanujan' },
+              { id: 3, gallery_id: 1, title: 'Las Vegas' }
+            ], { type: 'set', exists: true });
+            return Promise.resolve(images);
+          });
+
+          var gallery = Gallery.create({ id: 1, name: 'Foo Gallery' }, { exists: true });
+          var images = yield gallery.fetch('images');
+
+          expect(Image.all).toHaveBeenCalledWith({ conditions: { gallery_id: 1 } }, {});
+
+          for (var image of images) {
+            expect(image.get('gallery_id')).toBe(gallery.id());
+          }
+          done();
+        });
+
+      });
 
   });
 

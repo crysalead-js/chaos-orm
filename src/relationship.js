@@ -283,74 +283,71 @@ class Relationship {
    * @param  Object entity An entity.
    * @return               The related data.
    */
-  // get(entity, options) {
-  //   var name = this.name();
-  //   yield entity->sync();
-  //   var model = entity.model();
+  get(entity, options) {
+    return co(function*() {
+      var name = this.name();
+      yield entity.sync();
 
-  //   if (!entity.exists()) {
-  //     entity.set(name, model.definition().cast(name, undefined, { parent: entity }));
-  //     return Promise.resolve(entity.get(name));
-  //   }
+      if (!entity.exists()) {
+        return entity.schema().cast(name, {}, { parent: entity });
+      }
 
-  //   var link = this.link();
-  //   var strategies = this.strategies();
+      var link = this.link();
+      var strategies = this.strategies();
 
-  //   if (!strategies[link] || typeof strategies[link] !== 'function') {
-  //       throw new Error("Attempted to get object for invalid relationship link type `'" + link + "'`.");
-  //   }
-  //   return strategies[link](entity, this, options);
-  // }
+      if (!strategies[link] || typeof strategies[link] !== 'function') {
+          throw new Error("Attempted to get object for invalid relationship link type `'" + link + "'`.");
+      }
+      return yield strategies[link](entity, this, options);
+    }.bind(this));
+  }
 
-  // /**
-  //  * Strategies used to query related objects.
-  //  */
-  // strategies(Promise) {
-  //   var strategies = {};
+  /**
+   * Strategies used to query related objects.
+   */
+  strategies() {
+    var strategies = {};
 
-  //   strategies[this.constructor.LINK_EMBEDDED] = function(entity, relationship, options) {
-  //     return Promise.resolve(entity.get(relationship.name()));
-  //   };
+    strategies[this.constructor.LINK_EMBEDDED] = function(entity, relationship, options) {
+      return Promise.resolve(entity.get(relationship.name()));
+    };
 
-  //   strategies[this.constructor.LINK_CONTAINED] = function(entity, relationship, options) {
-  //     return Promise.resolve(relationship.isMany() ? entity.parent().parent() : entity.parent());
-  //   };
+    strategies[this.constructor.LINK_CONTAINED] = function(entity, relationship, options) {
+      return Promise.resolve(relationship.isMany() ? entity.parent().parent() : entity.parent());
+    };
 
-  //   strategies[this.constructor.LINK_KEY] = function(entity, relationship, options) {
-  //     return Promise(function(resolve, reject) {
-  //       var collection;
+    strategies[this.constructor.LINK_KEY] = function(entity, relationship, options) {
+      return new Promise(function(resolve, reject) {
+        var collection;
+        if (relationship.type() === 'hasManyThrough') {
+          collection = [entity];
+          this.embed(collection, options).then(function() {
+            resolve(entity.get(relationship.name()));
+          }, function() {
+            throw new Error("Unable to get the related relationship data.")
+          });
+          return;
+        }
+        this._find(entity.get(relationship.keys('from')), options).then(function(collection) {
+          if (relationship.isMany()) {
+            resolve(collection);
+          }
+          resolve(collection.length ? collection.get(0) : undefined);
+        }, function() {
+          throw new Error("Unable to get the related relationship data.")
+        });
+      }.bind(this), function(error) {
+        reject(error);
+      });
 
-  //       if (relationship.type() === 'hasManyThrough') {
-  //         collection = [entity];
-  //         this.embed(collection, options).then(function() {
-  //           resolve(entity.get(relationship.name()));
-  //         }, function() {
-  //           throw new Error("Unable to get the related relationship data.")
-  //         });
-  //         return;
-  //       }
+    }.bind(this);
 
-  //       this._find(entity.get(relationship.keys('from')), options).then(function(collection) {
-  //         if (relationship.isMany()) {
-  //           resolve(collection);
-  //           return;
-  //         }
-  //         resolve(collection.length ? collection.get(0) : undefined);
-  //       }, function() {
-  //         throw new Error("Unable to get the related relationship data.")
-  //       });
-  //     }.bind(this), function(error) {
-  //       reject(error);
-  //     });
+    strategies[this.constructor.LINK_KEY_LIST] = function(object, relationship, options) {
+      return this._find(entity.get(relationship.keys('from')), options);
+    }.bind(this);
 
-  //   }.bind(this);
-
-  //   strategies[this.constructor.LINK_KEY_LIST] = function(object, relationship, options) {
-  //     return this._find(entity.get(relationship.keys('from')), options);
-  //   }.bind(this);
-
-  //   return strategies;
-  // }
+    return strategies;
+  }
 
   /**
    * Get a related object (or objects) for the given object connected to it by this relationship.
@@ -368,7 +365,7 @@ class Relationship {
    * @param  mixed  id An id or an array of ids.
    * @return Object    A collection of items matching the id/ids.
    */
-  _find(id, options = []) {
+  _find(id, options) {
     var defaults = {
       query: {},
       fetchOptions: {}
@@ -383,8 +380,11 @@ class Relationship {
     }
     var to = this.to();
 
-    if (!id || !id.length) {
+    if (id == null || (Array.isArray(id) && !id.length)) {
       return Promise.resolve(to.create([], { type: 'set' }));
+    }
+    if (Array.isArray(id) && id.length === 1) {
+      id = id[0];
     }
     var query, defaultQuery = { conditions: {} };
 

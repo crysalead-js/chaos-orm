@@ -316,16 +316,8 @@ class Model extends Document {
     };
     config = extend({}, defaults, config);
     delete config.basePath;
-    super(config);
 
-    /**
-     * Cached value indicating whether or not this instance exists somehow. If this instance has been loaded
-     * from the database, or has been created and subsequently saved this value should be automatically
-     * setted to `true`.
-     *
-     * @var Boolean
-     */
-    this.exists(config.exists);
+    super(config);
 
     if (this._exists !== true) {
       return;

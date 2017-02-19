@@ -840,7 +840,7 @@ describe("Schema", function() {
 
     it("casts a nested entity data", function() {
 
-      var image = this.schema.cast(null, {
+      var image = this.schema.cast(undefined, {
         id: '1',
         gallery_id: '2',
         name: 'image.jpg',
@@ -856,7 +856,7 @@ describe("Schema", function() {
             name: 'mountain'
           }
         ]
-      });
+      }, { exists: false });
 
       expect(Number.isInteger(image.get('id'))).toBe(true);
       expect(Number.isInteger(image.get('gallery_id'))).toBe(true);
@@ -1045,7 +1045,7 @@ describe("Schema", function() {
 
   });
 
-  describe("->save()", function() {
+  describe(".save()", function() {
 
     it("saves an entity", function(done) {
 
@@ -1069,6 +1069,36 @@ describe("Schema", function() {
         });
         done();
       });
+
+    });
+
+  });
+
+  describe(".hasRelation()", function() {
+
+    it("checks if an embedded relation exists", function() {
+
+      var schema = new Schema();
+      schema.column('embedded', { type: 'object' });
+
+      expect(schema.hasRelation('embedded')).toBe(true);
+      expect(schema.hasRelation('embedded', true)).toBe(true);
+      expect(schema.hasRelation('embedded', false)).toBe(false);
+
+    });
+
+    it("checks if an external relation exists", function() {
+
+      var schema = new Schema();
+      schema.bind('external', {
+        relation: 'belongsTo',
+        to: Image,
+        keys: { image_id: 'id' }
+      });
+
+      expect(schema.hasRelation('external')).toBe(true);
+      expect(schema.hasRelation('external', false)).toBe(true);
+      expect(schema.hasRelation('external', true)).toBe(false);
 
     });
 

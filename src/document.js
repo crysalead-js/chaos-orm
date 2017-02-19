@@ -234,6 +234,12 @@ class Document {
       throw new Error("The `'data'` option need to be a valid plain object.");
     }
 
+    /**
+     * Related to the Model constructor.
+     * However `this` is not available before super(), so leave this definition here.
+     */
+    this._exists = config.exists;
+
     this.set(data);
 
     this._persisted = extend({}, this._data);
@@ -377,10 +383,14 @@ class Document {
       value = field.getter(this, this._data[name], name);
     } else if (this._data[name] !== undefined) {
       return this._data[name];
-    } else if(schema.hasRelation(fieldName)) {
-      value = undefined;
+    } else if(schema.hasRelation(fieldName, false)) {
+      if (this._exists === true || (this._exists === null && this.id() != null)) {
+        throw new Error("The relation `'" + name + "'` is an external relation, use `fetch()` to lazy load its data.");
+      }
+      var relation = schema.relation(fieldName);
+      value = relation.isMany() ? [] : {};
     } else if (field.type === 'object') {
-      value = {};
+      value = field.array ? [] : {};
     } else {
       return;
     }
@@ -398,6 +408,24 @@ class Document {
       return value;
     }
     return this._data[name] = value;
+  }
+
+  /**
+   * Returns the current data and perform lazy loading when necessary
+   *
+   * @param  String name If name is defined, it'll only return the field value.
+   * @return mixed.
+   */
+  fetch(name) {
+    return co(function*() {
+      this.sync();
+      if (!this.exists()) {
+        this.set(name, []);
+        return this.get(name);
+      }
+      yield this.schema().embed([this], name);
+      return this._data[name];
+    }.bind(this));
   }
 
   /**

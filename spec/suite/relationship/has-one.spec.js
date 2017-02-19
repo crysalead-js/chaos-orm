@@ -1,3 +1,4 @@
+var co = require('co');
 var Conventions = require('../../../src/conventions');
 var Relationship = require('../../../src/relationship');
 var Model = require('../../../src/').Model;
@@ -133,6 +134,49 @@ describe("HasOne", function() {
           expect(gallery['detail']['gallery_id']).toBe(gallery['id']);
           expect(gallery['detail'] instanceof Model).toBe(false);
         });
+        done();
+      });
+
+    });
+
+  });
+
+  describe(".get()", function() {
+
+    it("returns `null` for unexisting foreign key", function(done) {
+
+      co(function*()  {
+        spyOn(GalleryDetail, 'all').and.callFake(function(options, fetchOptions) {
+          return Promise.resolve(GalleryDetail.create({}, { type: 'set', exists: true }));
+        });
+
+        var gallery = Gallery.create({ id: 1, name: 'Foo Gallery' }, { exists: true });
+        var detail = yield gallery.fetch('detail');
+
+        expect(GalleryDetail.all).toHaveBeenCalledWith({ conditions: { gallery_id: 1 } }, {});
+        expect(detail).toBe(undefined);
+
+        done();
+      });
+
+    });
+
+    it("lazy loads a hasOne relation", function(done) {
+
+      co(function*()  {
+        spyOn(GalleryDetail, 'all').and.callFake(function(options, fetchOptions) {
+          var details = GalleryDetail.create([
+            { id: 1, description: 'Foo Gallery Description', gallery_id: 1 }
+          ], { type: 'set', exists: true });
+          return Promise.resolve(details);
+        });
+
+        var gallery = Gallery.create({ id: 1, name: 'Foo Gallery' }, { exists: true });
+        var detail = yield gallery.fetch('detail');
+
+        expect(GalleryDetail.all).toHaveBeenCalledWith({ conditions: { gallery_id: 1 } }, {});
+        expect(detail.get('gallery_id')).toBe(gallery.id());
+
         done();
       });
 

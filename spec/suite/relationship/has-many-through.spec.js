@@ -1,3 +1,4 @@
+var co = require('co');
 var Conventions = require('../../../src/conventions');
 var Relationship = require('../../../src/relationship');
 var Model = require('../../../src/').Model;
@@ -166,7 +167,7 @@ describe("HasManyThrough", function() {
 
     it("embeds a hasManyThrough relationship using object hydration", function(done) {
 
-      var hasManyThrough = Image.definition().relation('tags');
+      var hasManyThrough = Image.definition();
 
       var images = Image.create([
         { id: 1, gallery_id: 1, title: 'Amiga 1200' },
@@ -178,7 +179,7 @@ describe("HasManyThrough", function() {
 
       images = images.data();
 
-      hasManyThrough.embed(images, { fetchOptions: { 'return': 'object' } }).then(function() {
+      hasManyThrough.embed(images, 'tags', { fetchOptions: { 'return': 'object' } }).then(function() {
 
         expect(ImageTag.all).toHaveBeenCalledWith({
           conditions: { image_id: [1, 2, 3, 4, 5] }
@@ -196,6 +197,44 @@ describe("HasManyThrough", function() {
         });
         done();
 
+      });
+
+    });
+
+  });
+
+  describe(".get()", function() {
+
+    it("lazy loads a hasManyThrough relation", function(done) {
+
+      co(function*()  {
+        spyOn(ImageTag, 'all').and.callFake(function(options, fetchOptions) {
+          var imagesTags =  ImageTag.create([
+            { id: 1, image_id: 1, tag_id: 1 },
+            { id: 2, image_id: 1, tag_id: 3 }
+          ], { type: 'set', exists: true });
+          return Promise.resolve(imagesTags);
+        });
+
+        spyOn(Tag, 'all').and.callFake(function(options, fetchOptions) {
+          var tags =  Tag.create([
+            { id: 1, name: 'High Tech' },
+            { id: 3, name: 'Computer' }
+          ], { type: 'set', exists: true });
+          return Promise.resolve(tags);
+        });
+
+        var image = Image.create({ id: 1, gallery_id: 1, title: 'Amiga 1200' }, { exists: true });
+        var tags = yield image.fetch('tags');
+
+        expect(ImageTag.all).toHaveBeenCalledWith({ conditions: { image_id: 1 } }, {});
+        expect(Tag.all).toHaveBeenCalledWith({ conditions: { id: [1, 3] } }, {});
+
+        expect(tags.count()).toBe(2);
+        expect(tags.get(0).data()).toEqual({ id: 1, name: 'High Tech' });
+        expect(tags.get(1).data()).toEqual({ id: 3, name: 'Computer' });
+
+        done();
       });
 
     });

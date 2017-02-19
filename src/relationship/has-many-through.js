@@ -116,7 +116,7 @@ class HasManyThrough extends Relationship {
    * Expands a collection of entities by adding their related data.
    *
    * @param  mixed      collection The collection to expand.
-   * @param  Object     options    The embedging options.
+   * @param  Object     options    The embedding options.
    * @return Collection            The collection of related entities.
    */
   embed(collection, options) {
@@ -128,12 +128,14 @@ class HasManyThrough extends Relationship {
       var from = this.from();
       var relThrough = from.definition().relation(through);
 
-      var middle = yield relThrough.embed(collection, options);
+      // Embedding twice is unstable
+      // var middle = yield relThrough.embed(collection, options);
 
       var pivot = relThrough.to();
       var relUsing = pivot.definition().relation(using);
 
-      var related = yield relUsing.embed(middle, options);
+      // Embedding twice is unstable
+      // var related = yield relUsing.embed(middle, options);
 
       var to = relUsing.to();
       var toSchema = to.definition();
@@ -151,23 +153,14 @@ class HasManyThrough extends Relationship {
         }
       });
 
-      var fromKey = this.keys('from');
-      var indexes = this._index(related, this.keys('to'));
-
-      var value;
-
       collection.forEach(function(entity, index) {
         if (entity instanceof Document) {
           return;
         }
         entity[through].forEach(function(item, key) {
-          if (indexes.has(item[fromKey])) {
-            collection[index][name].push(related[indexes.get(item[fromKey])]);
-            collection[index][through][key][using] = related[indexes.get(item[fromKey])];
-          }
+          collection[index][name].push(item[using]);
         });
       });
-      return related;
     }.bind(this));
   }
 

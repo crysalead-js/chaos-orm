@@ -1,3 +1,4 @@
+var co = require('co');
 var Conventions = require('../../../src/conventions');
 var Relationship = require('../../../src/relationship');
 var Model = require('../../../src/').Model;
@@ -136,6 +137,42 @@ describe("BelongsTo", function() {
           expect(image['gallery'] instanceof Model).toBe(false);
         });
 
+        done();
+      });
+
+    });
+
+  });
+
+  describe(".get()", function() {
+
+    it("returns `undefined` for unexisting foreign key", function(done) {
+
+      co(function*()  {
+
+        var image = Image.create({ id: 1, title: 'Amiga 1200' }, { exists: true });
+        expect(yield image.fetch('gallery')).toBe(undefined);
+
+        done();
+      });
+
+    });
+
+    it("lazy loads a belongsTo relation", function(done) {
+
+      co(function*()  {
+        spyOn(Gallery, 'all').and.callFake(function(options, fetchOptions) {
+          var galleries =  Gallery.create([
+            { id: 1, name: 'Foo Gallery' }
+          ], { type: 'set', exists: true });
+          return Promise.resolve(galleries);
+        });
+
+        var image = Image.create({ id: 1, gallery_id: 1, title: 'Amiga 1200' }, { exists: true });
+        var gallery = yield image.fetch('gallery');
+
+        expect(Gallery.all).toHaveBeenCalledWith({ conditions: { id: 1 } }, {});
+        expect(gallery.id()).toBe(image.get('gallery_id'));
         done();
       });
 
