@@ -384,7 +384,7 @@ class Document {
     } else if (this._data[name] !== undefined) {
       return this._data[name];
     } else if(schema.hasRelation(fieldName, false)) {
-      if (this._exists === true || (this._exists === null && this.id() != null)) {
+      if (this._exists !== false && this.id() != null) {
         throw new Error("The relation `'" + name + "'` is an external relation, use `fetch()` to lazy load its data.");
       }
       var relation = schema.relation(fieldName);
@@ -418,8 +418,7 @@ class Document {
    */
   fetch(name) {
     return co(function*() {
-      this.sync();
-      if (!this.exists()) {
+      if (this._exists === false || this.id() == null) {
         this.set(name, []);
         return this.get(name);
       }
