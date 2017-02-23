@@ -520,6 +520,13 @@ class Document {
 
     this._data[name] = value;
 
+    if (schema.hasRelation(fieldName, false)) {
+      var relation = schema.relation(fieldName);
+      if (relation.type() === 'belongsTo') {
+        this._set(relation.keys('from'), value ? value.id() : null);
+      }
+    }
+
     if (value && typeof value.setParent === 'function') {
       value.setParent(this, name);
     }
