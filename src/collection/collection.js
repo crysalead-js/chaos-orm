@@ -89,7 +89,7 @@ class Collection {
      */
     this._parents = new Map();
 
-    this.exists(config.exists);
+    this.exists(!!config.exists);
 
     this.basePath(config.basePath);
 

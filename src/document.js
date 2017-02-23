@@ -242,6 +242,8 @@ class Document {
 
     this.set(data);
 
+    this._exists = this._exists === 'all' ? true : this._exists;
+
     this._persisted = extend({}, this._data);
   }
 
@@ -503,7 +505,8 @@ class Document {
     var value = schema.cast(name, data, {
       parent: this,
       basePath: this.basePath(),
-      defaults: true
+      defaults: true,
+      exists: this._exists === 'all' ? 'all' : null
     });
     if (previous === value) {
       return;

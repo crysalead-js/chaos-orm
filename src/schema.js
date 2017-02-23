@@ -957,7 +957,7 @@ class Schema {
     }
 
     options.class = Document;
-    if (data !== null && typeof data === 'object' && data.constructor === Object) {
+    if (data != null && typeof data === 'object' && data.constructor === Object) {
       return this._cast(data, options);
     }
     return data;

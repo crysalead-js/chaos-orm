@@ -389,17 +389,19 @@ class Model extends Document {
   amend(data, options) {
     data = data || {};
     options = options || {};
-    var exists = options.exists !== undefined ? options.exists : this._exists;
-    this._exists = exists;
+    this._exists = options.exists !== undefined ? options.exists : this._exists;
 
-    this.set(extend({}, this._data, data), exists);
+    this.set(extend({}, this._data, data));
     this._persisted = extend({}, this._data);
+
+    this._exists = this._exists === 'all' ? true : this._exists;
+
     if (!this.constructor.unicity()) {
       return this;
     }
     var id = this.id();
     if (id != null) {
-      if (exists) {
+      if (this._exists) {
         this.constructor.shard().set(id, this);
       } else {
         this.constructor.shard().delete(id);
