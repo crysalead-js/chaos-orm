@@ -358,7 +358,10 @@ class Document {
 
     if (keys.length) {
       var value = this.get(name);
-      if (!value || value.set === undefined) {
+      if (!value) {
+        return null;
+      }
+      if (value.set === undefined) {
         throw new Error("The field: `" + name + "` is not a valid document or entity.");
       }
       return value.get(keys);
