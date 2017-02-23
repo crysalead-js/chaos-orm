@@ -162,7 +162,7 @@ describe("Entity", function() {
       entity.set('modified', 'modified');
 
       expect(entity.exists()).toBe(false);
-      expect(entity.id()).toBe(undefined);
+      expect(entity.id()).toBe(null);
       expect(entity.modified('modified')).toBe(true);
 
       entity.amend({id: 123, added: 'added' }, { exists: true });
@@ -203,13 +203,13 @@ describe("Entity", function() {
         entity.set('modified', 'modified');
 
         expect(entity.exists()).toBe(false);
-        expect(entity.id()).toBe(undefined);
+        expect(entity.id()).toBe(null);
         expect(entity.modified('modified')).toBe(true);
 
         entity.amend({ added: 'added' }, { exists: true });
 
         expect(entity.exists()).toBe(true);
-        expect(entity.id()).toBe(undefined);
+        expect(entity.id()).toBe(null);
         expect(entity.modified('modified')).toBe(false);
         expect(entity.modified('added')).toBe(false);
         expect(entity.get('added')).toBe('added');

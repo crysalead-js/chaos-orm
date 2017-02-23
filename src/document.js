@@ -406,6 +406,7 @@ class Document {
       this._set(name, value);
       return this._data[name];
     }
+    return null;
   }
 
   /**
@@ -488,7 +489,7 @@ class Document {
     }
 
     if (keys.length) {
-      if (this.get(name) === undefined) {
+      if (this.get(name) == undefined) {
         this._set(name, {});
       }
       var value = this._data[name];

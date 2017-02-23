@@ -106,7 +106,7 @@ describe("Document", function() {
 
         var document = new Document({schema: schema});
         expect(document.set('a', 1)).toBe(document);
-        expect(document.get('a')).toBe(undefined);
+        expect(document.get('a')).toBe(null);
 
       });
 
@@ -164,10 +164,10 @@ describe("Document", function() {
 
     });
 
-    it("returns `undefined` for undefined fields", function() {
+    it("returns `null` for undefined fields", function() {
 
       var document = new Document();
-      expect(document.get('foo')).toBe(undefined);
+      expect(document.get('foo')).toBe(null);
 
     });
 

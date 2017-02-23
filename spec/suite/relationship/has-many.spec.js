@@ -256,7 +256,7 @@ describe("HasMany", function() {
 
       hasMany.broadcast(gallery).then(function() {
         expect(toUnset.exists()).toBe(true);
-        expect(toUnset.get('gallery_id')).toBe(undefined);
+        expect(toUnset.get('gallery_id')).toBe(null);
         expect(gallery.get('images').get(0).get('gallery_id')).toBe(gallery.get('id'));
 
         expect(gallery.get('images').get(0).broadcast).toHaveBeenCalled();
