@@ -223,7 +223,7 @@ class Model extends Document {
       var id = data[key];
       if (id != null && shard.has(id)) {
         var instance = shard.get(id);
-        instance.amend(null, data, { exists: options.exists });
+        instance.amend(data, { exists: options.exists });
         return instance;
       }
     }
@@ -386,23 +386,18 @@ class Model extends Document {
    *                      - `'exists'` _boolean_: Determines whether or not this entity exists
    *                        in data store.
    */
-  amend(id, data, options) {
+  amend(data, options) {
     data = data || {};
     options = options || {};
     var exists = options.exists !== undefined ? options.exists : this._exists;
     this._exists = exists;
-
-    var key = this.schema().key();
-    if (id && key) {
-      data[key] = id;
-    }
 
     this.set(extend({}, this._data, data), exists);
     this._persisted = extend({}, this._data);
     if (!this.constructor.unicity()) {
       return this;
     }
-    id = this.get(key);
+    var id = this.id();
     if (id != null) {
       if (exists) {
         this.constructor.shard().set(id, this);
@@ -494,7 +489,7 @@ class Model extends Document {
       if (id != null) {
         var persisted = yield this.constructor.load(id);
         if (persisted && data) {
-          this.amend(undefined, persisted.data(), { exists: true });
+          this.amend(persisted.data(), { exists: true });
         } else {
           this._exists = !!persisted;
         }

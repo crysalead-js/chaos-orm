@@ -165,7 +165,7 @@ describe("Entity", function() {
       expect(entity.id()).toBe(undefined);
       expect(entity.modified('modified')).toBe(true);
 
-      entity.amend(123, { added: 'added' }, { exists: true });
+      entity.amend({id: 123, added: 'added' }, { exists: true });
 
       expect(entity.exists()).toBe(true);
       expect(entity.id()).toBe(123);
@@ -186,7 +186,7 @@ describe("Entity", function() {
         expect(entity.id()).toBe(undefined);
         expect(entity.modified('modified')).toBe(true);
 
-        entity.amend(undefined, { added: 'added' }, { exists: true });
+        entity.amend({ added: 'added' }, { exists: true });
 
         expect(entity.exists()).toBe(true);
         expect(entity.id()).toBe(undefined);
@@ -210,7 +210,7 @@ describe("Entity", function() {
 
         expect(shard.has(entity.id())).toBe(false);
 
-        entity.amend(undefined, { name: 'file.jpg' }, {exists: true});
+        entity.amend({ name: 'file.jpg' }, {exists: true});
 
         expect(shard.has(entity.id())).toBe(true);
         expect(shard.size).toBe(1);
@@ -232,7 +232,7 @@ describe("Entity", function() {
         expect(shard.has(entity.id())).toBe(true);
         expect(shard.size).toBe(1);
 
-        entity.amend(undefined, { name: 'file.jpg' }, { exists: false });
+        entity.amend({ name: 'file.jpg' }, { exists: false });
 
         expect(shard.has(entity.id())).toBe(false);
 

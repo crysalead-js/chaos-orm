@@ -1391,7 +1391,7 @@ class Schema {
       yield this.truncate({ [key]: keys.length === 1 ? keys[0] : keys });
 
       for (var entity of collection) {
-        entity.amend(null, {}, { exists: false });
+        entity.amend({}, { exists: false });
       }
 
       return true;
