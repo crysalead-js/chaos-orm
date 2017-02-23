@@ -363,9 +363,11 @@ class Document {
     }
 
     var fieldName = this.basePath() ? this.basePath() + '.' + name : name;
-
     var schema = this.schema();
+
+    var hasGenericFieldName = false;
     var field;
+
     if (schema.has(fieldName)) {
       field = schema.column(fieldName);
     } else {
@@ -373,14 +375,17 @@ class Document {
       if (schema.has(genericFieldName)) {
         field = schema.column(genericFieldName);
         fieldName = genericFieldName;
+        hasGenericFieldName = true;
       } else {
         field = {};
       }
     }
-    var value;
+
+    var autoCreate = !!field.array;
+    var value = field.array ? [] : {};
 
     if (typeof field.getter === 'function') {
-      value = field.getter(this, this._data[name], name);
+      return schema.cast(name, field.getter(this, this._data[name], name));
     } else if (this._data[name] !== undefined) {
       return this._data[name];
     } else if(schema.hasRelation(fieldName, false)) {
@@ -388,26 +393,17 @@ class Document {
         throw new Error("The relation `'" + name + "'` is an external relation, use `fetch()` to lazy load its data.");
       }
       var relation = schema.relation(fieldName);
-      value = relation.isMany() ? [] : {};
-    } else if (field.type === 'object') {
-      value = field.array ? [] : {};
-    } else {
-      return;
+      autoCreate = relation.isMany();
+      value = [];
+    } else if (hasGenericFieldName && field.default) {
+      autoCreate = true;
+      value = field.default;
     }
 
-    value = schema.cast(name, value, {
-      parent: this,
-      basePath: this.basePath(),
-      defaults: true
-    });
-    if (value && typeof value.setParent === 'function') {
-      value.setParent(this, name);
+    if (autoCreate) {
+      this._set(name, value);
+      return this._data[name];
     }
-
-    if (field.virtual) {
-      return value;
-    }
-    return this._data[name] = value;
   }
 
   /**
@@ -504,7 +500,7 @@ class Document {
     var schema = this.schema();
 
     var previous = this._data[name];
-    var value = this.schema().cast(name, data, {
+    var value = schema.cast(name, data, {
       parent: this,
       basePath: this.basePath(),
       defaults: true
@@ -513,11 +509,12 @@ class Document {
       return;
     }
     var fieldName = this.basePath() ? this.basePath() + '.' + name : name;
-    this._data[name] = value;
 
     if (schema.isVirtual(fieldName)) {
       return;
     }
+
+    this._data[name] = value;
 
     if (value && typeof value.setParent === 'function') {
       value.setParent(this, name);
@@ -775,13 +772,16 @@ class Document {
         result.push(prefix ? prefix + '.' + field : field);
         continue;
       }
-      var childs = this.get(field).hierarchy(field, ignore);
-      if (childs.length) {
-        for (var value of childs) {
-          result.push(value);
+      var entity = this.get(field);
+      if (entity) {
+        var childs = entity.hierarchy(field, ignore);
+        if (childs.length) {
+          for (var value of childs) {
+            result.push(value);
+          }
+        } else if (childs !== false) {
+          result.push(prefix ? prefix + '.' + field : field);
         }
-      } else if (childs !== false) {
-        result.push(prefix ? prefix + '.' + field : field);
       }
     }
     return result;

@@ -314,6 +314,20 @@ describe("Entity", function() {
 
     });
 
+    it("clears a single belongsTo relation when using a `null/undefined` value", function() {
+
+      var image = Image.create();
+      image.set('gallery', { id: '1', name: 'MyGallery' });
+      image.set('gallery', null);
+      expect(image.get('gallery')).toBe(null);
+
+
+      image.set('gallery', { id: '1', name: 'MyGallery' });
+      image.set('gallery', undefined);
+      expect(image.get('gallery')).toBe(null);
+
+    });
+
     it("sets a single hasMany relation", function() {
 
       var image = Image.create();
@@ -322,6 +336,24 @@ describe("Entity", function() {
       expect(image.get('images_tags') instanceof Collection).toBe(true);
       expect(image.get('images_tags.0') instanceof ImageTag).toBe(true);
       expect(image.get('images_tags.0').data()).toEqual({ id: 1, image_id: 1, tag_id: 1 });
+
+    });
+
+    it("clears a single hasMany relation when using a `null/undefined` value", function() {
+
+      var image = Image.create();
+      image.set('images_tags.0', { id: '1', image_id: '1', tag_id: '1' });
+      image.set('images_tags', null);
+
+      expect(image.get('images_tags') instanceof Collection).toBe(true);
+      expect(image.get('images_tags').count()).toBe(0);
+
+      var image = Image.create();
+      image.set('images_tags.0', { id: '1', image_id: '1', tag_id: '1' });
+      image.set('images_tags', undefined);
+
+      expect(image.get('images_tags') instanceof Collection).toBe(true);
+      expect(image.get('images_tags').count()).toBe(0);
 
     });
 
@@ -557,7 +589,7 @@ describe("Entity", function() {
         type: 'object'
       });
 
-      var entity = MyModel.create();
+      var entity = MyModel.create({ child: {} });
 
       var child = entity.get('child');
       expect(child.constructor === Document).toBe(true);

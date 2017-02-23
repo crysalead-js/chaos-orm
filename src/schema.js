@@ -971,6 +971,9 @@ class Schema {
    * @return mixed             The casted data.
    */
   _cast(data, options) {
+    if (data == null) {
+      return null;
+    }
     if (data instanceof Document) {
       return data;
     }

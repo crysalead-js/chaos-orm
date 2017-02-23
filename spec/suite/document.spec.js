@@ -106,7 +106,7 @@ describe("Document", function() {
 
         var document = new Document({schema: schema});
         expect(document.set('a', 1)).toBe(document);
-        expect(document.get('a')).toBe('1');
+        expect(document.get('a')).toBe(undefined);
 
       });
 
@@ -238,12 +238,12 @@ describe("Document", function() {
     it("correctly sets parents", function() {
 
       var schema = new Schema();
-      schema.column('data', { type: 'object' });
-      schema.column('data.*', { type: 'object' });
+      schema.column('data', { type: 'object', default: {} });
+      schema.column('data.*', { type: 'object', default: {} });
       schema.column('data.*.checked', { type: 'boolean' });
-      schema.column('data.*.test', { type: 'object' });
-      schema.column('data.*.test.*', { type: 'object' });
-      schema.column('data.*.test.*.nested', { type: 'object' });
+      schema.column('data.*.test', { type: 'object', default: {} });
+      schema.column('data.*.test.*', { type: 'object', default: {} });
+      schema.column('data.*.test.*.nested', { type: 'object', default: {} });
       schema.column('data.*.test.*.nested.*', { type: 'boolean', array: true });
       schema.locked(true);
 
