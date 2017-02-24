@@ -370,7 +370,6 @@ class Document {
     var fieldName = this.basePath() ? this.basePath() + '.' + name : name;
     var schema = this.schema();
 
-    var hasGenericFieldName = false;
     var field;
 
     if (schema.has(fieldName)) {
@@ -380,7 +379,6 @@ class Document {
       if (schema.has(genericFieldName)) {
         field = schema.column(genericFieldName);
         fieldName = genericFieldName;
-        hasGenericFieldName = true;
       } else {
         field = {};
       }
@@ -400,7 +398,7 @@ class Document {
       var relation = schema.relation(fieldName);
       autoCreate = relation.isMany();
       value = [];
-    } else if (hasGenericFieldName && field.default) {
+    } else if (field.default) {
       autoCreate = true;
       value = field.default;
     }

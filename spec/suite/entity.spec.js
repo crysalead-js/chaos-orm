@@ -89,6 +89,30 @@ describe("Entity", function() {
 
   });
 
+  describe(".create()", function() {
+
+    it("eagerly populates default values by default", function() {
+
+      MyModel.definition().column('hello', { type: 'string', default: 'world' });
+      var entity = MyModel.create();
+
+      expect(entity.has('hello')).toBe(true);
+      expect(entity.get('hello')).toBe('world');
+
+    });
+
+    it("lazily populates default values when the `'defaults'` option is set to false", function() {
+
+      MyModel.definition().column('hello', { type: 'string', default: 'world' });
+      var entity = MyModel.create({}, { defaults: false });
+
+      expect(entity.has('hello')).toBe(false);
+      expect(entity.get('hello')).toBe('world');
+
+    });
+
+  });
+
   describe(".self()", function() {
 
     it("returns the entity class", function() {
