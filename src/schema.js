@@ -687,10 +687,10 @@ class Schema {
 
     if (config.relation === 'hasManyThrough') {
       if (!config.through) {
-        throw new Error("Missing `'through'` relation name.");
+        throw new Error("Missing through name for `'" + name + "'` relation.");
       }
       if (!this._relations[config.through]) {
-        throw new Error("Unexisting `'through'` relation, needed to be created first.");
+        throw new Error("Unexisting through relation `'" + config.through + "'`, needed to be created first.");
       }
       this._relations[config.through].junction = true;
       config.using = this.conventions().apply('single', name);
@@ -1020,7 +1020,7 @@ class Schema {
 
     if (data instanceof Collection) {
       return data;
-    } else if (isThrough) {
+    } else if (data != null && isThrough) {
       config.parent.get(config.through).clear();
     }
 

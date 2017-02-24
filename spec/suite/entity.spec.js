@@ -509,6 +509,35 @@ describe("Entity", function() {
 
     });
 
+    it("gets the hasManyThrough array from hasMany/belongsTo data", function() {
+
+      var image = Image.create({ id: 1 }, { exists: true });
+      image.set('images_tags', [
+        {
+          id: '1',
+          image_id: '1',
+          tag_id: '1',
+          tag: {
+            id: '1',
+            name: 'landscape'
+          }
+        },
+        {
+          id: '2',
+          image_id: '1',
+          tag_id: '2',
+          tag: {
+            id: '2',
+            name: 'mountain'
+          }
+        }
+      ]);
+      expect(image.get('tags') instanceof Through).toBe(true);
+      expect(image.get('tags.0').data()).toEqual({ id: 1, name: 'landscape' });
+      expect(image.get('tags.1').data()).toEqual({ id: 2, name: 'mountain' });
+
+    });
+
     it("throws an exception when trying to set nested arbitraty value in cascade when locked is `true`", function() {
 
       var closure = function() {

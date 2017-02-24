@@ -392,12 +392,15 @@ class Document {
     } else if (this._data[name] !== undefined) {
       return this._data[name];
     } else if(schema.hasRelation(fieldName, false)) {
-      if (this._exists !== false && this.id() != null) {
-        throw new Error("The relation `'" + name + "'` is an external relation, use `fetch()` to lazy load its data.");
-      }
       var relation = schema.relation(fieldName);
+      var hasManyThrough = relation.type() === 'hasManyThrough';
+      if (this._exists !== false && this.id() != null) {
+        if (!hasManyThrough || !this.has(relation.through())) {
+          throw new Error("The relation `'" + name + "'` is an external relation, use `fetch()` to lazy load its data.");
+        }
+      }
       autoCreate = relation.isMany();
-      value = [];
+      value = hasManyThrough ? null : [];
     } else if (field.default) {
       autoCreate = true;
       value = field.default;
