@@ -679,16 +679,17 @@ describe("Entity", function() {
   describe(".validates()", function() {
 
     beforeEach(function() {
-      var validator = Gallery.validator();
-      validator.rule('name', 'not:empty');
+      Gallery.validator().rule('name', 'not:empty');
 
-      var validator = Image.validator();
-      validator.rule('name', 'not:empty');
+      Image.validator().rule('name', 'not:empty');
+
+      Tag.validator().rule('name', 'not:empty');
     });
 
     afterEach(function() {
       Gallery.reset();
       Image.reset();
+      Tag.reset();
     });
 
     it("validates an entity", function(done) {
@@ -783,6 +784,67 @@ describe("Entity", function() {
         gallery.get('images.1').set('name', 'image2');
         expect(yield gallery.validates()).toBe(true);
         expect(gallery.errors()).toEqual({});
+        done();
+      });
+
+    });
+
+    it("validates a hasManyThrough nested entities", function(done) {
+
+      co(function*() {
+        var image = Image.create();
+        image.get('tags').push(Tag.create());
+        image.get('tags').push(Tag.create());
+
+        expect(yield image.validates()).toBe(false);
+        expect(image.errors()).toEqual({
+          name: ['is required'],
+          images_tags: [
+            { tag: { name: ['is required'] } },
+            { tag: { name: ['is required'] } }
+          ],
+          tags: [
+            { name: ['is required'] },
+            { name: ['is required'] }
+          ]
+        });
+
+        image.set('name', '');
+        image.get('tags.0').set('name', '');
+        image.get('tags.1').set('name', '');
+        expect(yield image.validates()).toBe(false);
+        expect(image.errors()).toEqual({
+          name: ['must not be a empty'],
+          images_tags: [
+            { tag: { name: ['must not be a empty'] } },
+            { tag: { name: ['must not be a empty'] } }
+          ],
+          tags: [
+            { name: ['must not be a empty'] },
+            { name: ['must not be a empty'] }
+          ]
+        });
+
+        image.set('name', 'new gallery');
+        image.get('tags.0').set('name', 'image1');
+        image.get('tags.1').set('name', '');
+        expect(yield image.validates()).toBe(false);
+        expect(image.errors()).toEqual({
+            images_tags: [
+               {},
+               { tag: { name: ['must not be a empty'] } }
+            ],
+            tags: [
+              {},
+              { name: ['must not be a empty'] }
+            ]
+        });
+
+        image.set('name', 'new gallery');
+        image.get('tags.0').set('name', 'image1');
+        image.get('tags.1').set('name', 'image2');
+        expect(yield image.validates()).toBe(true);
+        expect(image.errors()).toEqual({});
         done();
       });
 

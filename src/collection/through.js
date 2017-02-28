@@ -595,10 +595,15 @@ class Through {
    */
   errors(options) {
     var errors = [];
+    var errored = false;
     for (var entity of this) {
-      errors.push(entity ? entity.errors(options) : []);
-    };
-    return errors;
+      var result = entity.errors();
+      errors.push(entity.errors());
+      if (Object.keys(result).length) {
+        errored = true;
+      }
+    }
+    return errored ? errors : [];
   }
 
   /**
