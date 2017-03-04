@@ -394,9 +394,11 @@ class Document {
     } else if(schema.hasRelation(fieldName, false)) {
       var relation = schema.relation(fieldName);
       var hasManyThrough = relation.type() === 'hasManyThrough';
-      if (this._exists !== false && this.id() != null) {
+      if (this.id() != null) {
         if (!hasManyThrough || !this.has(relation.through())) {
-          throw new Error("The relation `'" + name + "'` is an external relation, use `fetch()` to lazy load its data.");
+          if ((this._exists !== false && relation.type() !== 'belongsTo') || this.get(relation.keys('from')) !== null) {
+            throw new Error("The relation `'" + name + "'` is an external relation, use `fetch()` to lazy load its data.");
+          }
         }
       }
       autoCreate = relation.isMany();
@@ -426,7 +428,7 @@ class Document {
         return this.get(name);
       }
       yield this.schema().embed([this], name);
-      return this._data[name];
+      return this._data[name] || null;
     }.bind(this));
   }
 

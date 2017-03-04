@@ -150,6 +150,21 @@ describe("HasMany", function() {
 
   describe(".get()", function() {
 
+    it("throws an exception when a lazy load is necessary", function() {
+
+      var closure = function() {
+        var gallery = Gallery.create({ id: 1, name: 'Foo Gallery' }, { exists: true });
+        gallery.get('images');
+      };
+
+      expect(closure).toThrow(new Error("The relation `'images'` is an external relation, use `fetch()` to lazy load its data."));
+
+    });
+
+  });
+
+  describe(".fetch()", function() {
+
       it("returns an empty collection when no hasMany relation exists", function(done) {
 
         co(function*()  {

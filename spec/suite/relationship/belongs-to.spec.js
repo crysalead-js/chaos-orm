@@ -146,12 +146,34 @@ describe("BelongsTo", function() {
 
   describe(".get()", function() {
 
-    it("returns `undefined` for unexisting foreign key", function(done) {
+    it("returns `null` for unexisting foreign key", function() {
+
+      var image = Image.create({ id: 1, title: 'Amiga 1200' }, { exists: true });
+      expect(image.get('gallery')).toBe(null);
+
+    });
+
+    it("throws an exception when a lazy load is necessary", function() {
+
+      var closure = function() {
+        var image = Image.create({ id: 1, title: 'Amiga 1200', 'gallery_id': 1 });
+        image.get('gallery');
+      };
+
+      expect(closure).toThrow(new Error("The relation `'gallery'` is an external relation, use `fetch()` to lazy load its data."));
+
+    });
+
+  });
+
+  describe(".fetch()", function() {
+
+    it("returns `null` for unexisting foreign key", function(done) {
 
       co(function*()  {
 
         var image = Image.create({ id: 1, title: 'Amiga 1200' }, { exists: true });
-        expect(yield image.fetch('gallery')).toBe(undefined);
+        expect(yield image.fetch('gallery')).toBe(null);
 
         done();
       });

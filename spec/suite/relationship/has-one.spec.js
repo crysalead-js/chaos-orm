@@ -143,6 +143,21 @@ describe("HasOne", function() {
 
   describe(".get()", function() {
 
+    it("throws an exception when a lazy load is necessary", function() {
+
+      var closure = function() {
+        var gallery = Gallery.create({ id: 1, name: 'Foo Gallery' }, { exists: true });
+        detail = gallery.get('detail');
+      };
+
+      expect(closure).toThrow(new Error("The relation `'detail'` is an external relation, use `fetch()` to lazy load its data."));
+
+    });
+
+  });
+
+  describe(".fetch()", function() {
+
     it("returns `null` for unexisting foreign key", function(done) {
 
       co(function*()  {
@@ -154,7 +169,7 @@ describe("HasOne", function() {
         var detail = yield gallery.fetch('detail');
 
         expect(GalleryDetail.all).toHaveBeenCalledWith({ conditions: { gallery_id: 1 } }, {});
-        expect(detail).toBe(undefined);
+        expect(detail).toBe(null);
 
         done();
       });
