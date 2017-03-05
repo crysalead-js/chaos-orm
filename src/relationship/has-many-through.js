@@ -171,7 +171,7 @@ class HasManyThrough extends Relationship {
    * @param  Object  options Saving options.
    * @return Promise
    */
-  broadcast(entity, options) {
+  save(entity, options) {
     return Promise.resolve();
   }
 

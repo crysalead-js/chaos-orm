@@ -56,7 +56,7 @@ class HasOne extends Relationship {
    * @param  Object  options Saving options.
    * @return Promise
    */
-  broadcast(entity, options) {
+  save(entity, options) {
     return co(function*() {
       if (this.link() !== this.constructor.LINK_KEY) {
         return;
@@ -69,7 +69,7 @@ class HasOne extends Relationship {
 
       var conditions = this.match(entity);
       var related = entity.get(name);
-      yield related.set(conditions).broadcast(options);
+      yield related.set(conditions).save(options);
     }.bind(this));
   }
 }

@@ -450,10 +450,11 @@ class Model extends Document {
    *                                                      be immediately saved. Defaults to `true`.
    * @return Promise
    */
-  broadcast(options) {
+  save(options) {
     return co(function*() {
       var defaults = {
-        validate: true
+        validate: true,
+        embed: false
       };
       options = extend({}, defaults, options);
       if (options.validate) {
@@ -462,18 +463,18 @@ class Model extends Document {
           return false;
         }
       }
-      yield this.schema().broadcast(this, options);
+      return yield this.schema().save(this, options);
     }.bind(this));
   }
 
   /**
-   * Similar to `.broadcast()` except the direct relationship has not been saved by default.
+   * Similar to `.save()` except the direct relationship has not been saved by default.
    *
-   * @param  Object  options Same options as `.broadcast()`.
+   * @param  Object  options Same options as `.save()`.
    * @return Promise
    */
-  save(options) {
-    return this.broadcast(extend({}, { embed: false }, options));
+  persist(options) {
+    return this.save(extend({}, options, { embed: false }));
   }
 
   /**

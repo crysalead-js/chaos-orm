@@ -256,12 +256,12 @@ describe("HasManyThrough", function() {
 
   });
 
-  describe(".broadcast()", function() {
+  describe(".save()", function() {
 
     it("bails out on save since it's just an alias", function(done) {
 
       var hasManyThrough = Image.definition().relation('tags');
-      hasManyThrough.broadcast().then(function() {
+      hasManyThrough.save().then(function() {
         done();
       });
 

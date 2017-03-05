@@ -1000,9 +1000,9 @@ describe("Schema", function() {
 
   });
 
-  describe(".save()", function() {
+  describe(".persist()", function() {
 
-    it("saves an entity", function(done) {
+    it("persists an entity", function(done) {
 
       co(function*() {
         var data = {
@@ -1012,11 +1012,11 @@ describe("Schema", function() {
 
         var image = Image.create(data);
 
-        var spy = spyOn(image, 'broadcast').and.callThrough();
+        var spy = spyOn(image, 'save').and.callThrough();
         spyOn(image.schema(), 'bulkInsert').and.returnValue(Promise.resolve(true));
         spyOn(image.schema(), 'bulkUpdate').and.returnValue(Promise.resolve(true));
 
-        yield image.save({ custom: 'option' });
+        yield image.persist({ custom: 'option', embed: true });
 
         expect(spy).toHaveBeenCalledWith({
           custom: 'option',

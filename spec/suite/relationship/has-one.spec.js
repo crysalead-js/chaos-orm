@@ -199,13 +199,13 @@ describe("HasOne", function() {
 
   });
 
-  describe(".broadcast()", function() {
+  describe(".save()", function() {
 
     it("bails out if no relation data hasn't been setted", function(done) {
 
       var hasOne = Gallery.definition().relation('detail');
       var gallery = Gallery.create({ id: 1, name: 'Foo Gallery' }, { exists: true });
-      hasOne.broadcast(gallery).then(function() {
+      hasOne.save(gallery).then(function() {
         expect(gallery.has('detail')).toBe(false);
         done();
       });
@@ -218,13 +218,13 @@ describe("HasOne", function() {
       var gallery = Gallery.create({ id: 1, name: 'Foo Gallery' }, { exists: true });
       gallery.set('detail', { description: 'Foo GalleryDetail' });
 
-      spyOn(gallery.get('detail'), 'broadcast').and.callFake(function() {
+      spyOn(gallery.get('detail'), 'save').and.callFake(function() {
         gallery.get('detail').set('id', 1);
         return Promise.resolve(gallery);
       });
 
-      hasOne.broadcast(gallery).then(function() {
-        expect(gallery.get('detail').broadcast).toHaveBeenCalled();
+      hasOne.save(gallery).then(function() {
+        expect(gallery.get('detail').save).toHaveBeenCalled();
         expect(gallery.get('detail').get('gallery_id')).toBe(gallery.get('detail').get('id'));
         done();
       });

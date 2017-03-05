@@ -1236,13 +1236,13 @@ class Schema {
    *                          - `'embed'`     _Object_ : List of relations to save.
    * @return Promise          Returns a promise.
    */
-  broadcast(instance, options) {
+  save(instance, options) {
     return co(function*() {
 
       var defaults = {
         whitelist: undefined,
         locked: this.locked(),
-        embed: instance.schema().relations()
+        embed: false
       };
 
       options = extend({}, defaults, options);
@@ -1256,18 +1256,18 @@ class Schema {
       options.embed = this.treeify(options.embed);
 
       try {
-        yield this.persist(instance, 'belongsTo', options);
+        yield this.saveRelation(instance, 'belongsTo', options);
       } catch (e) {
         throw e;
       }
 
       try {
-        yield this.save(instance, options);
+        yield this.persist(instance, options);
       } catch (e) {
         throw e;
       }
 
-      yield this.persist(instance, ['hasMany', 'hasOne'], options);
+      yield this.saveRelation(instance, ['hasMany', 'hasOne'], options);
       return true;
     }.bind(this));
   }
@@ -1279,16 +1279,14 @@ class Schema {
    * @param Object   options  Options:
    *                          - `'whitelist'` _Object_ : An array of fields that are allowed to be saved to this record.
    *                          - `'locked'`    _Boolean_: Lock data to the schema fields.
-   *                          - `'embed'`     _Object_ : List of relations to save.
    * @return Promise          Returns a promise.
    */
-  save(instance, options) {
+  persist(instance, options) {
     return co(function*() {
 
       var defaults = {
         whitelist: undefined,
-        locked: this.locked(),
-        embed: instance.schema().relations()
+        locked: this.locked()
       };
 
       options = extend({}, defaults, options);
@@ -1342,7 +1340,7 @@ class Schema {
    * @param  Object  options  Options array.
    * @return Promise          Returns a promise.
    */
-  persist(instance, types, options) {
+  saveRelation(instance, types, options) {
     return co(function*() {
       var defaults = { embed: {} };
       options = extend({}, defaults, options);
@@ -1360,7 +1358,7 @@ class Schema {
             if (!rel || rel.type() !== type) {
                 continue;
             }
-            yield rel.broadcast(entity, extend({}, options, { embed: value }));
+            yield rel.save(entity, extend({}, options, { embed: value }));
           }
         }
       }

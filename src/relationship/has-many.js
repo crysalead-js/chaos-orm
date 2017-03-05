@@ -103,7 +103,7 @@ class HasMany extends Relationship {
    * @param  Object  options Saving options.
    * @return Promise
    */
-  broadcast(entity, options) {
+  save(entity, options) {
     return co(function*() {
       if (this.link() !== this.constructor.LINK_KEY) {
         return true;
@@ -130,7 +130,7 @@ class HasMany extends Relationship {
           existing[indexes.get(item.id())] = true;
         }
         item.set(conditions);
-        var ok = yield item.broadcast(options);
+        var ok = yield item.save(options);
         success = success && ok;
       }
 
@@ -147,7 +147,7 @@ class HasMany extends Relationship {
         previous.forEach(function (item, index) {
           if (!existing[index]) {
             item.unset(toKey);
-            promises.push(item.broadcast());
+            promises.push(item.save());
           }
         });
       }

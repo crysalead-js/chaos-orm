@@ -930,7 +930,7 @@ describe("Entity", function() {
 
   });
 
-  describe(".broadcast()", function() {
+  describe(".save()", function() {
 
     afterEach(function() {
       Image.reset();
@@ -943,14 +943,14 @@ describe("Entity", function() {
         var image = Image.create();
         Image.validator().rule('name', 'not:empty');
 
-        expect(yield image.broadcast()).toBe(false);
+        expect(yield image.save()).toBe(false);
         expect(image.exists()).toBe(false);
         done();
       }.bind(this));
 
     });
 
-    it("validates direct relationships by default", function(done) {
+    it("doesn't validates direct relationships by default", function(done) {
 
       co(function*() {
         Gallery.validator().rule('name', 'not:empty');
@@ -960,8 +960,35 @@ describe("Entity", function() {
           title: 'Amiga 1200',
           gallery: {}
         });
-        expect(yield image.broadcast()).toBe(false);
-        expect(image.exists()).toBe(false);
+
+        var schema = image.schema();
+
+        var spy = spyOn(schema, 'save').and.callThrough();
+        spyOn(schema, 'bulkInsert').and.returnValue(Promise.resolve(true));
+        spyOn(schema, 'bulkUpdate').and.returnValue(Promise.resolve(true));
+
+        expect(yield image.save()).toBe(true);
+        expect(spy).toHaveBeenCalledWith(image, {
+          validate: true,
+          embed: false
+        });
+        done();
+      }.bind(this));
+
+    });
+
+    it("validates embedded relationships", function(done) {
+
+      co(function*() {
+        Gallery.validator().rule('name', 'not:empty');
+
+        var image = Image.create({
+          name: 'amiga_1200.jpg',
+          title: 'Amiga 1200',
+          gallery: {}
+        });
+
+        expect(yield image.save({ embed: 'gallery' })).toBe(false);
         done();
       }.bind(this));
 

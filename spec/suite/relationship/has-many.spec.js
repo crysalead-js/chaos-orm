@@ -210,13 +210,13 @@ describe("HasMany", function() {
 
   });
 
-  describe(".broadcast()", function() {
+  describe(".save()", function() {
 
     it("bails out if no relation data hasn't been setted", function(done) {
 
       var hasMany = Gallery.definition().relation('images');
       var gallery = Gallery.create({ id: 1, name: 'Foo Gallery' },  { exists: true });
-      hasMany.broadcast(gallery).then(function() {
+      hasMany.save(gallery).then(function() {
         expect(gallery.has('images')).toBe(false);
         done();
       });
@@ -234,13 +234,13 @@ describe("HasMany", function() {
       var gallery = Gallery.create({ id: 1, name: 'Foo Gallery' }, { exists: true });
       gallery.set('images', [{ name: 'Foo Image' }]);
 
-      spyOn(gallery.get('images').get(0), 'broadcast').and.callFake(function() {
+      spyOn(gallery.get('images').get(0), 'save').and.callFake(function() {
         gallery.get('images').get(0).set('id', 1);
         return Promise.resolve(gallery);
       });
 
-      hasMany.broadcast(gallery).then(function() {
-        expect(gallery.get('images').get(0).broadcast).toHaveBeenCalled();
+      hasMany.save(gallery).then(function() {
+        expect(gallery.get('images').get(0).save).toHaveBeenCalled();
         expect(gallery.get('images').get(0).get('gallery_id')).toBe(gallery.get('id'));
         done();
       });
@@ -261,22 +261,22 @@ describe("HasMany", function() {
       var gallery = Gallery.create({ id: 1, name: 'Foo Gallery' }, { exists: true });
       gallery.set('images', [{ title: 'Amiga 1200' }, toKeep]);
 
-      spyOn(gallery.get('images').get(0), 'broadcast').and.callFake(function() {
+      spyOn(gallery.get('images').get(0), 'save').and.callFake(function() {
         gallery.get('images').get(0).set('id', 1);
         return Promise.resolve(gallery);
       });
 
-      spyOn(toKeep, 'broadcast').and.returnValue(Promise.resolve(toKeep));
-      spyOn(toUnset, 'broadcast').and.returnValue(Promise.resolve(toUnset));
+      spyOn(toKeep, 'save').and.returnValue(Promise.resolve(toKeep));
+      spyOn(toUnset, 'save').and.returnValue(Promise.resolve(toUnset));
 
-      hasMany.broadcast(gallery).then(function() {
+      hasMany.save(gallery).then(function() {
         expect(toUnset.exists()).toBe(true);
         expect(toUnset.get('gallery_id')).toBe(null);
         expect(gallery.get('images').get(0).get('gallery_id')).toBe(gallery.get('id'));
 
-        expect(gallery.get('images').get(0).broadcast).toHaveBeenCalled();
-        expect(toKeep.broadcast).toHaveBeenCalled();
-        expect(toUnset.broadcast).toHaveBeenCalled();
+        expect(gallery.get('images').get(0).save).toHaveBeenCalled();
+        expect(toKeep.save).toHaveBeenCalled();
+        expect(toUnset.save).toHaveBeenCalled();
         done();
       });
 
@@ -296,21 +296,21 @@ describe("HasMany", function() {
       var image = Image.create({ id: 4, gallery_id: 2, title: 'Silicon Valley' }, { exists: true });
       image.set('images_tags', [{ tag_id: 1 }, toKeep]);
 
-      spyOn(image.get('images_tags').get(0), 'broadcast').and.callFake(function() {
+      spyOn(image.get('images_tags').get(0), 'save').and.callFake(function() {
         image.get('images_tags').get(0).set('id', 7);
         return Promise.resolve(image);
       });
 
       var schema = ImageTag.definition();
-      spyOn(toKeep, 'broadcast').and.returnValue(Promise.resolve(toKeep));
+      spyOn(toKeep, 'save').and.returnValue(Promise.resolve(toKeep));
       spyOn(schema, 'truncate').and.returnValue(Promise.resolve(true));
 
-      hasMany.broadcast(image).then(function() {
+      hasMany.save(image).then(function() {
         expect(toDelete.exists()).toBe(false);
         expect(image.get('images_tags').get(0).get('image_id')).toBe(image.get('id'));
 
-        expect(image.get('images_tags').get(0).broadcast).toHaveBeenCalled();
-        expect(toKeep.broadcast).toHaveBeenCalled();
+        expect(image.get('images_tags').get(0).save).toHaveBeenCalled();
+        expect(toKeep.save).toHaveBeenCalled();
         expect(schema.truncate).toHaveBeenCalledWith({ id: 5 });
         done();
       });
