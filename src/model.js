@@ -468,16 +468,6 @@ class Model extends Document {
   }
 
   /**
-   * Similar to `.save()` except the direct relationship has not been saved by default.
-   *
-   * @param  Object  options Same options as `.save()`.
-   * @return Promise
-   */
-  persist(options) {
-    return this.save(extend({}, options, { embed: false }));
-  }
-
-  /**
    * Sync the entity existence from the database.
    *
    * @param  boolean data Indicate whether the data need to by synced or not.

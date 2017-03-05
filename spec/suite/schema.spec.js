@@ -1000,35 +1000,6 @@ describe("Schema", function() {
 
   });
 
-  describe(".persist()", function() {
-
-    it("persists an entity", function(done) {
-
-      co(function*() {
-        var data = {
-          name: 'amiga_1200.jpg',
-          title: 'Amiga 1200'
-        };
-
-        var image = Image.create(data);
-
-        var spy = spyOn(image, 'save').and.callThrough();
-        spyOn(image.schema(), 'bulkInsert').and.returnValue(Promise.resolve(true));
-        spyOn(image.schema(), 'bulkUpdate').and.returnValue(Promise.resolve(true));
-
-        yield image.persist({ custom: 'option', embed: true });
-
-        expect(spy).toHaveBeenCalledWith({
-          custom: 'option',
-          embed: false
-        });
-        done();
-      });
-
-    });
-
-  });
-
   describe(".hasRelation()", function() {
 
     it("checks if an embedded relation exists", function() {
