@@ -647,7 +647,7 @@ describe("Document", function() {
 
     });
 
-    it("returns `true` when a field is unsetted", function() {
+    it("returns `false` when a field is unsetted", function() {
 
       var document = new Document({
         data: {
@@ -658,6 +658,23 @@ describe("Document", function() {
       expect(document.modified('title')).toBe(false);
 
       document.unset('title');
+      expect(document.modified('title')).toBe(false);
+
+    });
+
+    it("returns `true` when a field is setted to `null`", function() {
+
+      var document = new Document({
+        data: {
+          title: 'original'
+        }
+      });
+
+      expect(document.modified('title')).toBe(false);
+
+      document.set('title', null);
+
+      expect(document.get('title')).toBe(null);
       expect(document.modified('title')).toBe(true);
 
     });

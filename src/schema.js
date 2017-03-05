@@ -1324,7 +1324,7 @@ class Schema {
         var exists = entity.exists();
         if (!exists) {
           inserts.push(entity);
-        } else if (entity.modified()) {
+        } else if (entity.modified(options)) {
           updates.push(entity);
         }
       }

@@ -392,7 +392,7 @@ class Model extends Document {
     this._exists = options.exists !== undefined ? options.exists : this._exists;
 
     this.set(extend({}, this._data, data));
-    this._persisted = extend({}, this._data);
+    super.amend();
 
     this._exists = this._exists === 'all' ? true : this._exists;
 

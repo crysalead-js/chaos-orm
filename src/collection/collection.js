@@ -44,6 +44,13 @@ class Collection {
     config = extend({}, defaults, config);
 
     /**
+     * Loaded data on construct.
+     *
+     * @var Array
+     */
+    this._persisted = [];
+
+    /**
      * The items contained in the collection.
      *
      * @var Array
@@ -66,6 +73,13 @@ class Collection {
      * @var Boolean
      */
     this._exists = false;
+
+    /**
+     * Indicating whether or not this collection has been modified or not after creation.
+     *
+     * @var Boolean
+     */
+    this._modified = false;
 
     /**
      * If this `Collection` instance has a parent document (see `$_parent`), this value indicates
@@ -102,6 +116,8 @@ class Collection {
     for (i = 0; i < len; i++) {
       this.set(undefined, config.data[i], config.exists);
     }
+
+    this.amend();
   }
 
   /**
@@ -328,6 +344,7 @@ class Collection {
     if (data && typeof data.setParent === 'function') {
       data.setParent(this, name);
     }
+    this._modified = true;
     this.trigger('modified', name);
     return this;
   }
@@ -433,7 +450,28 @@ class Collection {
     if (typeof value.unsetParent === 'function') {
       value.unsetParent(this);
     }
+    this._modified = true;
     this.trigger('modified', name);
+  }
+
+  /**
+   * Gets the modified state of the collection.
+   *
+   * @return Boolean
+   */
+  modified() {
+    return this._modified;
+  }
+
+  /**
+   * Amend the collection modifications.
+   *
+   * @return self
+   */
+  amend() {
+    this._persisted = this._data.slice();
+    this._modified = false;
+    return this;
   }
 
   /**
@@ -690,6 +728,19 @@ class Collection {
    */
   data(options) {
     return this.to('array', options);
+  }
+
+  /**
+   * Returns the persisted data (i.e the data in the datastore) of the entity.
+   *
+   * @param  string field A field name or nothing to get all persisted data.
+   * @return mixed
+   */
+  persisted(field) {
+    if (!arguments.length) {
+      return this._persisted;
+    }
+    return this._persisted[field];
   }
 
   /**

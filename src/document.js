@@ -707,31 +707,49 @@ class Document {
   /**
    * Gets the modified state of a given field or, if no field is given, gets the state of the whole entity.
    *
-   * @param  String field The field name to check its state.
-   * @return Array        Returns `true` if a field is given and was updated, `false` otherwise.
-   *                      If no field is given returns an array of all modified fields and their
-   *                      original values.
+   * @param  String|Object field The field name to check or an options object.
+   * @return Array               Returns `true` if a field is given and was updated, `false` otherwise.
+   *                             If no field is given returns an array of all modified fields and their
+   *                             original values.
    */
   modified(field) {
     var schema = this.schema();
+    var options = {};
+
+    if (field && typeof field === 'object') {
+      var defaults = {
+        embed: false
+      }
+
+      options = extend({}, defaults, field);
+      field = undefined;
+
+      if (options.embed === true) {
+        options.embed = this.hierarchy();
+      }
+    }
+
+    options.embed = schema.treeify(options.embed);
+
     var updated = {};
     var fields = field ? [field] : Object.keys(extend({}, this._persisted, this._data));
 
     var len = fields.length;
     for (var i = 0; i < len; i++) {
       var key = fields[i];
-      if (this._data[key] === undefined) {
-        if (this._persisted[key] !== undefined) {
-          updated[key] = this._persisted[key];
+      if (schema.hasRelation(key, false)) {
+        var relation = schema.relation(key);
+        if (relation.type() !== 'hasManyThrough' &&  options.embed[key] !== undefined) {
+          var value = this._data[key];
+          if (value !== this._persisted[key]) {
+            updated[key] = this._persisted[key] ? this._persisted[key].persisted() : this._persisted[key];
+          } else if (value && value.modified({ embed: options.embed[key] })) {
+            updated[key] = value.persisted();
+          }
         }
         continue;
       }
-      if (this._persisted[key] === undefined) {
-        if (!schema.hasRelation(key)) {
-          updated[key] = null;
-        }
-        continue;
-      }
+
       var modified = false;
       var value = this._data[key] !== undefined ? this._data[key] : this._persisted[key];
 
@@ -752,12 +770,27 @@ class Document {
   }
 
   /**
-   * Sync a document
+   * Amend the document modifications.
    *
    * @return self
    */
   amend() {
     this._persisted = extend({}, this._data);
+
+    var schema = this.schema();
+    var fields = Object.keys(this._persisted);
+
+    var len = fields.length;
+    for (var i = 0; i < len; i++) {
+      var key = fields[i];
+      if (schema.hasRelation(key, false)) {
+        continue;
+      }
+      var value = this._persisted[key];
+      if (value && typeof value.amend === 'function') {
+        value.amend();
+      }
+    }
     return this;
   }
 
@@ -843,17 +876,13 @@ class Document {
     }
 
     for (var field of fields) {
-      var rel;
       var path = basePath ? basePath + '.' + field : field;
 
-      if (schema.hasRelation(path)) {
-        rel = schema.relation(path);
-        if (!rel.embedded()) {
-          if (embed[field] === undefined) {
-            continue;
-          }
-          options.embed = embed[field];
+      if (schema.hasRelation(path, false)) {
+        if (embed[field] === undefined) {
+          continue;
         }
+        options.embed = embed[field];
       }
 
       if (!this.has(field)) {
