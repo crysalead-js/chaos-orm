@@ -647,7 +647,7 @@ describe("Document", function() {
 
     });
 
-    it("returns `false` when a field is unsetted", function() {
+    it("returns `true` when a field is unsetted", function() {
 
       var document = new Document({
         data: {
@@ -658,7 +658,7 @@ describe("Document", function() {
       expect(document.modified('title')).toBe(false);
 
       document.unset('title');
-      expect(document.modified('title')).toBe(false);
+      expect(document.modified('title')).toBe(true);
 
     });
 

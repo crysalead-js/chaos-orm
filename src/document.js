@@ -713,12 +713,12 @@ class Document {
    */
   modified(field) {
     var schema = this.schema();
-    var defaults = {
+    var options = {
       embed: false
     };
-    var options = extend({}, defaults, field);
 
     if (field && typeof field === 'object') {
+      extend(options, field);
       field = undefined;
 
       if (options.embed === true) {
@@ -734,12 +734,26 @@ class Document {
     var len = fields.length;
     for (var i = 0; i < len; i++) {
       var key = fields[i];
+
+      if (!this._data.hasOwnProperty(key)) {
+        if (this._original.hasOwnProperty(key)) {
+          updated[key] = this._original[key];
+        }
+        continue;
+      }
+
+      if (!this._original.hasOwnProperty(key)) {
+        updated[key] = null;
+      }
+
+      var value = this._data[key];
+      var original = this._original[key];
+
       if (schema.hasRelation(key, false)) {
         var relation = schema.relation(key);
         if (relation.type() !== 'hasManyThrough' &&  options.embed[key] !== undefined) {
-          var value = this._data[key];
-          if (value !== this._original[key]) {
-            updated[key] = this._original[key] ? this._original[key].original() : this._original[key];
+          if (value !== original) {
+            updated[key] = original ? original.original() : original;
           } else if (value && value.modified(options.embed[key] || {})) {
             updated[key] = value.original();
           }
@@ -748,15 +762,14 @@ class Document {
       }
 
       var modified = false;
-      var value = this._data[key] !== undefined ? this._data[key] : this._original[key];
 
       if (value && typeof value.modified === 'function') {
-        modified = this._original[key] !== value || value.modified();
+        modified = original !== value || value.modified();
       } else {
-        modified = this._original[key] !== value;
+        modified = original !== value;
       }
       if (modified) {
-        updated[key] = this._original[key];
+        updated[key] = original;
       }
     }
     if (field) {
@@ -859,6 +872,7 @@ class Document {
     var schema = this.schema();
 
     var embed = schema.treeify(options.embed);
+
     var result = {};
     var basePath = options.basePath;
 
@@ -874,6 +888,7 @@ class Document {
 
     for (var field of fields) {
       var path = basePath ? basePath + '.' + field : field;
+      options.embed = false;
 
       if (schema.hasRelation(path, false)) {
         if (embed[field] === undefined) {
