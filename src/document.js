@@ -713,14 +713,12 @@ class Document {
    */
   modified(field) {
     var schema = this.schema();
-    var options = {};
+    var defaults = {
+      embed: false
+    };
+    var options = extend({}, defaults, field);
 
     if (field && typeof field === 'object') {
-      var defaults = {
-        embed: false
-      }
-
-      options = extend({}, defaults, field);
       field = undefined;
 
       if (options.embed === true) {
@@ -742,7 +740,7 @@ class Document {
           var value = this._data[key];
           if (value !== this._original[key]) {
             updated[key] = this._original[key] ? this._original[key].original() : this._original[key];
-          } else if (value && value.modified({ embed: options.embed[key] })) {
+          } else if (value && value.modified(options.embed[key] || {})) {
             updated[key] = value.original();
           }
         }
@@ -881,7 +879,7 @@ class Document {
         if (embed[field] === undefined) {
           continue;
         }
-        options.embed = embed[field];
+        extend(options, embed[field]);
       }
 
       if (!this.has(field)) {

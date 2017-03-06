@@ -564,7 +564,7 @@ class Model extends Document {
         if (this.has(name)) {
           var value = embed[name];
           var rel = schema.relation(name);
-          var ok = yield rel.validates(this, extend({}, options, { embed: value }));
+          var ok = yield rel.validates(this, extend({}, options, value));
           var success = success && ok;
         }
       }
@@ -633,9 +633,8 @@ class Model extends Document {
       if (!this.has(field)) {
         continue;
       }
-
       var value = embed[field];
-      var err = this.get(field).errors(extend({}, options, { embed: value }));
+      var err = this.get(field).errors(extend({}, options, value));
       if (Object.keys(err).length) {
         errors[field] = err;
       }

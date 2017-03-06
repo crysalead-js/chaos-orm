@@ -872,21 +872,12 @@ class Schema {
    *
    * @return array The normalized with array.
    */
-  treeify(embed)
-  {
+  treeify(embed) {
     if (!embed) {
       return {};
     }
 
-    var i, len, keys, relations = {}
-
-    keys = Object.keys(normalize(embed));
-    len = keys.length;
-
-    for (i = 0; i < len; i++) {
-      relations[keys[i]] = null;
-    }
-    embed = expand(relations);
+    embed = expand(normalize(embed), { affix: 'embed' });
 
     var result = {}, relName, rel, value;
     for (relName in embed) {
@@ -897,8 +888,8 @@ class Schema {
       value = embed[relName];
       if (this._relations[relName].relation === 'hasManyThrough') {
         rel = this.relation(relName);
-        result[rel.through()] = {};
-        result[rel.through()][rel.using()] = value;
+        result[rel.through()] = { embed: {} };
+        result[rel.through()].embed[rel.using()] = value;
         result[relName] = value;
       } else {
         result[relName] = value;
@@ -1358,7 +1349,7 @@ class Schema {
             if (!rel || rel.type() !== type) {
                 continue;
             }
-            yield rel.save(entity, extend({}, options, { embed: value }));
+            yield rel.save(entity, extend({}, options, value ));
           }
         }
       }

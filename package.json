@@ -18,7 +18,7 @@
     "component-emitter": "^1.2.1",
     "dateformat": "^2.0.0",
     "dotpath-parser": "0.0.2",
-    "expand-flatten": "^1.0.1",
+    "expand-flatten": "^1.0.2",
     "extend-merge": "^1.0.3",
     "intersect": "^1.0.1",
     "pascal-case": "^2.0.0",
