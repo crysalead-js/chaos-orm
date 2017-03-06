@@ -111,10 +111,13 @@ class Collection {
 
     this.meta(config.meta);
 
-    var i, len = config.data.length;
+    // Ignore objects
+    if (!config.data || !config.data.length) {
+      config.data = [];
+    }
 
-    for (i = 0; i < len; i++) {
-      this.set(undefined, config.data[i], config.exists);
+    for (var entity of config.data) {
+      this.push(entity, config.exists);
     }
 
     this.amend();

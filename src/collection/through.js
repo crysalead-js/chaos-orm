@@ -23,7 +23,8 @@ class Through {
       schema: undefined,
       through: undefined,
       using: undefined,
-      data: []
+      data: [],
+      exists: false
     };
 
     config = extend({}, defaults, config);
@@ -64,9 +65,21 @@ class Through {
       this['_' + name] = config[name];
     }
 
-    for (var entity of config.data) {
-      this.push(entity);
+    // Ignore objects
+    if (!config.data || !config.data.length) {
+      config.data = [];
     }
+
+    // Existing tags will require valid pivot ID, so existing data must be setted through the pivot table.
+    if (config.exists) {
+      return;
+    }
+
+    for (var entity of config.data) {
+      this.push(entity, config.exists);
+    }
+
+    this._parent.get(this._through).amend();
   }
 
   /**
@@ -289,8 +302,7 @@ class Through {
     var through = relThrough.to();
     var id = this._parent.id();
     var item = through.create(id != null ? relThrough.match(this._parent) : {}, { exists: exists });
-    item.set(this._using, data);
-    item.get(this._using).exists(exists);
+    item.set(this._using, data, exists);
     return item;
   }
 
