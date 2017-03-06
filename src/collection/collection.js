@@ -103,8 +103,6 @@ class Collection {
      */
     this._parents = new Map();
 
-    this.exists(!!config.exists);
-
     this.basePath(config.basePath);
 
     this.schema(config.schema);
@@ -168,20 +166,6 @@ class Collection {
       object.unset(path);
     }
     return this;
-  }
-
-  /**
-   * Gets/sets whether or not this instance has been persisted somehow.
-   *
-   * @param  Boolean exists The exists value to set or none to get the current one.
-   * @return mixed          Returns the exists value on get or `this` otherwise.
-   */
-  exists(exists) {
-    if (arguments.length) {
-      this._exists = exists;
-      return this;
-    }
-    return this._exists;
   }
 
   /**

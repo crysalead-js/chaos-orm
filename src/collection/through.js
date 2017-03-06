@@ -135,20 +135,6 @@ class Through {
   }
 
   /**
-   * Gets/sets whether or not this instance has been persisted somehow.
-   *
-   * @param  Boolean exists The exists value to set or noen to get the current one.
-   * @return mixed          Returns the exists value on get or `this` otherwise.
-   */
-  exists(exists) {
-    if (!arguments.length) {
-      return this._parent.get(this._through).exists();
-    }
-    this._parent.get(this._through).exists(exists);
-    return this;
-  }
-
-  /**
    * Gets/sets the schema instance.
    *
    * @param  Object schema The schema instance to set or none to get it.

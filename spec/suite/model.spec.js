@@ -101,7 +101,6 @@ describe("Model", function() {
 
       expect(image.exists()).toBe(true);
       expect(image.get('gallery').exists()).toBe(true);
-      expect(image.get('images_tags').exists()).toBe(true);
       expect(image.get('images_tags.0').exists()).toBe(true);
       expect(image.get('images_tags.1').exists()).toBe(true);
       expect(image.get('images_tags.0.tag').exists()).toBe(true);
