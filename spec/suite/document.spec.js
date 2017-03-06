@@ -514,9 +514,9 @@ describe("Document", function() {
 
   });
 
-  describe(".persisted()", function() {
+  describe(".original()", function() {
 
-    it("returns persisted data", function() {
+    it("returns original data", function() {
 
       var document = new Document({
         data: {
@@ -532,8 +532,8 @@ describe("Document", function() {
         body: 'Folks'
       });
 
-      expect(document.persisted('title')).toBe('Hello');
-      expect(document.persisted('body')).toBe('World');
+      expect(document.original('title')).toBe('Hello');
+      expect(document.original('body')).toBe('World');
 
       expect(document.get('title')).toBe('Good Bye');
       expect(document.get('body')).toBe('Folks');
@@ -543,7 +543,7 @@ describe("Document", function() {
 
     });
 
-    it("returns all persisted data with no parameter", function() {
+    it("returns all original data with no parameter", function() {
 
       var document = new Document({
         data: {
@@ -559,7 +559,7 @@ describe("Document", function() {
         body: 'Folks'
       });
 
-      expect(document.persisted()).toEqual({
+      expect(document.original()).toEqual({
         id: 1,
         title: 'Hello',
         body: 'World'

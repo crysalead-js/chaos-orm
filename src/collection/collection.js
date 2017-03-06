@@ -5,7 +5,7 @@ var extend = require('extend-merge').extend;
 var merge = require('extend-merge').merge;
 
 /**
- * `Collection` provide context-specific features for working with sets of data persisted by a backend data store.
+ * `Collection` provide context-specific features for working with sets of data.
  */
 class Collection {
 
@@ -48,7 +48,7 @@ class Collection {
      *
      * @var Array
      */
-    this._persisted = [];
+    this._original = [];
 
     /**
      * The items contained in the collection.
@@ -469,7 +469,7 @@ class Collection {
    * @return self
    */
   amend() {
-    this._persisted = this._data.slice();
+    this._original = this._data.slice();
     this._modified = false;
     return this;
   }
@@ -710,7 +710,6 @@ class Collection {
     return this;
   }
 
-
   /**
    * Eager loads relations.
    *
@@ -731,16 +730,12 @@ class Collection {
   }
 
   /**
-   * Returns the persisted data (i.e the data in the datastore) of the entity.
+   * Returns the original data (i.e the data in the datastore) of the entity.
    *
-   * @param  string field A field name or nothing to get all persisted data.
-   * @return mixed
+   * @return Array
    */
-  persisted(field) {
-    if (!arguments.length) {
-      return this._persisted;
-    }
-    return this._persisted[field];
+  original() {
+    return this._original;
   }
 
   /**

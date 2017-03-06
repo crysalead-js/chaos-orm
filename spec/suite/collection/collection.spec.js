@@ -618,6 +618,20 @@ describe("Collection", function() {
 
   });
 
+  describe(".original()", function() {
+
+    it("return the original data", function() {
+
+      var collection = new Collection({ data: [1] });
+
+      collection.unset(0);
+      expect(collection.data()).toEqual([]);
+      expect(collection.original()).toEqual([1]);
+
+    });
+
+  });
+
   describe("::toArray()", function() {
 
     it("converts a collection to an array", function() {

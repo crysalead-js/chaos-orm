@@ -180,8 +180,7 @@ class Document {
     config = extend({}, defaults, config);
 
     /**
-     * Contains the values of updated fields. These values will be persisted to the backend data
-     * store when the document is saved.
+     * Contains the values of updated fields.
      *
      * @var Object
      */
@@ -192,7 +191,7 @@ class Document {
      *
      * @var Object
      */
-    this._persisted = {};
+    this._original = {};
 
     /**
      * The list of validation errors associated with this object, where keys are field names, and
@@ -244,7 +243,7 @@ class Document {
 
     this._exists = this._exists === 'all' ? true : this._exists;
 
-    this._persisted = extend({}, this._data);
+    this._original = extend({}, this._data);
   }
 
   /**
@@ -692,16 +691,16 @@ class Document {
   }
 
   /**
-   * Returns the persisted data (i.e the data in the datastore) of the entity.
+   * Returns the original data (i.e the data in the datastore) of the entity.
    *
-   * @param  string field A field name or nothing to get all persisted data.
+   * @param  string field A field name or nothing to get all original data.
    * @return mixed
    */
-  persisted(field) {
+  original(field) {
     if (!arguments.length) {
-      return this._persisted;
+      return this._original;
     }
-    return this._persisted[field];
+    return this._original[field];
   }
 
   /**
@@ -732,7 +731,7 @@ class Document {
     options.embed = schema.treeify(options.embed);
 
     var updated = {};
-    var fields = field ? [field] : Object.keys(extend({}, this._persisted, this._data));
+    var fields = field ? [field] : Object.keys(extend({}, this._original, this._data));
 
     var len = fields.length;
     for (var i = 0; i < len; i++) {
@@ -741,25 +740,25 @@ class Document {
         var relation = schema.relation(key);
         if (relation.type() !== 'hasManyThrough' &&  options.embed[key] !== undefined) {
           var value = this._data[key];
-          if (value !== this._persisted[key]) {
-            updated[key] = this._persisted[key] ? this._persisted[key].persisted() : this._persisted[key];
+          if (value !== this._original[key]) {
+            updated[key] = this._original[key] ? this._original[key].original() : this._original[key];
           } else if (value && value.modified({ embed: options.embed[key] })) {
-            updated[key] = value.persisted();
+            updated[key] = value.original();
           }
         }
         continue;
       }
 
       var modified = false;
-      var value = this._data[key] !== undefined ? this._data[key] : this._persisted[key];
+      var value = this._data[key] !== undefined ? this._data[key] : this._original[key];
 
       if (value && typeof value.modified === 'function') {
-        modified = this._persisted[key] !== value || value.modified();
+        modified = this._original[key] !== value || value.modified();
       } else {
-        modified = this._persisted[key] !== value;
+        modified = this._original[key] !== value;
       }
       if (modified) {
-        updated[key] = this._persisted[key];
+        updated[key] = this._original[key];
       }
     }
     if (field) {
@@ -775,10 +774,10 @@ class Document {
    * @return self
    */
   amend() {
-    this._persisted = extend({}, this._data);
+    this._original = extend({}, this._data);
 
     var schema = this.schema();
-    var fields = Object.keys(this._persisted);
+    var fields = Object.keys(this._original);
 
     var len = fields.length;
     for (var i = 0; i < len; i++) {
@@ -786,7 +785,7 @@ class Document {
       if (schema.hasRelation(key, false)) {
         continue;
       }
-      var value = this._persisted[key];
+      var value = this._original[key];
       if (value && typeof value.amend === 'function') {
         value.amend();
       }
