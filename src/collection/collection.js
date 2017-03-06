@@ -747,25 +747,23 @@ class Collection {
    *                                                      be immediately saved. Defaults to `true`.
    * @return Boolean         Returns `true` on a successful save operation, `false` otherwise.
    */
-  broadcast(options) {
-    var defaults = { validate: true };
-    options = extend({}, defaults, options);
-
-    if (options.validate && !this.validates(options)) {
-      return false;
-    }
-    var schema = this.schema();
-    return schema.broadcast(this, options);
-  }
-
-  /**
-   * Similar to `.broadcast()` except the relationships has not been saved by default.
-   *
-   * @param  Object  options Same options as `.broadcast()`.
-   * @return Boolean         Returns `true` on a successful save operation, `false` on failure.
-   */
   save(options) {
-    return this.broadcast(extend({}, { embed: false }, options));
+    return co(function*() {
+      var defaults = {
+        validate: true,
+        embed: false
+      };
+      options = extend({}, defaults, options);
+
+      if (options.validate) {
+        var valid = yield this.validates(options)
+        if (!valid) {
+          return false;
+        }
+      }
+      var schema = this.schema();
+      return yield schema.save(this, options);
+    }.bind(this));
   }
 
   /**

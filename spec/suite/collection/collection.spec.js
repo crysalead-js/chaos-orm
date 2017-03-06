@@ -1,6 +1,8 @@
+var co = require('co');
 var Collection = require('../../../src/index').Collection;
 var Model = require('../../../src/index').Model;
 var Document = require('../../../src/index').Document;
+var Image = require('../../fixture/model/image');
 
 class MyModel extends Model {
   static _define(schema) {
@@ -627,6 +629,38 @@ describe("Collection", function() {
       collection.unset(0);
       expect(collection.data()).toEqual([]);
       expect(collection.original()).toEqual([1]);
+
+    });
+
+  });
+
+  describe(".save()", function() {
+
+    it("saves each item of a collection", function(done) {
+
+      co(function*() {
+        var collection = Image.create([
+          { name: 'amiga_1200.jpg', title: 'Amiga 1200' },
+          { name: 'amiga_1260.jpg', title: 'Amiga 1260' },
+        ], { type: 'set' });
+
+        var schema = Image.definition();
+
+        var spy1 = spyOn(collection, 'validates').and.returnValue(Promise.resolve(true));
+        var spy2 = spyOn(schema, 'save').and.returnValue(Promise.resolve(true));
+
+        expect(yield collection.save()).toBe(true);
+        expect(spy1).toHaveBeenCalledWith({
+          validate: true,
+          embed: false
+        });
+
+        expect(spy2).toHaveBeenCalledWith(collection, {
+          validate: true,
+          embed: false
+        });
+        done();
+      }.bind(this));
 
     });
 
