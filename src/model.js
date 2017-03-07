@@ -377,6 +377,25 @@ class Model extends Document {
   }
 
   /**
+   * Returns the current data and perform lazy loading when necessary
+   *
+   * @param  String name If name is defined, it'll only return the field value.
+   * @return mixed.
+   */
+  fetch(name) {
+    return co(function*() {
+      var result = this.get(name, (instance, name) => {
+        return this.schema().embed([instance], name);
+      });
+      if (result instanceof Promise) {
+        yield result;
+        return this._data[name] || null;
+      }
+      return result;
+    }.bind(this));
+  }
+
+  /**
    * Automatically called after an entity is saved. Updates the object's internal state
    * to reflect the corresponding database record.
    *

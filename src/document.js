@@ -337,10 +337,11 @@ class Document {
   /**
    * Returns the current data.
    *
-   * @param  String name If name is defined, it'll only return the field value.
+   * @param  String   name         If name is defined, it'll only return the field value.
+   * @param  Function fetchHandler The fetching handler.
    * @return mixed.
    */
-  get(name) {
+  get(name, fetchHandler) {
     if (!arguments.length) {
       var fields = Object.keys(this._data);
       var result = {};
@@ -396,6 +397,9 @@ class Document {
       if (this.id() != null) {
         if (!hasManyThrough || !this.has(relation.through())) {
           if ((this._exists !== false && relation.type() !== 'belongsTo') || this.get(relation.keys('from')) !== null) {
+            if (fetchHandler) {
+              return fetchHandler(this, name);
+            }
             throw new Error("The relation `'" + name + "'` is an external relation, use `fetch()` to lazy load its data.");
           }
         }
@@ -412,23 +416,6 @@ class Document {
       return this._data[name];
     }
     return null;
-  }
-
-  /**
-   * Returns the current data and perform lazy loading when necessary
-   *
-   * @param  String name If name is defined, it'll only return the field value.
-   * @return mixed.
-   */
-  fetch(name) {
-    return co(function*() {
-      if (this._exists === false || this.id() == null) {
-        this.set(name, []);
-        return this.get(name);
-      }
-      yield this.schema().embed([this], name);
-      return this._data[name] || null;
-    }.bind(this));
   }
 
   /**

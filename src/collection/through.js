@@ -75,6 +75,10 @@ class Through {
       return;
     }
 
+    if (!this._parent.has(this._through)) {
+      this._parent.set(this._through, []);
+    }
+
     for (var entity of config.data) {
       this.push(entity, config.exists);
     }
