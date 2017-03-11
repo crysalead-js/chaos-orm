@@ -1111,6 +1111,29 @@ describe("Entity", function() {
 
   describe(".hierarchy()", function() {
 
+    it("supports recursive structures", function() {
+
+      var data = {
+        name: 'amiga_1200.jpg',
+        title: 'Amiga 1200',
+        tags: [
+          { name: 'tag1' }
+        ]
+      };
+
+      image = Image.create(data);
+      for (var tag of image.get('tags')) {
+        tag.get('images').push(image);
+      }
+
+      // Because image.images_tags and tag.images_tags collections are differents
+      expect(image.hierarchy()).toEqual([
+        'images_tags.tag.images_tags',
+        'tags'
+      ]);
+
+    });
+
     it("returns all included relations and sub-relations with non empty data", function() {
 
       var gallery = Gallery.create({ name: 'Gallery1' });
@@ -1130,7 +1153,7 @@ describe("Entity", function() {
 
       expect(gallery.hierarchy()).toEqual([
           'detail',
-          'images_tags.tag',
+          'images.images_tags.tag',
           'images.tags'
       ]);
 
@@ -1179,7 +1202,15 @@ describe("Entity", function() {
         name: 'amiga_1200.jpg',
         title: 'Amiga 1200',
         images_tags: [
-          { tag_id: null, tag: { name: 'tag1' } }
+          {
+            tag_id: null,
+            tag: {
+              name: 'tag1',
+              images_tags: [
+                { image_id: null }
+              ]
+            }
+          }
         ],
         tags: [
           { name: 'tag1' }

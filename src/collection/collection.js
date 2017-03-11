@@ -804,22 +804,28 @@ class Collection {
   /**
    * Returns an array of all external relations and nested relations names.
    *
-   * @param  String prefix The parent relation path.
-   * @param  Map    ignore The already processed entities to ignore (address circular dependencies).
-   * @return Array            Returns an array of relation names.
+   * @param  String      prefix The parent relation path.
+   * @param  Map         ignore The already processed entities to ignore (address circular dependencies).
+   * @param  Boolean     index  Returns an indexed array or not.
+   * @return Array|false        Returns an array of relation names.
    */
-  hierarchy(prefix, ignore) {
+  hierarchy(prefix, ignore, index) {
     prefix = prefix || '';
     ignore = ignore || new Map();
-    var result = new Map();
+    var result = {};
 
     for (var entity of this) {
-      var hierarchy = entity.hierarchy(prefix, ignore);
-      for (var key of hierarchy) {
-        result.set(key, true);
+      var hierarchy = entity.hierarchy(prefix, ignore, true);
+      if (!Object.keys(hierarchy).length) {
+        continue;
+      }
+      for (var key in hierarchy) {
+        if (!result.hasOwnProperty(key)) {
+          result[key] = key;
+        }
       }
     }
-    return Array.from(result.keys());
+    return index ? result : Object.keys(result);
   }
 
   /**

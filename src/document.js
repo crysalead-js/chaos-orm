@@ -794,11 +794,12 @@ class Document {
   /**
    * Returns all included relations accessible through this entity.
    *
-   * @param  String prefix The parent relation path.
-   * @param  Map    ignore The already processed entities to ignore (address circular dependencies).
-   * @return Array         The included relations.
+   * @param  String      prefix The parent relation path.
+   * @param  Map         ignore The already processed entities to ignore (address circular dependencies).
+   * @param  Boolean     index  Returns an indexed array or not.
+   * @return Array|false        The included relations.
    */
-  hierarchy(prefix, ignore) {
+  hierarchy(prefix, ignore, index) {
     prefix = prefix || '';
     ignore = ignore || new Map();
 
@@ -808,30 +809,48 @@ class Document {
     ignore.set(this, true);
 
     var tree = this.schema().relations();
-    var result = [];
+    var result = {};
+    var habtm = {};
+    var key;
+    var path;
 
     for (var field of tree) {
-      if (!this.has(field)) {
-        continue;
-      }
       var rel = this.schema().relation(field);
       if (rel.type() === 'hasManyThrough') {
-        result.push(prefix ? prefix + '.' + field : field);
+        habtm[field] = rel;
+        continue;
+      }
+      if (!this.has(field)) {
         continue;
       }
       var entity = this.get(field);
       if (entity) {
-        var childs = entity.hierarchy(field, ignore);
-        if (childs.length) {
-          for (var value of childs) {
-            result.push(value);
+        path = prefix ? prefix + '.' + field : field;
+        var children = entity.hierarchy(path, ignore, true);
+        if (Object.keys(children).length) {
+          for (key in children) {
+            if (!result.hasOwnProperty(key)) {
+              result[key] = key;
+            }
           }
-        } else if (childs !== false) {
-          result.push(prefix ? prefix + '.' + field : field);
+        } else if (children !== false) {
+          result[path] = path;
         }
       }
     }
-    return result;
+
+    for (var field in habtm) {
+      var rel = habtm[field];
+      var using = rel.through() + '.' + rel.using();
+      path = prefix ? prefix + '.' + using : using;
+      for (key in result) {
+        if (key.indexOf(path) === 0) {
+          path = prefix ? prefix + '.' + field : field;
+          result[path] = path;
+        }
+      }
+    }
+    return index ? result : Object.keys(result);
   }
 
   /**
@@ -877,16 +896,22 @@ class Document {
       var path = basePath ? basePath + '.' + field : field;
       options.embed = false;
 
+      var key = field;
+
       if (schema.hasRelation(path, false)) {
         if (embed[field] === undefined) {
           continue;
         }
         extend(options, embed[field]);
+        var rel = schema.relation(path);
+        if (rel.type() === 'hasManyThrough') {
+          key = rel.through();
+        }
       }
-
-      if (!this.has(field)) {
+      if (!this.has(key)) {
         continue;
       }
+
       var value = this.get(field);
 
       if (value instanceof Document) {

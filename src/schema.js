@@ -888,12 +888,12 @@ class Schema {
       value = embed[relName];
       if (this._relations[relName].relation === 'hasManyThrough') {
         rel = this.relation(relName);
-        result[rel.through()] = { embed: {} };
-        result[rel.through()].embed[rel.using()] = value;
-        result[relName] = value;
-      } else {
-        result[relName] = value;
+        if (!result[rel.through()] || !result[rel.through()].embed || !result[rel.through()].embed[rel.using()]) {
+          result[rel.through()] = { embed: {} };
+          result[rel.through()].embed[rel.using()] = value;
+        }
       }
+      result[relName] = value;
     }
     return result;
   }
