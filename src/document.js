@@ -738,7 +738,7 @@ class Document {
 
       if (schema.hasRelation(key, false)) {
         var relation = schema.relation(key);
-        if (relation.type() !== 'hasManyThrough' &&  options.embed[key] !== undefined) {
+        if (relation.type() !== 'hasManyThrough' && options.embed[key] !== undefined) {
           if (value !== original) {
             updated[key] = original ? original.original() : original;
           } else if (value && value.modified(options.embed[key] || {})) {

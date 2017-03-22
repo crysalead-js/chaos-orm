@@ -75,15 +75,22 @@ class Through {
       return;
     }
 
+    var isNew = false;
+
     if (!this._parent.has(this._through)) {
       this._parent.set(this._through, []);
+      isNew = true;
+    } else if (config.data.length) {
+      this._parent.get(this._through).clear();
     }
 
     for (var entity of config.data) {
       this.push(entity, config.exists);
     }
 
-    this._parent.get(this._through).amend();
+    if (isNew) {
+      this._parent.get(this._through).amend();
+    }
   }
 
   /**

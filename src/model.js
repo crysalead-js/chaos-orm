@@ -223,7 +223,7 @@ class Model extends Document {
       var id = data[key];
       if (id != null && shard.has(id)) {
         var instance = shard.get(id);
-        instance.amend(data, { exists: options.exists });
+        instance.amend(data, { exists: options.exists, rebuild: true });
         return instance;
       }
     }
@@ -410,7 +410,16 @@ class Model extends Document {
     options = options || {};
     this._exists = options.exists !== undefined ? options.exists : this._exists;
 
-    this.set(extend({}, this._data, data));
+    var previousId = this.id();
+    var schema = this.schema();
+
+    for (var key in data) {
+      if (options.rebuild || !this.has(key) || !schema.hasRelation(key, false)) {
+        this.set(key, data[key]);
+      } else {
+        this.get(key).amend(data[key], options);
+      }
+    }
     super.amend();
 
     this._exists = this._exists === 'all' ? true : this._exists;
@@ -418,7 +427,11 @@ class Model extends Document {
     if (!this.constructor.unicity()) {
       return this;
     }
+
     var id = this.id();
+    if (previousId != null && previousId !== id) {
+      this.constructor.shard().delete(previousId);
+    }
     if (id != null) {
       if (this._exists) {
         this.constructor.shard().set(id, this);

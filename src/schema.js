@@ -1000,22 +1000,17 @@ class Schema {
       data: data ? data : [],
       meta: options.meta,
       exists: options.exists,
-      defaults: options.defaults,
+      defaults: options.defaults
     }, options.config);
 
     if (isThrough) {
       config.parent = options.parent;
       config.through = options.through;
       config.using = options.using;
-      if (!config.parent.has(config.through)) {
-        config.parent.set(config.through, {});
-      }
     }
 
     if (data instanceof Collection) {
       return data;
-    } else if (data != null && isThrough) {
-      config.parent.get(config.through).clear();
     }
 
     return new Collection(config);

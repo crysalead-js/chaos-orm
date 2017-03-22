@@ -455,7 +455,15 @@ class Collection {
    *
    * @return self
    */
-  amend() {
+  amend(data, options) {
+    if (data && data.length) {
+      if (data.length !== this.length) {
+        throw new Error("Amending a collection requires passed data to have the same length of the collection.");
+      }
+      for (var i = 0, len = data.length; i < len; i++) {
+        this.get(i).amend(data[i], options);
+      }
+    }
     this._original = this._data.slice();
     this._modified = false;
     return this;
