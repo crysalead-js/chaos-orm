@@ -621,7 +621,30 @@ describe("Entity", function() {
 
     });
 
-    it("doesn't amend the pivot collection when the hasManyThrough data is setted for the second time", function() {
+    it("amends the pivot collection when some different hasManyThrough data is setted for the second time", function() {
+
+      var image = Image.create();
+      image.set('tags', [
+        {
+          id: '1',
+          name: 'landscape'
+        }
+      ]);
+
+      expect(image.get('images_tags').modified()).toBe(false);
+
+      image.set('tags', [
+        {
+          id: '2',
+          name: 'mountain'
+        }
+      ]);
+
+      expect(image.get('images_tags').modified()).toBe(true);
+
+    });
+
+    it("doesn't amend the pivot collection when some hasManyThrough data is setted for the second time", function() {
 
       var image = Image.create();
       image.set('tags', [
@@ -640,7 +663,7 @@ describe("Entity", function() {
         }
       ]);
 
-      expect(image.get('images_tags').modified()).toBe(true);
+      expect(image.get('images_tags').modified()).toBe(false);
 
     });
 
@@ -677,6 +700,7 @@ describe("Entity", function() {
       expect(image.get('tags.0').exists()).toBe(true);
       expect(image.get('tags.1').data()).toEqual({ id: 2, name: 'mountain' });
       expect(image.get('tags.1').exists()).toBe(true);
+      expect(image.get('images_tags').modified()).toBe(false);
 
       image.set('tags', image.get('tags').get());
       expect(image.get('tags').length).toBe(2);
@@ -684,6 +708,71 @@ describe("Entity", function() {
       expect(image.get('tags.0').exists()).toBe(true);
       expect(image.get('tags.1').data()).toEqual({ id: 2, name: 'mountain' });
       expect(image.get('tags.1').exists()).toBe(true);
+      expect(image.get('images_tags').modified()).toBe(false);
+
+    });
+
+    it("keeps existing pivot id when possible", function() {
+
+      var image = Image.create({
+        id: 1,
+        name: 'landscape',
+        images_tags: [
+          {
+            id: '1',
+            image_id: '1',
+            tag_id: '1',
+            tag: {
+              id: '1',
+              name: 'landscape'
+            }
+          },
+          {
+            id: '2',
+            image_id: '1',
+            tag_id: '2',
+            tag: {
+              id: '2',
+              name: 'mountain'
+            }
+          }
+        ]
+      }, { exists: 'all' });
+
+      image.set('tags', [
+        {
+          id: '1',
+          name: 'landscape'
+        },
+        {
+          id: '2',
+          name: 'mountain'
+        }
+      ]);
+      expect(image.get('tags').length).toBe(2);
+      expect(image.get('tags.0').data()).toEqual({ id: 1, name: 'landscape' });
+      expect(image.get('tags.0').exists()).toBe(true);
+      expect(image.get('tags.1').data()).toEqual({ id: 2, name: 'mountain' });
+      expect(image.get('tags.1').exists()).toBe(true);
+      expect(image.modified()).toBe(false);
+      expect(image.get('images_tags').modified()).toBe(false);
+
+      image.set('tags', [
+        {
+          id: '2',
+          name: 'landscape'
+        },
+        {
+          id: '3',
+          name: 'sea'
+        }
+      ]);
+      expect(image.get('tags').length).toBe(2);
+      expect(image.get('tags.0').data()).toEqual({ id: 2, name: 'landscape' });
+      expect(image.get('tags.0').exists()).toBe(true);
+      expect(image.get('tags.1').data()).toEqual({ id: 3, name: 'sea' });
+      expect(image.modified({ embed: 'images_tags'})).toBe(true);
+      expect(image.get('images_tags').modified()).toBe(true);
 
     });
 

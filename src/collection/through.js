@@ -75,21 +75,78 @@ class Through {
       return;
     }
 
-    var isNew = false;
-
-    if (!this._parent.has(this._through)) {
-      this._parent.set(this._through, []);
-      isNew = true;
-    } else if (config.data.length) {
-      this._parent.get(this._through).clear();
+    if (this._parent.has(this._through)) {
+      this._merge(config.data, config.exists);
+      return;
     }
 
+    this._parent.set(this._through, []);
     for (var entity of config.data) {
       this.push(entity, config.exists);
     }
+    this._parent.get(this._through).amend();
+  }
 
-    if (isNew) {
-      this._parent.get(this._through).amend();
+  /**
+   * Merge pivot data based on entities ids
+   *
+   * @param  Array   data   The pivot data.
+   * @param  Boolean exists The existance value.
+   */
+  _merge(data, exists) {
+    if (!data.length) {
+      return;
+    }
+    var pivot = this._parent.get(this._through);
+
+    var relThrough = this._parent.schema().relation(this._through);
+    var through = relThrough.to();
+    var schema = through.definition();
+    var rel = schema.relation(this._using);
+    var fromKey = rel.keys('from');
+    var toKey = rel.keys('to');
+
+    var item;
+    var entity;
+    var i = 0;
+    var j = 0;
+
+    var Document = pivot.constructor.classes().document;
+
+    while (i < pivot.count()) {
+      var found = false;
+      entity = pivot.get(i);
+      var id1 = entity.get(fromKey);
+      if (id1 == null) {
+        pivot.unset(i);
+        continue;
+      }
+      j = 0;
+      while (j < data.length) {
+        item = data[j];
+        var isDocument = item instanceof Document;
+        var id2 = isDocument ? item.get(toKey) : item[toKey];
+
+        if (String(id1) === String(id2)) {
+          if (isDocument) {
+            entity.set(this._using, item);
+          } else {
+            entity.get(this._using).amend(item);
+          }
+          data.splice(j, 1);
+          i++;
+          found = true;
+          break;
+        }
+        j++;
+      }
+      if (!found) {
+        pivot.unset(i);
+      }
+    }
+
+    for (entity of data) {
+      this.push(entity, exists);
     }
   }
 
@@ -191,7 +248,6 @@ class Through {
       index++;
     }
   }
-
 
   /**
    * Handles dispatching of methods against all items in the collection.

@@ -207,6 +207,7 @@ describe("Collection", function() {
       collection.splice(2, 2);
 
       expect(collection.data()).toEqual([1, 2, 5]);
+      expect(collection.modified()).toBe(true);
 
     });
 

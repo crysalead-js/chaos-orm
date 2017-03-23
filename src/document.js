@@ -729,25 +729,29 @@ class Document {
         continue;
       }
 
-      if (!this._original.hasOwnProperty(key)) {
-        updated[key] = null;
-      }
-
       var value = this._data[key];
-      var original = this._original[key];
 
       if (schema.hasRelation(key, false)) {
         var relation = schema.relation(key);
         if (relation.type() !== 'hasManyThrough' && options.embed[key] !== undefined) {
-          if (value !== original) {
-            updated[key] = original ? original.original() : original;
-          } else if (value && value.modified(options.embed[key] || {})) {
-            updated[key] = value.original();
+          if (!this._original.hasOwnProperty(key)) {
+            updated[key] = null;
+          } else {
+            var original = this._original[key];
+            if (value !== original) {
+              updated[key] = original ? original.original() : original;
+            } else if (value && value.modified(options.embed[key] || {})) {
+              updated[key] = value.original();
+            }
           }
         }
         continue;
+      } else if (!this._original.hasOwnProperty(key)) {
+        updated[key] = null;
+        continue;
       }
 
+      var original = this._original[key];
       var modified = false;
 
       if (value && typeof value.modified === 'function') {

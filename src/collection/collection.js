@@ -688,6 +688,8 @@ class Collection {
    */
   splice(offset, length) {
     var result = this._data.splice(offset, length);
+    this._modified = true;
+    this.trigger('modified', offset);
     return result;
   }
 
@@ -702,6 +704,8 @@ class Collection {
    */
   sort(closure) {
     this._data.sort(closure);
+    this._modified = true;
+    this.trigger('modified');
     return this;
   }
 
