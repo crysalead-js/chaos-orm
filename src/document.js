@@ -388,7 +388,7 @@ class Document {
     var value = field.array ? [] : {};
 
     if (typeof field.getter === 'function') {
-      return schema.cast(name, field.getter(this, this._data[name], name));
+      return schema.format('cast', name, field.getter(this, this._data[name], name));
     } else if (this._data[name] !== undefined) {
       return this._data[name];
     } else if(schema.hasRelation(fieldName, false)) {
