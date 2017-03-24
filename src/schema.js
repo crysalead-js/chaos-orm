@@ -997,7 +997,6 @@ class Schema {
     var config = extend({
       schema: isDocument ? this : options.class.definition(),
       basePath: isDocument ? name : undefined,
-      data: data ? data : [],
       meta: options.meta,
       exists: options.exists,
       defaults: options.defaults
@@ -1007,6 +1006,9 @@ class Schema {
       config.parent = options.parent;
       config.through = options.through;
       config.using = options.using;
+      config.data = data;
+    } else {
+      config.data = data ? data : [];
     }
 
     if (data instanceof Collection) {

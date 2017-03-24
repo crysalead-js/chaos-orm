@@ -492,6 +492,7 @@ class Collection {
    */
   clear() {
     this._data = [];
+    this._modified = true;
     return this;
   }
 

@@ -23,7 +23,6 @@ class Through {
       schema: undefined,
       through: undefined,
       using: undefined,
-      data: [],
       exists: false
     };
 
@@ -65,19 +64,14 @@ class Through {
       this['_' + name] = config[name];
     }
 
-    // Ignore objects
-    if (!config.data || !config.data.length) {
-      config.data = [];
-    }
-
-    // Existing tags will require valid pivot ID, so existing data must be setted through the pivot table.
-    if (config.exists) {
-      return;
-    }
-
     if (this._parent.has(this._through)) {
       this._merge(config.data, config.exists);
       return;
+    }
+
+    // Ignore objects
+    if (!config.data || !Array.isArray(config.data)) {
+      config.data = [];
     }
 
     this._parent.set(this._through, []);
@@ -94,9 +88,13 @@ class Through {
    * @param  Boolean exists The existance value.
    */
   _merge(data, exists) {
-    if (!data.length) {
+    if (!data || !Array.isArray(data)) {
+      return;
+    } else if (data.length === 0) {
+      this._parent.get(this._through).clear();
       return;
     }
+
     var pivot = this._parent.get(this._through);
 
     var relThrough = this._parent.schema().relation(this._through);
