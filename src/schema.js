@@ -558,6 +558,7 @@ class Schema {
     }
     return fields;
   }
+
   /**
    * Checks if the schema has a field/some virtual fields.
    *
@@ -572,6 +573,26 @@ class Schema {
       }
       for (var field of name) {
         if (!this.isVirtual(field)) {
+          return false;
+        }
+      }
+      return true;
+  }
+
+  /**
+   * Checks if the schema has a field/some private fields.
+   *
+   * @param  String|Array name The field name or an array of field names to check.
+   * @return Boolean           Returns `true` if present, `false` otherwise.
+   */
+  isPrivate(name)
+  {
+      if (!Array.isArray(name)) {
+        var field = this._columns.get(name);
+        return field !== undefined && field.private;
+      }
+      for (var field of name) {
+        if (!this.isPrivate(field)) {
           return false;
         }
       }

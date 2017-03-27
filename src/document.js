@@ -897,6 +897,9 @@ class Document {
     }
 
     for (var field of fields) {
+      if (schema.isPrivate(field)) {
+        continue;
+      }
       var path = basePath ? basePath + '.' + field : field;
       options.embed = false;
 
