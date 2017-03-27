@@ -1282,7 +1282,7 @@ class Schema {
       var whitelist;
 
       if (!options.whitelist) {
-        whitelist = options.locked ? this.fields() : [];
+        whitelist = options.locked ? this.fields() : undefined;
       } else if (options.locked) {
         whitelist = this.fields().filter(function(n) {
           return options.whitelist.indexOf(n) !== -1;
@@ -1300,7 +1300,7 @@ class Schema {
         var fields = arrayDiff(whitelist ? whitelist : Object.keys(entity.get()), this.relations());
         var values = {};
         for (var field of fields) {
-          if (entity.has(field)) {
+          if (entity.has(field) && !this.isVirtual(field)) {
             values[field] = entity.get(field);
           }
         }

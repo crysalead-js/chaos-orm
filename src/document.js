@@ -506,11 +506,11 @@ class Document {
     }
     var fieldName = this.basePath() ? this.basePath() + '.' + name : name;
 
+    this._data[name] = value;
+
     if (schema.isVirtual(fieldName)) {
       return;
     }
-
-    this._data[name] = value;
 
     if (schema.hasRelation(fieldName, false)) {
       var relation = schema.relation(fieldName);

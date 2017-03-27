@@ -531,7 +531,7 @@ describe("Schema", function() {
           document.set('datetime', '2015-05-20 21:50:00');
           expect(document.get('date')).toBe('2015-05-20');
           expect(document.get('time')).toBe('21:50:00');
-          expect(document.has('datetime')).toBe(false);
+          expect(document.has('datetime')).toBe(true);
 
         });
 
@@ -541,12 +541,12 @@ describe("Schema", function() {
           document.set('datetime', '2015-05-20 21:50:00');
           expect(document.get('date')).toBe('2015-05-20');
           expect(document.get('time')).toBe('21:50:00');
-          expect(document.has('datetime')).toBe(false);
+          expect(document.has('datetime')).toBe(true);
 
           document.set('datetime', '2015-05-20 22:15:00');
           expect(document.get('date')).toBe('2015-05-20');
           expect(document.get('time')).toBe('22:15:00');
-          expect(document.has('datetime')).toBe(false);
+          expect(document.has('datetime')).toBe(true);
 
         });
 
@@ -1110,6 +1110,48 @@ describe("Schema", function() {
       expect(schema.hasRelation('external')).toBe(true);
       expect(schema.hasRelation('external', false)).toBe(true);
       expect(schema.hasRelation('external', true)).toBe(false);
+
+    });
+
+  });
+
+  describe(".persist()", function() {
+
+    beforeEach(function() {
+      this.schema = new Schema({ locked: false });
+      this.data = {};
+      this.filter = null;
+
+      spyOn(this.schema, 'bulkInsert').and.callFake(function (inserts, closure) {
+        this.data.inserts = inserts;
+        this.filter = closure;
+      }.bind(this));
+
+      spyOn(this.schema, 'bulkUpdate').and.callFake(function (updates, closure) {
+        this.data.updates = updates;
+        this.filter = closure;
+      }.bind(this));
+
+    });
+
+    it("filters out virtual values", function(done) {
+
+      co(function*() {
+        this.schema.column('a', { type: 'string', virtual: true });
+
+        var entity = Model.create({}, { schema: this.schema });
+
+        entity.set('a', 1);
+        entity.set('b', 2);
+        expect(entity.get('a')).toBe('1');
+        expect(entity.get('b')).toBe(2);
+
+        yield this.schema.persist(entity);
+
+        expect(this.data.inserts).toEqual([entity]);
+        expect(this.filter(entity)).toEqual({ b: 2 });
+        done();
+      }.bind(this));
 
     });
 

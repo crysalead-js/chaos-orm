@@ -106,7 +106,7 @@ describe("Document", function() {
 
         var document = new Document({schema: schema});
         expect(document.set('a', 1)).toBe(document);
-        expect(document.get('a')).toBe(null);
+        expect(document.get('a')).toBe('1');
 
       });
 
