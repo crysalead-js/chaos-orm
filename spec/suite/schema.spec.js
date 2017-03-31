@@ -50,7 +50,7 @@ describe("Schema", function() {
       expect(schema.locked()).toBe(false);
       expect(schema.fields()).toEqual(['id', 'age']);
       expect(schema.meta()).toEqual({ some: 'meta' });
-      expect(schema.conventions()).toBe(conventions);
+      expect(schema.conventions()).toEqual(conventions);
 
     });
 

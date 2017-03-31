@@ -97,7 +97,7 @@ describe("Collection", function() {
 
       var meta ={ page: 5, limit: 10 };
       var collection = new Collection({ meta: meta });
-      expect(collection.meta()).toBe(meta);
+      expect(collection.meta()).toEqual(meta);
 
     });
 
