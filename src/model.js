@@ -639,7 +639,7 @@ class Model extends Document {
    */
   error(field, all) {
     if (this._errors[field] && this._errors[field].length) {
-      return all ? this._errors[field] : this._errors[field][0];
+      return all ? this._errors[field].splice() : this._errors[field][0];
     }
     return '';
   }
@@ -671,7 +671,7 @@ class Model extends Document {
         errors[field] = err;
       }
     }
-    return errors;
+    return extend({}, errors);
   }
 
   /**

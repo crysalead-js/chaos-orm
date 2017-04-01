@@ -71,7 +71,7 @@ class Schema {
     if (arguments.length) {
       this._classes = extend({}, this._classes, classes);
     }
-    return this._classes;
+    return extend({}, this._classes);
   }
 
   /**
@@ -319,7 +319,7 @@ class Schema {
         this._meta[name] = value;
         return this;
     }
-    return this._meta[name];
+    return extend({}, this._meta[name]);
   }
 
   /**
@@ -1215,9 +1215,9 @@ class Schema {
    */
   formatters(formatters) {
     if (!arguments.length) {
-      return this._formatters;
+      return extend({}, this._formatters);
     }
-    this._formatters = formatters;
+    this._formatters = extend({}, formatters);
     return this;
   }
 

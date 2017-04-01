@@ -40,7 +40,7 @@ describe("Source", function() {
       };
 
       this.source.formatters(handlers);
-      expect(this.source.formatters()).toBe(handlers);
+      expect(this.source.formatters()).toEqual(handlers);
 
     });
 

@@ -147,9 +147,9 @@ class Source {
    */
   formatters(formatters) {
     if (!arguments.length) {
-      return this._formatters;
+      return extend({}, this._formatters);
     }
-    this._formatters = formatters;
+    this._formatters = extend({}, formatters);
     return this;
   }
 

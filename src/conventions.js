@@ -76,7 +76,7 @@ class Conventions {
    */
   get(name) {
     if (!arguments.length) {
-      return this._conventions;
+      return extend({}, this._conventions);
     }
     if (!this._conventions[name]) {
       throw new Error("Convention for `'" + name + "'` doesn't exists.");

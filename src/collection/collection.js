@@ -19,7 +19,7 @@ class Collection {
     if (arguments.length) {
       this._classes = merge({}, this._classes, classes);
     }
-    return this._classes;
+    return extend({}, this._classes);
   }
 
   /**

@@ -57,7 +57,7 @@ class Document {
     if (arguments.length) {
       this._classes = extend({}, this._classes, classes);
     }
-    return this._classes;
+    return extend({}, this._classes);
   }
 
   /**
@@ -263,7 +263,7 @@ class Document {
    */
   schema(schema) {
     if (arguments.length) {
-       this._schema = schema;
+      this._schema = schema;
       return this;
     }
     if (!this._schema) {
@@ -278,7 +278,7 @@ class Document {
    * @return Map Returns the parents map.
    */
   parents() {
-    return this._parents;
+    return new Map(this._parents);
   }
 
   /**
@@ -289,7 +289,7 @@ class Document {
    * @return self
    */
   setParent(parent, from) {
-    this.parents().set(parent, from);
+    this._parents.set(parent, from);
     return this;
   }
 
@@ -300,8 +300,7 @@ class Document {
    * @return self
    */
   unsetParent(parent) {
-    var parents = this.parents();
-    parents.delete(parent);
+    this._parents.delete(parent);
     return this;
   }
 
@@ -312,7 +311,7 @@ class Document {
    * @return self
    */
   disconnect() {
-    var parents = this.parents();
+    var parents = this._parents;
     for (var object of parents.keys()) {
       var path = parents.get(object);
       object.unset(path);
@@ -546,7 +545,7 @@ class Document {
 
     this.emit('modified', name);
 
-    for (var [parent, field] of this.parents()) {
+    for (var [parent, field] of this._parents) {
       parent.trigger(type, [field, ...name], ignore);
     }
   }
@@ -685,7 +684,7 @@ class Document {
    */
   original(field) {
     if (!arguments.length) {
-      return this._original;
+      return extend({}, this._original);
     }
     return this._original[field];
   }

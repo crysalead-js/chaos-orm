@@ -237,7 +237,7 @@ class Relationship {
    * @return mixed
    */
   fields() {
-    return this._fields;
+    return typeof this._fields === 'boolean' ? this._fields : this._fields.splice();
   }
 
   /**
