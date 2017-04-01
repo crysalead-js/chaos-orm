@@ -49,6 +49,14 @@ class Model extends Document {
   }
 
   /**
+   * This function is called once for initializing the validator instance.
+   *
+   * @param Object validator The validator instance.
+   */
+  static _rules(validator) {
+  }
+
+  /**
    * Gets/sets the default query parameters used on finds.
    *
    * @param  Object query The query parameters.
@@ -128,49 +136,6 @@ class Model extends Document {
       Model._shards.set(this, new Map());
     }
     return Model._shards.get(this);
-  }
-
-  /**
-   * This function called once for initializing the model's schema.
-   *
-   * Example of schema initialization:
-   * ```php
-   * schema.column('id', { type: 'id' });
-   *
-   * schema.column('title', { type: 'string', 'default': true });
-   *
-   * schema.column('body', { type: 'string' });
-   *
-   * // Custom object
-   * schema.column('comments',       { type: 'object', array: true, 'default': [] });
-   * schema.column('comments.id',    { type: 'id' });
-   * schema.column('comments.email', { type: 'string' });
-   * schema.column('comments.body',  { type: 'string' });
-   *
-   * // Custom object with a dedicated class
-   * schema.column('comments', {
-   *    type: 'entity',
-   *    class: Comment,
-   *    array: true,
-   *    default: []
-   * });
-   *
-   * schema.hasManyThrough('tags', 'post_tag', 'tag');
-   *
-   * schema.hasMany('post_tag', PostTag, { keys: { id: 'post_id' } });
-   * ```
-   *
-   * @param Object $schema The schema instance.
-   */
-  static _define(schema) {
-  }
-
-  /**
-   * This function is called once for initializing the validator instance.
-   *
-   * @param Object validator The validator instance.
-   */
-  static _rules(validator) {
   }
 
   /**

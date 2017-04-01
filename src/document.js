@@ -90,7 +90,43 @@ class Document {
       class: Document
     });
     schema.lock(false);
+    this._define(schema);
     return schema;
+  }
+
+  /**
+   * This function called once for initializing the model's schema.
+   *
+   * Example of schema initialization:
+   * ```php
+   * schema.column('id', { type: 'id' });
+   *
+   * schema.column('title', { type: 'string', 'default': true });
+   *
+   * schema.column('body', { type: 'string' });
+   *
+   * // Custom object
+   * schema.column('comments',       { type: 'object', array: true, 'default': [] });
+   * schema.column('comments.id',    { type: 'id' });
+   * schema.column('comments.email', { type: 'string' });
+   * schema.column('comments.body',  { type: 'string' });
+   *
+   * // Custom object with a dedicated class
+   * schema.column('comments', {
+   *    type: 'entity',
+   *    class: Comment,
+   *    array: true,
+   *    default: []
+   * });
+   *
+   * schema.hasManyThrough('tags', 'post_tag', 'tag');
+   *
+   * schema.hasMany('post_tag', PostTag, { keys: { id: 'post_id' } });
+   * ```
+   *
+   * @param Object $schema The schema instance.
+   */
+  static _define(schema) {
   }
 
   /**
