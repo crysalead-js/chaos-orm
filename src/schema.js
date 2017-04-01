@@ -488,7 +488,7 @@ class Schema {
     }
     column = extend({}, defaults, column);
 
-    return extend({}, { null: column.type !== 'serial' }, column);
+    return extend({}, { null: false }, column);
   }
 
   /**

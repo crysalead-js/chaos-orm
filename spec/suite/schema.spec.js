@@ -200,7 +200,7 @@ describe("Schema", function() {
           name: {
             type: 'string',
             array: false,
-            null: true
+            null: false
           }
         },
         {
@@ -208,13 +208,13 @@ describe("Schema", function() {
             type: 'string',
             length: 50,
             array: false,
-            null: true
+            null: false
           }
         },
         {
           score: {
             array: false,
-            null: true,
+            null: false,
             type: 'float'
           }
         },
@@ -296,20 +296,20 @@ describe("Schema", function() {
       expect(schema.column('name')).toEqual({
         type: 'string',
         array: false,
-        null: true
+        null: false
       });
 
       expect(schema.column('title')).toEqual({
         type: 'string',
         length: 50,
         array: false,
-        null: true
+        null: false
       });
 
       expect(schema.column('score')).toEqual({
         type: 'float',
         array: false,
-        null: true
+        null: false
       });
 
     });
@@ -320,7 +320,7 @@ describe("Schema", function() {
       expect(this.schema.column('age')).toEqual({
         type: 'integer',
         array: false,
-        null: true
+        null: false
       });
 
     });
@@ -331,7 +331,7 @@ describe("Schema", function() {
       expect(this.schema.column('age')).toEqual({
         type: 'integer',
         array: false,
-        null: true
+        null: false
       });
 
     });
@@ -342,7 +342,7 @@ describe("Schema", function() {
       expect(this.schema.column('ids')).toEqual({
         type: 'integer',
         array: true,
-        null: true
+        null: false
       });
 
     });
@@ -355,7 +355,7 @@ describe("Schema", function() {
         length: 11,
         use: 'bigint',
         array: false,
-        null: true
+        null: false
       });
 
     });
