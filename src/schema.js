@@ -305,7 +305,7 @@ class Schema {
   {
     var num = arguments.length;
     if (!num) {
-        return this._meta;
+        return extend({}, this._meta);
     }
     if (typeof name === 'object' && name !== null) {
         this._meta = name;
@@ -315,7 +315,13 @@ class Schema {
         this._meta[name] = value;
         return this;
     }
-    return extend({}, this._meta[name]);
+    if (typeof this._meta[name] === 'object' && this._meta[name] !== null) {
+      return extend({}, this._meta[name]);
+    }
+    if (Array.isArray(this._meta[name])) {
+      return this._meta[name].slice();
+    }
+    return this._meta[name];
   }
 
   /**
