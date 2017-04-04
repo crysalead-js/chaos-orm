@@ -379,16 +379,24 @@ class Relationship {
       throw new Error("This relation is not based on a foreign key.");
     }
     var to = this.to();
+    var schema = to.definition();
 
     if (id == null || (Array.isArray(id) && !id.length)) {
       return Promise.resolve(to.create([], { type: 'set' }));
     }
-    if (Array.isArray(id) && id.length === 1) {
-      id = id[0];
+
+    var ids = Array.isArray(id) ? id : [id];
+    var key = schema.key();
+    for (var i = 0, len = ids.length; i < len; i++) {
+      ids[i] = schema.format('cast', key, ids[i]);
+    }
+
+    if (ids.length === 1) {
+      ids = ids[0];
     }
     var query, defaultQuery = { conditions: {} };
 
-    defaultQuery.conditions[this.keys('to')] = id;
+    defaultQuery.conditions[this.keys('to')] = ids;
     query = extend({}, defaultQuery, options.query);
     return to.all(query, fetchOptions);
   }
@@ -402,11 +410,11 @@ class Relationship {
    *                            values the corresponding index in the collection.
    */
   _index(collection, name) {
-    var indexes = new Map(), value;
+    var indexes = {}, value;
     collection.forEach(function(entity, i) {
       value = entity instanceof Model ? entity.get(name) : entity[name];
-      if (value) {
-        indexes.set(value, i);
+      if (value != null) {
+        indexes[String(value)] = i;
       }
     });
     return indexes;

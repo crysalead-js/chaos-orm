@@ -63,7 +63,7 @@ class HasMany extends Relationship {
   embed(collection, options) {
     return co(function*() {
       var indexes = this._index(collection, this.keys('from'));
-      var related = yield this._find(Array.from(indexes.keys()), options);
+      var related = yield this._find(Object.keys(indexes), options);
       var name = this.name();
       var value;
 
@@ -73,18 +73,19 @@ class HasMany extends Relationship {
         var values = entity instanceof Model ? entity.get(this.keys('to')) : entity[this.keys('to')];
         values = Array.isArray(values) || values instanceof Collection || values instanceof Through ? values : [values];
         values.forEach(function(value) {
-          if (indexes.has(value)) {
+          value = String(value);
+          if (indexes[value] !== undefined) {
             if (Array.isArray(collection)) {
-              if (collection[indexes.get(value)] instanceof Model) {
-                collection[indexes.get(value)].get(name).push(entity);
+              if (collection[indexes[value]] instanceof Model) {
+                collection[indexes[value]].get(name).push(entity);
               } else {
-                collection[indexes.get(value)][name].push(entity);
+                collection[indexes[value]][name].push(entity);
               }
             } else {
-              if (collection.get(indexes.get(value)) instanceof Model) {
-                collection.get(indexes.get(value)).get(name).push(entity);
+              if (collection.get(indexes[value]) instanceof Model) {
+                collection.get(indexes[value]).get(name).push(entity);
               } else {
-                collection.get(indexes.get(value))[name].push(entity);
+                collection.get(indexes[value])[name].push(entity);
               }
             }
           }
@@ -126,8 +127,8 @@ class HasMany extends Relationship {
 
       for (var item of collection) {
         yield item.sync();
-        if (item.exists() && indexes.get(item.id()) !== undefined) {
-          existing[indexes.get(item.id())] = true;
+        if (item.exists() && indexes[item.id()] !== undefined) {
+          existing[indexes[item.id()]] = true;
         }
         item.set(conditions);
         var ok = yield item.save(options);

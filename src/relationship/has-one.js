@@ -19,28 +19,28 @@ class HasOne extends Relationship {
   embed(collection, options) {
     return co(function*() {
       var indexes = this._index(collection, this.keys('from'));
-      var related = yield this._find(Array.from(indexes.keys()), options);
+      var related = yield this._find(Object.keys(indexes), options);
       var name = this.name();
       var value;
       this._cleanup(collection);
 
       related.forEach(function(entity, index) {
         if (entity instanceof Model) {
-          value = entity.get(this.keys('to'));
-          if (indexes.has(value)) {
+          value = String(entity.get(this.keys('to')));
+          if (indexes[value] !== undefined) {
             if (Array.isArray(collection)) {
-              collection[indexes.get(value)].set(name, entity);
+              collection[indexes[value]].set(name, entity);
             } else {
-              collection.get(indexes.get(value)).set(name, entity);
+              collection.get(indexes[value]).set(name, entity);
             }
           }
         } else {
-          value = entity[this.keys('to')];
-          if (indexes.has(value)) {
+          value = String(entity[this.keys('to')]);
+          if (indexes[value] !== undefined) {
             if (Array.isArray(collection)) {
-              collection[indexes.get(value)][name] = entity;
+              collection[indexes[value]][name] = entity;
             } else {
-              collection.get(indexes.get(value))[name] = entity;
+              collection.get(indexes[value])[name] = entity;
             }
           }
         }
