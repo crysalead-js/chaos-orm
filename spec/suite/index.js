@@ -1,5 +1,10 @@
 Promise = require('bluebird');
 
+var Model = require('../..').Model;
+var Schema = require('../fixture/schema');
+
+Model.definition(Schema);
+
 require('./conventions.spec');
 require('./collection/collection.spec');
 require('./collection/through.spec');

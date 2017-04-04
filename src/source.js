@@ -28,8 +28,15 @@ class Source {
 
     var handlers = this._handlers;
 
-    this.formatter('cast', 'id',        handlers.cast['integer']);
-    this.formatter('cast', 'serial',    handlers.cast['integer']);
+    this.formatter('array', 'integer',   handlers.array['integer']);
+    this.formatter('array', 'float',     handlers.array['float']);
+    this.formatter('array', 'decimal',   handlers.array['string']);
+    this.formatter('array', 'date',      handlers.array['date']);
+    this.formatter('array', 'datetime',  handlers.array['datetime']);
+    this.formatter('array', 'boolean',   handlers.array['boolean']);
+    this.formatter('array', 'null',      handlers.array['null']);
+    this.formatter('array', '_default_', handlers.array['string']);
+
     this.formatter('cast', 'integer',   handlers.cast['integer']);
     this.formatter('cast', 'float',     handlers.cast['float']);
     this.formatter('cast', 'decimal',   handlers.cast['decimal']);
@@ -54,6 +61,36 @@ class Source {
    */
   _handlers() {
     return {
+      array: {
+        'string': function(value, options) {
+          return String(value);
+        },
+        'integer': function(value, options) {
+          return Number.parseInt(value);
+        },
+        'float': function(value, options) {
+          return Number.parseFloat(value);
+        },
+        'date': function(value, options) {
+          options = options || {};
+          options.format = options.format ? options.format : 'yyyy-mm-dd';
+          return this.convert('array', 'datetime', value, options);
+        }.bind(this),
+        'datetime': function(value, options) {
+          options = options || {};
+          options.format = options.format ? options.format : 'yyyy-mm-dd HH:MM:ss';
+          if (!(value instanceof Date)) {
+            value = new Date(value);
+          }
+          return dateFormat(value, options.format);
+        },
+        'boolean': function(value, options) {
+          return !!value;
+        },
+        'null': function(value, options) {
+          return null;
+        }
+      },
       cast: {
         'string': function(value, options) {
           return String(value);

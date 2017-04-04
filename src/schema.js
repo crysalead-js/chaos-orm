@@ -211,8 +211,6 @@ class Schema {
 
     handlers = this._handlers;
 
-    this.formatter('array', 'id',        handlers['array']['integer']);
-    this.formatter('array', 'serial',    handlers['array']['integer']);
     this.formatter('array', 'integer',   handlers['array']['integer']);
     this.formatter('array', 'float',     handlers['array']['float']);
     this.formatter('array', 'decimal',   handlers['array']['string']);
@@ -222,12 +220,10 @@ class Schema {
     this.formatter('array', 'null',      handlers['array']['null']);
     this.formatter('array', '_default_', handlers['array']['string']);
 
-    this.formatter('cast', 'id',       handlers['cast']['integer']);
-    this.formatter('cast', 'serial',   handlers['cast']['integer']);
     this.formatter('cast', 'integer',  handlers['cast']['integer']);
     this.formatter('cast', 'float',    handlers['cast']['float']);
     this.formatter('cast', 'decimal',  handlers['cast']['decimal']);
-    this.formatter('cast', 'date',     handlers['cast']['datetime']);
+    this.formatter('cast', 'date',     handlers['cast']['date']);
     this.formatter('cast', 'datetime', handlers['cast']['datetime']);
     this.formatter('cast', 'boolean',  handlers['cast']['boolean']);
     this.formatter('cast', 'null',     handlers['cast']['null']);
