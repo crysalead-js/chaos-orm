@@ -1,6 +1,7 @@
 var co = require('co');
 var Schema = require('../../src/schema');
 var Document = require('../../src/').Document;
+var Collection = require('../../src/').Collection;
 
 describe("Document", function() {
 
@@ -73,6 +74,22 @@ describe("Document", function() {
       document.disconnect();
       expect(document.parents().has(parent)).toBe(false);
       expect(parent.has('value')).toBe(false);
+
+    });
+
+    it("removes a document from its collection", function() {
+
+      var parent = new Collection();
+      var document1 = new Document();
+      var document2 = new Document();
+      var document3 = new Document();
+      parent.push(document1);
+      parent.push(document2);
+      parent.push(document3);
+      document1.disconnect();
+      document2.disconnect();
+      document3.disconnect();
+      expect(parent.length).toBe(0);
 
     });
 

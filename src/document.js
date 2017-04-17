@@ -325,7 +325,7 @@ class Document {
    * @return self
    */
   setParent(parent, from) {
-    this._parents.set(parent, from);
+    this._parents.set(parent, parent instanceof Document ? from : '*');
     return this;
   }
 
@@ -350,7 +350,16 @@ class Document {
     var parents = this._parents;
     for (var object of parents.keys()) {
       var path = parents.get(object);
-      object.unset(path);
+      if (object instanceof Document) {
+        object.unset(path);
+      } else if (object instanceof Collection) {
+        for (var i = 0, len = object.length; i < len; i++) {
+          if (object.get(i) === this) {
+            object.unset(i);
+            break;
+          }
+        }
+      }
     }
     return this;
   }

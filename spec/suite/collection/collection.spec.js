@@ -370,7 +370,7 @@ describe("Collection", function() {
 
         var entity = collection.get(0);
         expect(entity instanceof MyModel).toBe(true);
-        expect(entity.parents().get(collection)).toBe(0);
+        expect(entity.parents().get(collection)).toBe('*');
         expect(entity.basePath()).toBe(undefined);
 
       });
