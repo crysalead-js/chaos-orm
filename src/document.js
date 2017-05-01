@@ -978,6 +978,29 @@ class Document {
     }
     return result;
   }
+
+  /**
+   * Return the state object
+   */
+  state() {
+    return new Proxy(this, {
+      get: (data, name) => {
+        if (typeof name === 'symbol') {
+          return this[name];
+        }
+        var value = this.get(name);
+        return value && typeof value.state === 'function' ? value.state() : value;
+      },
+      set: (data, name, value) => {
+        this.set(name, value);
+        return true;
+      },
+      deleteProperty: function(data, name) {
+        this.unset(name);
+        return true;
+      }
+    });
+  }
 }
 
 /**

@@ -498,6 +498,18 @@ describe("Entity", function() {
 
     });
 
+    it("sets a single hasMany relation using the state proxy", function() {
+
+      var image = Image.create();
+      var state = image.state();
+      state.images_tags[0] = { id: '1', image_id: '1', tag_id: '1' };
+
+      expect(state.images_tags instanceof Collection).toBe(true);
+      expect(state.images_tags[0] instanceof ImageTag).toBe(true);
+      expect(image.get('images_tags.0').data()).toEqual({ id: 1, image_id: 1, tag_id: 1 });
+
+    });
+
     it("clears a single hasMany relation when using a `null/undefined` value", function() {
 
       var image = Image.create();
@@ -563,6 +575,26 @@ describe("Entity", function() {
         }
       ]);
       expect(image.get('tags') instanceof Through).toBe(true);
+      expect(image.get('tags.0').data()).toEqual({ id: 1, name: 'landscape' });
+      expect(image.get('tags.1').data()).toEqual({ id: 2, name: 'mountain' });
+
+    });
+
+    it("sets a hasManyThrough array using the state proxy", function() {
+
+      var image = Image.create();
+      var state = image.state();
+      state.tags = [
+        {
+          id: '1',
+          name: 'landscape'
+        },
+        {
+          id: '2',
+          name: 'mountain'
+        }
+      ];
+      expect(state.tags instanceof Through).toBe(true);
       expect(image.get('tags.0').data()).toEqual({ id: 1, name: 'landscape' });
       expect(image.get('tags.1').data()).toEqual({ id: 2, name: 'mountain' });
 

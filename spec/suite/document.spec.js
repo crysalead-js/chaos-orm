@@ -116,6 +116,15 @@ describe("Document", function() {
 
       });
 
+      it("gets a value through the state proxy", function() {
+
+        var document = new Document();
+        var state = document.state();
+        state.title = 'Hello';
+        expect(state.title).toBe('Hello');
+
+      });
+
       it("gets a virtual value", function() {
 
         var schema = new Schema();
@@ -183,6 +192,15 @@ describe("Document", function() {
       expect(document.get('title')).toBe('Hello');
       expect(document.get('body')).toBe('World');
       expect(document.get('created')).toBe(date);
+
+    });
+
+    it("sets a value through the state proxy", function() {
+
+      var document = new Document();
+      var state = document.state();
+      state.title = 'Hello';
+      expect(state.title).toBe('Hello');
 
     });
 
