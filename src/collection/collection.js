@@ -1,5 +1,6 @@
 var Emitter = require('component-emitter');
 var co = require('co');
+var throttle = require('throttleit');
 var dotpath = require('dotpath-parser');
 var extend = require('extend-merge').extend;
 var merge = require('extend-merge').merge;
@@ -103,6 +104,21 @@ class Collection {
      */
     this._parents = new Map();
 
+    /**
+     * A reference to `Document`'s watches.
+     *
+     * @var Map
+     */
+    this._watches = new Map();
+
+    this._emit = throttle(function(type) {
+      this.emit(type);
+    }, 50);
+
+    this._trigger = throttle(function(type, name) {
+      this.trigger(type, name);
+    }, 50);
+
     this.basePath(config.basePath);
 
     this.schema(config.schema);
@@ -114,11 +130,13 @@ class Collection {
       config.data = [];
     }
 
+    this._triggerEnabled = false;
     for (var entity of config.data) {
       this.push(entity, config.exists);
     }
 
     this.amend();
+    this._triggerEnabled = true;
   }
 
   /**
@@ -332,7 +350,7 @@ class Collection {
       data.setParent(this, name);
     }
     this._modified = true;
-    this.trigger('modified', name);
+    this._trigger('modified', '*');
     return this;
   }
 
@@ -343,19 +361,30 @@ class Collection {
    * @param String name The field name.
    */
   trigger(type, name, ignore) {
+    if (!this._triggerEnabled) {
+      return;
+    }
     name = Array.isArray(name) ? name : [name];
     ignore = ignore || new Map();
 
     if (ignore.has(this)) {
-        return;
+      return;
     }
     ignore.set(this, true);
-
-    this.emit('modified', name);
 
     for (var [parent, field] of this.parents()) {
       parent.trigger(type, [field, ...name], ignore);
     }
+
+    if (this._watches.size) {
+      this._watches.forEach(function(watches) {
+        watches.forEach(function(handler) {
+          handler(name);
+        });
+      });
+    }
+
+    this._emit('modified');
   }
 
   /**
@@ -364,21 +393,67 @@ class Collection {
    * @param String   path    The path.
    * @param Function closure The closure to run.
    */
+  /**
+   * Watch a path
+   *
+   * @param  String   path    The path.
+   * @param  Function closure The closure to run.
+   * @return self
+   */
   watch(path, closure) {
     var keys = [];
     if (arguments.length === 1) {
       closure = path;
+      path = '';
     } else {
       keys = Array.isArray(path) ? path : dotpath(path);
     }
-    var self = this;
-    this.on('modified', (path) => {
+
+    if (!this._watches.has(path)) {
+      this._watches.set(path, new Map());
+    }
+
+    var watches = this._watches.get(path);
+
+    if (watches.has(closure)) {
+      this.unwatch(path, closure);
+    }
+
+    var handler = (path) => {
       if (keys.every(function(value, i) {
         return path[i] !== undefined && value === path[i];
       })) {
         closure(path);
       }
-    });
+    };
+    watches.set(closure, handler);
+    return this;
+  }
+
+  /**
+   * Unwatch a path
+   *
+   * @param  String   path    The path.
+   * @param Function closure The closure to unwatch.
+   * @return self
+   */
+  unwatch(path, closure) {
+    if (arguments.length === 1) {
+      closure = path;
+      path = '';
+    }
+
+    if (!this._watches.has(path)) {
+      return this;
+    }
+
+    var watches = this._watches.get(path);
+
+    if (!watches.has(closure)) {
+      return this;
+    }
+    watches.delete(closure);
+    return this;
   }
 
   /**
@@ -438,7 +513,7 @@ class Collection {
       value.unsetParent(this);
     }
     this._modified = true;
-    this.trigger('modified', name);
+    this._trigger('modified', '*');
   }
 
   /**
@@ -690,7 +765,7 @@ class Collection {
   splice(offset, length) {
     var result = this._data.splice(offset, length);
     this._modified = true;
-    this.trigger('modified', offset);
+    this._trigger('modified', '*');
     return result;
   }
 
@@ -706,7 +781,7 @@ class Collection {
   sort(closure) {
     this._data.sort(closure);
     this._modified = true;
-    this.trigger('modified');
+    this._trigger('modified', '*');
     return this;
   }
 

@@ -1,4 +1,5 @@
 var co = require('co');
+var throttle = require('throttleit');
 var Emitter = require('component-emitter');
 var dotpath = require('dotpath-parser');
 var extend = require('extend-merge').extend;
@@ -251,6 +252,10 @@ class Document {
      */
     this._watches = new Map();
 
+    this._emit = throttle(function(type) {
+      this.emit(type);
+    }, 50);
+
     /**
      * If this instance has a parent, this value indicates the parent field path.
      *
@@ -275,11 +280,14 @@ class Document {
      */
     this._exists = config.exists;
 
+    this._triggerEnabled = false;
     this.set(data);
+    this._triggerEnabled = true;
 
     this._exists = this._exists === 'all' ? true : this._exists;
 
     this._original = extend({}, this._data);
+    this.trigger('modified');
   }
 
   /**
@@ -526,7 +534,8 @@ class Document {
 
     if (keys.length) {
       if (this.get(name) == undefined) {
-        this._set(name, {});
+        this._set(name, { [keys.join('.')]: data});
+        return;
       }
       var value = this._data[name];
       if (!value || value.set === undefined) {
@@ -580,6 +589,9 @@ class Document {
    * @param String name The field name.
    */
   trigger(type, name, ignore) {
+    if (!this._triggerEnabled) {
+      return;
+    }
     name = Array.isArray(name) ? name.slice() : (name != null ? [name] : []);
     ignore = ignore || new Map();
 
@@ -588,11 +600,19 @@ class Document {
     }
     ignore.set(this, true);
 
-    this.emit('modified', name);
-
     for (var [parent, field] of this._parents) {
       parent.trigger(type, [field, ...name], ignore);
     }
+
+    if (this._watches.size) {
+      this._watches.forEach(function(watches) {
+        watches.forEach(function(handler) {
+          handler(name);
+        });
+      });
+    }
+
+    this._emit('modified');
   }
 
   /**
@@ -629,7 +649,6 @@ class Document {
       }
     };
     watches.set(closure, handler);
-    this.on('modified', handler);
     return this;
   }
 
@@ -655,9 +674,7 @@ class Document {
     if (!watches.has(closure)) {
       return this;
     }
-    var handler = watches.get(closure);
-
-    this.off('modified', handler);
+    watches.delete(closure);
     return this;
   }
 

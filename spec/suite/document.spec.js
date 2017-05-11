@@ -256,16 +256,8 @@ describe("Document", function() {
     it("emits modified events", function(done) {
 
       var document = new Document();
-      var id;
-      var events = 0;
       document.on('modified', function(document, uuid) {
-        if (id === undefined || id === uuid) {
-          events++;
-          id = uuid;
-        }
-        if (events === 3) {
-          done();
-        }
+        done();
       });
 
       document.set('a.nested.value', 'hello');
@@ -318,7 +310,9 @@ describe("Document", function() {
 
     it("watches a data", function(done) {
 
-      var document = new Document();
+      var document = new Document({
+        data: { 'a.nested.value': 'test' }
+      });
       document.watch('a.nested.value', function(path) {
         expect(document.get('a.nested.value')).toBe('hello');
         done();
@@ -521,8 +515,7 @@ describe("Document", function() {
       var document = new Document();
       document.set('a.nested.value', 'hello');
 
-      document.on('modified', function(path) {
-        expect(path).toEqual(['a', 'nested', 'value']);
+      document.on('modified', function() {
         done();
       });
       document.unset('a.nested.value', 'hello');

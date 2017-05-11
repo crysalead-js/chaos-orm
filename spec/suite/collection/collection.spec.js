@@ -335,17 +335,13 @@ describe("Collection", function() {
         }
       };
 
-      collection.on('modified', function(name) {
-        if (name.toString() === [0].toString()) {
-          received++;
-        }
+      collection.on('modified', function() {
+        received++;
         check();
       });
 
       document.on('modified', function(name) {
-        if (name.toString() === ['collection', 0].toString()) {
-          received++;
-        }
+        received++;
         check();
       });
 
@@ -387,7 +383,7 @@ describe("Collection", function() {
       var document = new Document();
 
       collection.watch(function(path) {
-        expect(path).toEqual([0]);
+        expect(path).toEqual(['*']);
         done();
       });
 
