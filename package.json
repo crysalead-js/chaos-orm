@@ -24,6 +24,7 @@
     "pascal-case": "^2.0.1",
     "pluralize": "^4.0.0",
     "snake-case": "^2.1.0",
+    "throttleit": "^1.0.0",
     "uuid": "^3.0.1"
   },
   "devDependencies": {
