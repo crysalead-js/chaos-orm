@@ -200,13 +200,13 @@ class Source {
    * @return  mixed          The formated value.
    */
   convert(mode, type, value, options) {
-    var type = value === null ? 'null' : type;
+    var type = value == null ? 'null' : type;
     var formatter = null;
     if (this._formatters[mode]) {
       if (this._formatters[mode][type] !== undefined) {
         formatter = this._formatters[mode][type];
-      } else if (this._formatters[mode]['_default_'] !== undefined) {
-        formatter = this._formatters[mode]['_default_'];
+      } else if (this._formatters[mode]._default_ !== undefined) {
+        formatter = this._formatters[mode]._default_;
       }
     }
     return formatter ? formatter(value, options) : value;

@@ -404,7 +404,7 @@ class Document {
     }
     var keys = Array.isArray(name) ? name.slice() : dotpath(name);
     name = keys.shift();
-    if (!name) {
+    if (name == null || name === '') {
       throw new Error("Field name can't be empty.");
     }
 
@@ -419,7 +419,7 @@ class Document {
       return value.get(keys);
     }
 
-    var fieldName = this.basePath() ? this.basePath() + '.' + name : name;
+    var fieldName = this.basePath() ? this.basePath() + '.' + name : String(name);
     var schema = this.schema();
 
     var field;
@@ -528,7 +528,7 @@ class Document {
     var keys = Array.isArray(name) ? name.slice() : dotpath(name);
     var name = keys.shift();
 
-    if (!name) {
+    if (name == null || name === '') {
       throw new Error("Field name can't be empty.");
     }
 
@@ -546,7 +546,7 @@ class Document {
     }
 
     var schema = this.schema();
-
+    name = String(name);
     var previous = this._data[name];
     var value = schema.cast(name, data, {
       parent: this,

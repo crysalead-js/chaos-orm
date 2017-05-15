@@ -1167,7 +1167,7 @@ class Schema {
    * @return  mixed        The formated value.
    */
   format(mode, name, value) {
-    var type = value === null ? 'null' : this.type(name);
+    var type = value == null ? 'null' : this.type(name);
     return this.convert(mode, type, value, this._columns.get(name));
   }
 
