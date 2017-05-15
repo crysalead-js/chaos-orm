@@ -549,8 +549,7 @@ class Schema {
    *
    * @return Object
    */
-  virtuals()
-  {
+  virtuals() {
     var fields = [];
     for (var [name, field] of this._columns) {
       if (!field.virtual) {
@@ -567,18 +566,17 @@ class Schema {
    * @param  String|Array name The field name or an array of field names to check.
    * @return Boolean           Returns `true` if present, `false` otherwise.
    */
-  isVirtual(name)
-  {
-      if (!Array.isArray(name)) {
-        var field = this._columns.get(name);
-        return field !== undefined && field.virtual;
+  isVirtual(name) {
+    if (!Array.isArray(name)) {
+      var field = this._columns.get(name);
+      return field !== undefined && field.virtual;
+    }
+    for (var field of name) {
+      if (!this.isVirtual(field)) {
+        return false;
       }
-      for (var field of name) {
-        if (!this.isVirtual(field)) {
-          return false;
-        }
-      }
-      return true;
+    }
+    return true;
   }
 
   /**
@@ -587,18 +585,17 @@ class Schema {
    * @param  String|Array name The field name or an array of field names to check.
    * @return Boolean           Returns `true` if present, `false` otherwise.
    */
-  isPrivate(name)
-  {
-      if (!Array.isArray(name)) {
-        var field = this._columns.get(name);
-        return field !== undefined && field.private;
+  isPrivate(name) {
+    if (!Array.isArray(name)) {
+      var field = this._columns.get(name);
+      return field !== undefined && field.private;
+    }
+    for (var field of name) {
+      if (!this.isPrivate(field)) {
+        return false;
       }
-      for (var field of name) {
-        if (!this.isPrivate(field)) {
-          return false;
-        }
-      }
-      return true;
+    }
+    return true;
   }
 
   /**

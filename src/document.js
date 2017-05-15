@@ -984,7 +984,12 @@ class Document {
 
       if (value instanceof Document) {
         options.basePath = value.basePath();
-        result[field] = value.to(format, options);
+        var path = options.basePath ? options.basePath + '.' + field : field;
+        if (schema.has(path)) {
+          result[field] = schema.format(format, path, value);
+        } else {
+          result[field] = value.to(format, options);
+        }
       } else if (value && value.forEach instanceof Function) {
         options.basePath = value.basePath();
         result[field] = Collection.toArray(value, options);
