@@ -1,4 +1,5 @@
 var co = require('co');
+var throttle = require('throttleit');
 var Emitter = require('component-emitter');
 var dotpath = require('dotpath-parser');
 var extend = require('extend-merge').extend;
@@ -251,6 +252,10 @@ class Document {
      */
     this._watches = new Map();
 
+    this._emit = throttle(function(type) {
+      this.emit(type);
+    }, 50);
+
     /**
      * If this instance has a parent, this value indicates the parent field path.
      *
@@ -282,6 +287,7 @@ class Document {
     this._exists = this._exists === 'all' ? true : this._exists;
 
     this._original = extend({}, this._data);
+    this.trigger('modified');
   }
 
   /**
@@ -606,7 +612,7 @@ class Document {
       });
     }
 
-    this.emit('modified', name);
+    this._emit('modified');
   }
 
   /**

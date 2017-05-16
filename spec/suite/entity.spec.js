@@ -1276,8 +1276,7 @@ describe("Entity", function() {
     it("triggers modified event on invalidation", function(done) {
 
       var image = Image.create();
-      image.on('modified', function(path) {
-        expect(path).toEqual([]);
+      image.on('modified', function() {
         done();
       });
       expect(image.invalidate('name', 'is required')).toBe(image);

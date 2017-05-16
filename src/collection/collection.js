@@ -111,6 +111,10 @@ class Collection {
      */
     this._watches = new Map();
 
+    this._emit = throttle(function(type) {
+      this.emit(type);
+    }, 50);
+
     this._trigger = throttle(function(type, name) {
       this.trigger(type, name);
     }, 50);
@@ -380,7 +384,7 @@ class Collection {
       });
     }
 
-    this.emit('modified', name);
+    this._emit('modified');
   }
 
   /**
