@@ -333,6 +333,20 @@ describe("Document", function() {
 
     });
 
+    it("watches a data on unset", function(done) {
+
+      var document = new Document({
+        data: { 'a.nested.value': 'test' }
+      });
+      document.watch('a.nested.value', function(path) {
+        expect(document.get('a.nested.value')).toBe(null);
+        done();
+      });
+      document.unset('unwatched.value');
+      document.unset('a.nested.value');
+
+    });
+
     it("doesn't watch unwatched data", function(done) {
 
       var count = 0;

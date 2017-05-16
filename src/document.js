@@ -287,7 +287,6 @@ class Document {
     this._exists = this._exists === 'all' ? true : this._exists;
 
     this._original = extend({}, this._data);
-    this.trigger('modified');
   }
 
   /**
@@ -526,22 +525,24 @@ class Document {
    */
   _set(name, data) {
     var keys = Array.isArray(name) ? name.slice() : dotpath(name);
-    var name = keys.shift();
+    var name = keys[0];
 
     if (name == null || name === '') {
       throw new Error("Field name can't be empty.");
     }
 
-    if (keys.length) {
+    if (keys.length > 1) {
+      var path = keys.slice();
+      path.shift();
       if (this.get(name) == undefined) {
-        this._set(name, { [keys.join('.')]: data});
-        return;
+        this._set(name, { [path.join('.')]: data });
       }
       var value = this._data[name];
       if (!value || value.set === undefined) {
         throw new Error("The field: `" + name + "` is not a valid document or entity.");
       }
-      value.set(keys, data);
+      value.set(path, data);
+      this._applyWatch(keys);
       return;
     }
 
@@ -555,6 +556,7 @@ class Document {
       exists: this._exists === 'all' ? 'all' : null
     });
     if (previous === value) {
+      this._applyWatch(name);
       return;
     }
     var fieldName = this.basePath() ? this.basePath() + '.' + name : name;
@@ -579,7 +581,8 @@ class Document {
     if (previous && typeof previous.unsetParent === 'function') {
       previous.unsetParent(this);
     }
-    this.trigger('modified', name);
+    this._applyWatch(name);
+    this.trigger('modified');
   }
 
   /**
@@ -588,11 +591,10 @@ class Document {
    * @param String type The type of event.
    * @param String name The field name.
    */
-  trigger(type, name, ignore) {
+  trigger(type, ignore) {
     if (!this._triggerEnabled) {
       return;
     }
-    name = Array.isArray(name) ? name.slice() : (name != null ? [name] : []);
     ignore = ignore || new Map();
 
     if (ignore.has(this)) {
@@ -601,17 +603,8 @@ class Document {
     ignore.set(this, true);
 
     for (var [parent, field] of this._parents) {
-      parent.trigger(type, [field, ...name], ignore);
+      parent.trigger(type, ignore);
     }
-
-    if (this._watches.size) {
-      this._watches.forEach(function(watches) {
-        watches.forEach(function(handler) {
-          handler(name);
-        });
-      });
-    }
-
     this._emit('modified');
   }
 
@@ -655,7 +648,7 @@ class Document {
   /**
    * Unwatch a path
    *
-   * @param  String   path    The path.
+   * @param String   path    The path.
    * @param Function closure The closure to unwatch.
    * @return self
    */
@@ -676,6 +669,21 @@ class Document {
     }
     watches.delete(closure);
     return this;
+  }
+
+  /**
+   * Apply watches
+   *
+   * @param String path The modified path.
+   */
+  _applyWatch(path) {
+    if (this._watches.size) {
+      this._watches.forEach(function(watches) {
+        watches.forEach(function(handler) {
+          handler(path);
+        });
+      });
+    }
   }
 
   /**
@@ -708,21 +716,25 @@ class Document {
       return;
     }
 
-    var name = keys.shift();
-    if (keys.length) {
+    var name = keys[0];
+    if (keys.length > 1) {
+      var path = keys.slice();
+      path.shift();
       var value = this.get(name);
       if (value instanceof Document) {
-        value.unset(keys);
+        value.unset(path);
       }
+      this._applyWatch(keys);
       return;
     }
     var value = this._data[name];
     if (value && typeof value.unsetParent === 'function') {
       value.unsetParent(this);
     }
+    this._applyWatch(name);
     if (this._data[name] !== undefined) {
       delete this._data[name];
-      this.trigger('modified', name);
+      this.trigger('modified');
     }
     return this;
   }
