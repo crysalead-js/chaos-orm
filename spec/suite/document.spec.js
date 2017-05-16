@@ -526,7 +526,8 @@ describe("Document", function() {
       var document = new Document();
       document.set('a.nested.value', 'hello');
 
-      document.on('modified', function() {
+      document.on('modified', function(path) {
+        expect(path).toEqual(['a', 'nested', 'value']);
         done();
       });
       document.unset('a.nested.value', 'hello');
