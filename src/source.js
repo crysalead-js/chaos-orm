@@ -1,6 +1,7 @@
 var dateFormat = require('dateformat');
 var extend = require('extend-merge').extend;
 var merge = require('extend-merge').merge;
+var Document = require('./document');
 
 class Source {
   /**
@@ -37,6 +38,7 @@ class Source {
     this.formatter('array', 'null',      handlers.array['null']);
     this.formatter('array', '_default_', handlers.array['string']);
 
+    this.formatter('cast', 'object',    handlers.cast['object']);
     this.formatter('cast', 'integer',   handlers.cast['integer']);
     this.formatter('cast', 'float',     handlers.cast['float']);
     this.formatter('cast', 'decimal',   handlers.cast['decimal']);
@@ -92,6 +94,9 @@ class Source {
         }
       },
       cast: {
+        'object': function(value, options) {
+          return value !== null && typeof value === 'object' && value.constructor === Object ? new Document({ data: value }) : value;
+        },
         'string': function(value, options) {
           return String(value);
         },

@@ -211,23 +211,24 @@ class Schema {
 
     handlers = this._handlers;
 
-    this.formatter('array', 'integer',   handlers['array']['integer']);
-    this.formatter('array', 'float',     handlers['array']['float']);
-    this.formatter('array', 'decimal',   handlers['array']['string']);
-    this.formatter('array', 'date',      handlers['array']['date']);
-    this.formatter('array', 'datetime',  handlers['array']['datetime']);
-    this.formatter('array', 'boolean',   handlers['array']['boolean']);
-    this.formatter('array', 'null',      handlers['array']['null']);
-    this.formatter('array', '_default_', handlers['array']['string']);
+    this.formatter('array', 'integer',   handlers.array['integer']);
+    this.formatter('array', 'float',     handlers.array['float']);
+    this.formatter('array', 'decimal',   handlers.array['string']);
+    this.formatter('array', 'date',      handlers.array['date']);
+    this.formatter('array', 'datetime',  handlers.array['datetime']);
+    this.formatter('array', 'boolean',   handlers.array['boolean']);
+    this.formatter('array', 'null',      handlers.array['null']);
+    this.formatter('array', '_default_', handlers.array['string']);
 
-    this.formatter('cast', 'integer',  handlers['cast']['integer']);
-    this.formatter('cast', 'float',    handlers['cast']['float']);
-    this.formatter('cast', 'decimal',  handlers['cast']['decimal']);
-    this.formatter('cast', 'date',     handlers['cast']['date']);
-    this.formatter('cast', 'datetime', handlers['cast']['datetime']);
-    this.formatter('cast', 'boolean',  handlers['cast']['boolean']);
-    this.formatter('cast', 'null',     handlers['cast']['null']);
-    this.formatter('cast', 'string',   handlers['cast']['string']);
+    this.formatter('cast', 'object',   handlers.cast['object']);
+    this.formatter('cast', 'integer',  handlers.cast['integer']);
+    this.formatter('cast', 'float',    handlers.cast['float']);
+    this.formatter('cast', 'decimal',  handlers.cast['decimal']);
+    this.formatter('cast', 'date',     handlers.cast['date']);
+    this.formatter('cast', 'datetime', handlers.cast['datetime']);
+    this.formatter('cast', 'boolean',  handlers.cast['boolean']);
+    this.formatter('cast', 'null',     handlers.cast['null']);
+    this.formatter('cast', 'string',   handlers.cast['string']);
   }
 
   /**
@@ -1121,6 +1122,9 @@ class Schema {
         }
       },
       cast: {
+        'object': function(value, options) {
+          return value !== null && typeof value === 'object' && value.constructor === Object ? new Document({ data: value }) : value;
+        },
         'string': function(value, options) {
           return String(value);
         },

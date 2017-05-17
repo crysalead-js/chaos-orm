@@ -1096,6 +1096,7 @@ describe("Schema", function() {
         });
       this.schema.column('active',     { type: 'boolean' });
       this.schema.column('registered', { type: 'date' });
+      this.schema.column('object',     { type: 'object' });
       this.schema.column('created',    { type: 'datetime' });
     });
 
@@ -1115,6 +1116,14 @@ describe("Schema", function() {
       expect(this.schema.format('cast', 'null', null)).toBe(null);
       expect(this.schema.format('cast', 'name', 'abc')).toBe('abc');
       expect(this.schema.format('cast', 'unexisting', 123)).toBe(123);
+
+      expect(this.schema.convert('cast', 'object', {a: 'b'}).data()).toEqual({a: 'b'});
+
+      var document = new Document();
+      expect(this.schema.convert('cast', 'object', document)).toBe(document);
+
+      var date = new Date();
+      expect(this.schema.convert('cast', 'object', date)).toBe(date);
 
     });
 

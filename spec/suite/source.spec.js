@@ -135,6 +135,13 @@ describe("Source", function() {
       expect(this.source.convert('cast', '_default_', 123)).toBe(123);
       expect(this.source.convert('cast', '_undefined_', 123)).toBe(123);
 
+      expect(this.source.convert('cast', 'object', {a: 'b'}).data()).toEqual({a: 'b'});
+
+      var document = new Document();
+      expect(this.source.convert('cast', 'object', document)).toBe(document);
+
+      var date = new Date();
+      expect(this.source.convert('cast', 'object', date)).toBe(date);
     });
 
     it("doesn't format `null` values on import", function() {
