@@ -752,53 +752,44 @@ describe("Document", function() {
 
     });
 
-    it("casts acording some custom format", function() {
+    context("with some JSON column", function() {
 
-      var schema = new Schema();
-      schema.formatter('cast', 'json', function(value) {
-        if (value == null) {
-          return value;
-        }
-        return typeof value === "string" ? new Document({ data: JSON.parse(value) }) : value;
+      beforeEach(function() {
+
+        this.schema = new Schema();
+
+        this.schema.formatter('array', 'json', function(value) {
+          return value && value.data ? value.data() : value;
+        });
+
+        this.schema.formatter('cast', 'json', function(value) {
+          return typeof value === "string" ? new Document({ data: JSON.parse(value) }) : value;
+        });
+
+        this.schema.formatter('datasource', 'json', function(value) {
+          return typeof value === "string" ? value : JSON.stringify(value.data());
+        });
+
+        this.schema.column('timeSheet', { type: 'json', default: '{"1":null,"2":null,"3":null,"4":null,"5":null,"6":null,"7":null}'});
+
       });
 
-      schema.formatter('json', 'json', function(value) {
-        if (value == null) {
-          return value;
-        }
-        return typeof value === "string" ? value : JSON.stringify(value.data());
+      it("casts according JSON casting handlers", function() {
+
+        var document = new Document({schema: this.schema});
+        document.set('timeSheet', '{"1":8,"2":8,"3":8,"4":8,"5":8,"6":8,"7":8}');
+        expect(document.get('timeSheet').data()).toEqual({'1': 8, '2': 8, '3': 8, '4': 8, '5': 8, '6': 8, '7': 8});
+        expect(document.to('datasource')).toEqual({ timeSheet: '{"1":8,"2":8,"3":8,"4":8,"5":8,"6":8,"7":8}' });
+        expect(document.data()).toEqual({timeSheet: { '1': 8, '2': 8, '3': 8, '4': 8, '5': 8, '6': 8, '7': 8 } });
+
       });
 
-      schema.column('timeSheet', { type: 'json' });
+      it("casts according some custom format", function() {
 
-      var document = new Document({schema: schema});
-      document.set('timeSheet', '{"1":8,"2":8,"3":8,"4":8,"5":8,"6":8,"7":8}');
-      expect(document.get('timeSheet').data()).toEqual({'1': 8, '2': 8, '3': 8, '4': 8, '5': 8, '6': 8, '7': 8});
-      expect(document.to('json')).toEqual({ timeSheet: '{"1":8,"2":8,"3":8,"4":8,"5":8,"6":8,"7":8}' });
+        var document = new Document({schema: this.schema});
+        expect(document.get('timeSheet.1')).toEqual(null);
 
-    });
-
-    it("casts according some custom format", function() {
-
-      var schema = new Schema();
-      schema.formatter('cast', 'json', function(value) {
-        if (value == null) {
-          return value;
-        }
-        return typeof value === "string" ? new Document({ data: JSON.parse(value) }) : value;
       });
-
-      schema.formatter('json', 'json', function(value) {
-        if (value == null) {
-          return value;
-        }
-        return typeof value === "string" ? value : JSON.stringify(value.data());
-      });
-
-      schema.column('timeSheet', { type: 'json', default: '{"1":null,"2":null,"3":null,"4":null,"5":null,"6":null,"7":null}'});
-
-      var document = new Document({schema: schema});
-      expect(document.get('timeSheet.1')).toEqual(null);
 
     });
 
