@@ -254,7 +254,7 @@ class Document {
 
     this._emit = throttle(function(type) {
       this.emit(type);
-    }, 50);
+    }, 10);
 
     /**
      * If this instance has a parent, this value indicates the parent field path.
@@ -605,7 +605,9 @@ class Document {
     for (var [parent, field] of this._parents) {
       parent.trigger(type, ignore);
     }
-    this._emit('modified');
+    if (Document.emitEnabled) {
+      this._emit('modified');
+    }
   }
 
   /**
@@ -1030,6 +1032,13 @@ Document._classes = {
   through: Through,
   conventions: Conventions
 }
+
+/**
+ * Boolean indicated if some event should be triggered on modification.
+ *
+ * @ Boolean
+ */
+Document.emitEnabled = true;
 
 /**
  * Document conventions.

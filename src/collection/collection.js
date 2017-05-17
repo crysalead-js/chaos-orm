@@ -106,7 +106,7 @@ class Collection {
 
     this._emit = throttle(function(type) {
       this.emit(type);
-    }, 50);
+    }, 10);
 
     this.basePath(config.basePath);
 
@@ -364,7 +364,9 @@ class Collection {
       parent.trigger(type, ignore);
     }
 
-    this._emit('modified');
+    if (Collection._classes.document.emitEnabled) {
+      this._emit('modified');
+    }
   }
 
   /**
