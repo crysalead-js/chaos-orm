@@ -1,5 +1,6 @@
 var co = require('co');
 var Schema = require('../../src/schema');
+var Model = require('../../src/').Model;
 var Document = require('../../src/').Document;
 var Collection = require('../../src/').Collection;
 
@@ -315,35 +316,73 @@ describe("Document", function() {
 
     });
 
-    context("with JSON formatter", function() {
+    it("casts objects according JSON casting handlers", function() {
 
-      beforeEach(function() {
-        this.schema = new Schema();
-      });
+      var schema = new Schema();
+      schema.column('holidays', { type: 'string', array: true, format: 'json' });
 
-      it("pre casts objects according JSON casting handlers", function() {
+      document = new Document({ schema: schema });
+      holidays = [
+        'allSaintsDay',
+        'armisticeDay',
+        'ascensionDay',
+        'assumptionOfMary',
+        'bastilleDay',
+        'christmasDay',
+        'easterMonday',
+        'internationalWorkersDay',
+        'newYearsDay',
+        'pentecostMonday',
+        'victoryInEuropeDay'
+      ];
+      document.set('holidays', holidays);
+      expect(document.get('holidays').data()).toEqual(holidays);
 
-        this.schema.column('holidays', { type: 'string', array: true, format: 'json' });
-
-        document = new Document({ schema: this.schema });
-        holidays = [
-          'allSaintsDay',
-          'armisticeDay',
-          'ascensionDay',
-          'assumptionOfMary',
-          'bastilleDay',
-          'christmasDay',
-          'easterMonday',
-          'internationalWorkersDay',
-          'newYearsDay',
-          'pentecostMonday',
-          'victoryInEuropeDay'
-        ];
-        document.set('holidays', holidays);
-        expect(document.get('holidays').data()).toEqual(holidays);
-
-      });
     });
+
+    it("casts array of objects according JSON casting handlers", function() {
+
+      schema = new Schema();
+      schema.column('events', { type: 'object', array: true });
+      schema.column('events.from', { type: 'string' });
+      schema.column('events.to', { type: 'string' });
+
+      var document = new Document({ schema: schema });
+      var events = [
+          { from: '08:00', to: '10:00' },
+          { from: '12:00', to: '16:00' }
+      ];
+      document.set('events', events);
+      expect(document.get('events.0')).toBeAnInstanceOf(Document);
+      expect(document.get('events.1')).toBeAnInstanceOf(Document);
+      expect(document.get('events').data()).toEqual(events);
+
+    });
+
+    it("casts array of custom objects according JSON casting handlers", function() {
+
+      class Event extends Model {
+        static _define(schema) {
+          schema.column('from', { type: 'string' });
+          schema.column('to', { type: 'string' });
+        }
+      };
+
+      var schema = new Schema();
+      schema.column('events', { type: 'object', array: true, class: Event  });
+
+      var document = new Document({ schema: schema });
+      var events = [
+          { from: '08:00', to: '10:00' },
+          { from: '12:00', to: '16:00' }
+      ];
+      document.set('events', events);
+      expect(document.get('events.0')).toBeAnInstanceOf(Event);
+      expect(document.get('events.1')).toBeAnInstanceOf(Event);
+      expect(document.get('events').data()).toEqual(events);
+
+    });
+
   });
 
   describe(".watch()", function() {
