@@ -688,19 +688,7 @@ class Through {
    * @return mixed          The converted collection.
    */
   to(format, options) {
-    var defaults = {cast: true};
-    options = extend({}, defaults, options);
-
-    var formatter;
-
-    var data = options.cast ? Collection.toArray(this, options) : this;
-
-    if (typeof format === 'function') {
-      return format(data, options);
-    } else if (Collection.formats(format)) {
-      return Collection.formats(format)(data, options);
-    }
-    return data;
+    return Collection.format(format, this, options);
   }
 
   /**

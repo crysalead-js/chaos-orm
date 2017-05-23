@@ -82,6 +82,7 @@ describe("Source", function() {
       expect(this.source.convert('datasource', 'string', null)).toBe('');
       expect(this.source.convert('datasource', '_default_',null)).toBe('');
       expect(this.source.convert('datasource', '_undefined_', null)).toBe('');
+      expect(this.source.convert('datasource', 'json', [1,2])).toBe('[1,2]');
 
     });
 
@@ -134,6 +135,7 @@ describe("Source", function() {
       expect(this.source.convert('cast', 'string', 'abc')).toBe('abc');
       expect(this.source.convert('cast', '_default_', 123)).toBe(123);
       expect(this.source.convert('cast', '_undefined_', 123)).toBe(123);
+      expect(this.source.convert('cast', 'json', '[1,2]')).toEqual([1,2]);
 
       expect(this.source.convert('cast', 'object', {a: 'b'}).data()).toEqual({a: 'b'});
 

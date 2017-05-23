@@ -64,7 +64,7 @@ describe("Document", function() {
 
   });
 
-  describe("->disconnect()", function() {
+  describe(".disconnect()", function() {
 
     it("removes a document from its graph", function() {
 
@@ -315,6 +315,35 @@ describe("Document", function() {
 
     });
 
+    context("with JSON formatter", function() {
+
+      beforeEach(function() {
+        this.schema = new Schema();
+      });
+
+      it("pre casts objects according JSON casting handlers", function() {
+
+        this.schema.column('holidays', { type: 'string', array: true, format: 'json' });
+
+        document = new Document({ schema: this.schema });
+        holidays = [
+          'allSaintsDay',
+          'armisticeDay',
+          'ascensionDay',
+          'assumptionOfMary',
+          'bastilleDay',
+          'christmasDay',
+          'easterMonday',
+          'internationalWorkersDay',
+          'newYearsDay',
+          'pentecostMonday',
+          'victoryInEuropeDay'
+        ];
+        document.set('holidays', holidays);
+        expect(document.get('holidays').data()).toEqual(holidays);
+
+      });
+    });
   });
 
   describe(".watch()", function() {
@@ -752,35 +781,48 @@ describe("Document", function() {
 
     });
 
-    context("with some JSON column", function() {
+    context("with JSON formatter", function() {
 
       beforeEach(function() {
 
         this.schema = new Schema();
 
-        this.schema.formatter('array', 'json', function(value) {
-          return value && value.data ? value.data() : value;
+        this.schema.formatter('datasource', 'json', function(value, options) {
+          if (value && value.data) {
+            value = value.data();
+          }
+          return JSON.stringify(value);
         });
-
-        this.schema.formatter('cast', 'json', function(value) {
-          return typeof value === "string" ? new Document({ data: JSON.parse(value) }) : value;
-        });
-
-        this.schema.formatter('datasource', 'json', function(value) {
-          return typeof value === "string" ? value : JSON.stringify(value.data());
-        });
-
-        this.schema.column('timeSheet', { type: 'json', default: '{"1":null,"2":null,"3":null,"4":null,"5":null,"6":null,"7":null}'});
 
       });
 
       it("casts according JSON casting handlers", function() {
 
+        this.schema.column('timeSheet', {
+          type: 'object',
+          default: '{"1":null,"2":null,"3":null,"4":null,"5":null,"6":null,"7":null}',
+          format: 'json'
+        });
+        this.schema.column('timeSheet.*', { type: 'integer' });
+
         var document = new Document({schema: this.schema});
         document.set('timeSheet', '{"1":8,"2":8,"3":8,"4":8,"5":8,"6":8,"7":8}');
-        expect(document.get('timeSheet').data()).toEqual({'1': 8, '2': 8, '3': 8, '4': 8, '5': 8, '6': 8, '7': 8});
+        expect(document.get('timeSheet').data()).toEqual({ '1': 8, '2': 8, '3': 8, '4': 8, '5': 8, '6': 8, '7': 8 });
         expect(document.to('datasource')).toEqual({ timeSheet: '{"1":8,"2":8,"3":8,"4":8,"5":8,"6":8,"7":8}' });
         expect(document.data()).toEqual({timeSheet: { '1': 8, '2': 8, '3': 8, '4': 8, '5': 8, '6': 8, '7': 8 } });
+
+      });
+
+      it("casts array according JSON casting handlers", function() {
+
+        this.schema.column('weekend', { type: 'integer', array: true, format: 'json', default: '[6,7]' });
+
+        var document = new Document({schema: this.schema});
+        document.set('weekend', '[1,2]');
+        expect(document.get('weekend')).toBeAnInstanceOf(Collection);
+        expect(document.get('weekend').data()).toEqual([1, 2]);
+        expect(document.to('datasource')).toEqual({ weekend: '[1,2]' });
+        expect(document.data()).toEqual({ weekend: [1, 2] });
 
       });
 

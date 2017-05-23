@@ -1100,33 +1100,6 @@ describe("Schema", function() {
       this.schema.column('created',    { type: 'datetime' });
     });
 
-    it("formats according default `'cast'` handlers", function() {
-
-      expect(this.schema.format('cast', 'value', 123)).toBe(123);
-      expect(this.schema.format('cast', 'double', 12.3)).toBe(12.3);
-      expect(this.schema.format('cast', 'revenue', 12.3)).toBe('12.30');
-      var date = new Date('2014-11-21');
-      expect(this.schema.format('cast', 'registered', date)).toEqual(date);
-      expect(this.schema.format('cast', 'registered', '2014-11-21')).toEqual(date);
-      var datetime = new Date('2014-11-21 10:20:45');
-      expect(this.schema.format('cast', 'created', datetime)).toEqual(datetime);
-      expect(this.schema.format('cast', 'created', '2014-11-21 10:20:45')).toEqual(datetime);
-      expect(this.schema.format('cast', 'active', true)).toBe(true);
-      expect(this.schema.format('cast', 'active', false)).toBe(false);
-      expect(this.schema.format('cast', 'null', null)).toBe(null);
-      expect(this.schema.format('cast', 'name', 'abc')).toBe('abc');
-      expect(this.schema.format('cast', 'unexisting', 123)).toBe(123);
-
-      expect(this.schema.convert('cast', 'object', {a: 'b'}).data()).toEqual({a: 'b'});
-
-      var document = new Document();
-      expect(this.schema.convert('cast', 'object', document)).toBe(document);
-
-      var date = new Date();
-      expect(this.schema.convert('cast', 'object', date)).toBe(date);
-
-    });
-
     it("formats according default `'array'` handlers", function() {
 
       expect(this.schema.format('array', 'value', 123)).toBe(123);
@@ -1142,7 +1115,49 @@ describe("Schema", function() {
       expect(this.schema.format('array', 'active', false)).toBe(false);
       expect(this.schema.format('array', 'null', null)).toBe(null);
       expect(this.schema.format('array', 'name', 'abc')).toBe('abc');
-      expect(this.schema.format('array', 'unexisting', 123)).toBe('123');
+      expect(this.schema.format('array', 'unexisting', 123)).toBe(123);
+
+    });
+
+    it("throws an InvalidArgumentException for `'cast'` handlers", function() {
+
+      var closure = function() {
+        this.schema.format('cast', 'value', 123);
+      }.bind(this);
+
+      expect(closure).toThrow(new Error("Use `Schema::cast()` to perform casting."));
+
+    });
+
+  });
+
+  describe("->convert()", function() {
+
+    it("formats according default `'cast'` handlers", function() {
+
+      expect(this.schema.convert('cast', 'integer', 123)).toBe(123);
+      expect(this.schema.convert('cast', 'float', 12.3)).toBe(12.3);
+      expect(this.schema.convert('cast', 'decimal', 12.3, { length: 20, precision: 2 })).toBe('12.30');
+      var date = new Date('2014-11-21');
+      expect(this.schema.convert('cast', 'date', date)).toEqual(date);
+      expect(this.schema.convert('cast', 'date', '2014-11-21')).toEqual(date);
+      var datetime = new Date('2014-11-21 10:20:45');
+      expect(this.schema.convert('cast', 'datetime', datetime)).toEqual(datetime);
+      expect(this.schema.convert('cast', 'datetime', '2014-11-21 10:20:45')).toEqual(datetime);
+      expect(this.schema.convert('cast', 'boolean', true)).toBe(true);
+      expect(this.schema.convert('cast', 'boolean', false)).toBe(false);
+      expect(this.schema.convert('cast', 'null', null)).toBe(null);
+      expect(this.schema.convert('cast', 'string', 'abc')).toBe('abc');
+      expect(this.schema.convert('cast', 'unexisting', 123)).toBe(123);
+      expect(this.schema.convert('cast', 'json', '[1,2]')).toEqual([1,2]);
+
+      expect(this.schema.convert('cast', 'object', {a: 'b'}).data()).toEqual({a: 'b'});
+
+      var document = new Document();
+      expect(this.schema.convert('cast', 'object', document)).toBe(document);
+
+      var date = new Date();
+      expect(this.schema.convert('cast', 'object', date)).toBe(date);
 
     });
 

@@ -439,7 +439,11 @@ class Document {
     var value = field.array ? [] : {};
 
     if (typeof field.getter === 'function') {
-      return schema.format('cast', name, field.getter(this, this._data[name], name));
+      var data = field.getter(this, this._data[name], name);
+      if (field.type) {
+        data = schema.convert('cast', field.type, data, field);
+      }
+      return data;
     } else if (this._data[name] !== undefined) {
       return this._data[name];
     } else if(schema.hasRelation(fieldName, false)) {
@@ -935,7 +939,7 @@ class Document {
   /**
    * Converts the data in the record set to a different format, i.e. json.
    *
-   * @param String format  Currently only `json`.
+   * @param String format  The format.
    * @param Object options Options for converting:
    *                        - `'indexed'` _boolean_: Allows to control how converted data of nested collections
    *                        is keyed. When set to `true` will force indexed conversion of nested collection
@@ -996,17 +1000,13 @@ class Document {
 
       var value = this.get(field);
 
-      if (value instanceof Document) {
+      if (value instanceof Document || (value && value.forEach instanceof Function)) {
         options.basePath = value.basePath();
-        var path = options.basePath ? options.basePath + '.' + field : field;
         if (schema.has(path)) {
           result[field] = schema.format(format, path, value);
         } else {
           result[field] = value.to(format, options);
         }
-      } else if (value && value.forEach instanceof Function) {
-        options.basePath = value.basePath();
-        result[field] = Collection.toArray(value, options);
       } else {
         options.basePath = path;
         result[field] = schema.has(options.basePath) ? schema.format(format, options.basePath, value) : value;

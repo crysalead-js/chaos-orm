@@ -586,14 +586,14 @@ describe("Collection", function() {
 
   describe(".data()", function() {
 
-    it("calls `to()`", function() {
+    it("calls `format()`", function() {
 
       var collection = new Collection({ data: [1] });
-      var spy = spyOn(collection, 'to').and.callThrough();
+      var spy = spyOn(Collection, 'format').and.callThrough();
 
       var options = {};
       expect(collection.data(options)).toEqual([1]);
-      expect(spy).toHaveBeenCalledWith('array', options);
+      expect(spy).toHaveBeenCalledWith('array', collection, options);
 
     });
 
@@ -645,19 +645,19 @@ describe("Collection", function() {
 
   });
 
-  describe("::toArray()", function() {
+  describe("::format('array')", function() {
 
     it("converts a collection to an array", function() {
 
       var collection = new Collection({ data: [1, 2, 3, 4, 5] });
-      expect(Collection.toArray(collection)).toEqual([1, 2, 3, 4, 5]);
+      expect(Collection.format('array', collection)).toEqual([1, 2, 3, 4, 5]);
 
     });
 
     it("converts objects which support toString", function() {
 
       var collection = new Collection({ data: [{}] });
-      expect(Collection.toArray(collection)).toEqual(['[object Object]']);
+      expect(Collection.format('array', collection)).toEqual(['[object Object]']);
 
     });
 
@@ -669,7 +669,7 @@ describe("Collection", function() {
       var collection = new Collection({ data: [new Date()] });
       var d = new Date();
 
-      expect(Collection.toArray(collection, { handlers: handlers })).toEqual(['world']);
+      expect(Collection.format('array', collection, { handlers: handlers })).toEqual(['world']);
 
     });
 
@@ -677,7 +677,7 @@ describe("Collection", function() {
 
       var object = Object.create(null);
       var collection = new Collection({ data: [object] });
-      expect(Collection.toArray(collection)).toEqual([object]);
+      expect(Collection.format('array', collection)).toEqual([object]);
 
     });
 
@@ -688,7 +688,7 @@ describe("Collection", function() {
           1, 2, 3, new Collection({ data: [4, 5, 6] })
         ]
       });
-      expect(Collection.toArray(collection)).toEqual([1, 2, 3, [4, 5, 6]]);
+      expect(Collection.format('array', collection)).toEqual([1, 2, 3, [4, 5, 6]]);
 
     });
 
@@ -701,7 +701,7 @@ describe("Collection", function() {
           ]
         ]
       });
-      expect(Collection.toArray(collection)).toEqual([1, 2, 3, [[4, 5, 6]]]);
+      expect(Collection.format('array', collection)).toEqual([1, 2, 3, [[4, 5, 6]]]);
 
     });
 

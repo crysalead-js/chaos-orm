@@ -211,6 +211,7 @@ class Schema {
 
     handlers = this._handlers;
 
+    this.formatter('array', 'object',    handlers.array['object']);
     this.formatter('array', 'integer',   handlers.array['integer']);
     this.formatter('array', 'float',     handlers.array['float']);
     this.formatter('array', 'decimal',   handlers.array['string']);
@@ -218,6 +219,7 @@ class Schema {
     this.formatter('array', 'datetime',  handlers.array['datetime']);
     this.formatter('array', 'boolean',   handlers.array['boolean']);
     this.formatter('array', 'null',      handlers.array['null']);
+    this.formatter('array', 'json',      handlers.array['json']);
     this.formatter('array', '_default_', handlers.array['string']);
 
     this.formatter('cast', 'object',   handlers.cast['object']);
@@ -228,6 +230,7 @@ class Schema {
     this.formatter('cast', 'datetime', handlers.cast['datetime']);
     this.formatter('cast', 'boolean',  handlers.cast['boolean']);
     this.formatter('cast', 'null',     handlers.cast['null']);
+    this.formatter('cast', 'json',     handlers.cast['json']);
     this.formatter('cast', 'string',   handlers.cast['string']);
   }
 
@@ -344,14 +347,16 @@ class Schema {
    *
    * @return Array An array of field names.
    */
-  names() {
+  names(rootOnly) {
     var name;
     var fields = [];
     for (var [name, value] of this._columns) {
       if (value.virtual) {
         continue;
       }
-      fields.push(name);
+      if (!rootOnly || name.indexOf('.') === -1) {
+        fields.push(name);
+      }
     }
     return fields;
   }
@@ -388,13 +393,13 @@ class Schema {
    *
    * @return Array
    */
-  columns() {
+  columns(rootOnly) {
     var name;
     var fields = [];
     for (var [name, value] of this._columns) {
-      var field = {};
-      field[name] = value;
-      fields.push(field);
+      if (!rootOnly || name.indexOf('.') === -1) {
+        fields.push({ [name]: value });
+      }
     }
     return fields;
   }
@@ -453,7 +458,7 @@ class Schema {
 
     var column = this._initColumn(params);
 
-    if (column.type !== 'object') {
+    if (column.type !== 'object' && !column.array) {
       this._columns.set(name, column);
       return this;
     }
@@ -951,7 +956,7 @@ class Schema {
     }
 
     if (!name) {
-      return this._cast(data, options);
+      return this._cast(name, data, options);
     }
 
     for (var entry of [name, name.replace(/[^.]*$/,'*')]) {
@@ -972,7 +977,7 @@ class Schema {
 
     options.class = Document;
     if (data != null && typeof data === 'object' && data.constructor === Object) {
-      return this._cast(data, options);
+      return this._cast(name, data, options);
     }
     return data;
   }
@@ -980,11 +985,12 @@ class Schema {
   /**
    * Casting helper for entities.
    *
+   * @param  String name       The field name to cast.
    * @param  Object data       Some data to cast.
    * @param  Object options    Options for the casting.
    * @return mixed             The casted data.
    */
-  _cast(data, options) {
+  _cast(name, data, options) {
     if (data == null) {
       return null;
     }
@@ -998,6 +1004,10 @@ class Schema {
       defaults: options.defaults,
     }, options.config);
 
+    var column = this._columns.has(name) ? this._columns.get(name) : {};
+    if (column.format) {
+      data = this.convert('cast', column.format, data, column);
+    }
     return options.class.create(data ? data : {}, config);
   }
 
@@ -1012,6 +1022,11 @@ class Schema {
   _castArray(name, data, options) {
     options.type = options.relation === 'hasManyThrough' ? 'through' : 'set';
     var Collection = options.class.classes()[options.type];
+
+    if (data instanceof Collection) {
+      return data;
+    }
+
     var isThrough = options.type === 'through';
 
     var isDocument = options.class === Document;
@@ -1023,6 +1038,11 @@ class Schema {
       defaults: options.defaults
     }, options.config);
 
+    var column = this._columns.has(name) ? this._columns.get(name) : {};
+    if (column.format && data != null) {
+      data = this.convert('cast', column.format, data, column);
+    }
+
     if (isThrough) {
       config.parent = options.parent;
       config.through = options.through;
@@ -1030,10 +1050,6 @@ class Schema {
       config.data = data;
     } else {
       config.data = data ? data : [];
-    }
-
-    if (data instanceof Collection) {
-      return data;
     }
 
     return new Collection(config);
@@ -1058,10 +1074,14 @@ class Schema {
       var through = this.relation(name);
       options.class = through.to();
     }
-    if (options.array && field) {
-      return this._castArray(name, data, options);
+    if (field) {
+      return options.array ? this._castArray(name, data, options) : this._cast(name, data, options);
     }
-    return this._cast(data, options);
+    if (!this._columns.has(name)) {
+      return data;
+    }
+    var column = this._columns.get(name);
+    return this.convert('cast', column.type, data, column);
   }
 
   /**
@@ -1074,14 +1094,15 @@ class Schema {
    * @return mixed             The casted data.
    */
   _columnCast(field, name, data, options) {
-    options = extend({}, this._columns.get(name), options);
+    var column = this._columns.get(name);
+    options = extend({}, options, column);
     if (typeof options.setter === 'function') {
       data = options.setter(options.parent, data, name);
     }
     if (options.array && field) {
       return this._castArray(name, data, options);
     }
-    return this.format('cast', name, data);
+    return this.convert('cast', column.type, data, column);
   }
 
   /**
@@ -1092,6 +1113,9 @@ class Schema {
   _handlers() {
     return {
       array: {
+        'object': function(value, options) {
+          return value.to('array', options);
+        },
         'string': function(value, options) {
           return String(value);
         },
@@ -1119,6 +1143,9 @@ class Schema {
         },
         'null': function(value, options) {
           return null;
+        },
+        'json': function(value, options) {
+          return !value || !value.to ? value : value.to('array', options);
         }
       },
       cast: {
@@ -1154,6 +1181,9 @@ class Schema {
         },
         'null': function(value, options) {
           return null;
+        },
+        'json': function(value, options) {
+          return typeof value === 'string' ? JSON.parse(value) : value;
         }
       }
     };
@@ -1162,14 +1192,31 @@ class Schema {
   /**
    * Formats a value according to a field definition.
    *
-   * @param   String mode  The format mode (i.e. `'cast'` or `'datasource'`).
+   * @param   String mode  The format mode (i.e. `'array'` or `'datasource'`).
    * @param   String name  The field name.
-   * @param   mixed  value The value to format.
+   * @param   mixed  data  The value to format.
    * @return  mixed        The formated value.
    */
-  format(mode, name, value) {
-    var type = value == null ? 'null' : this.type(name);
-    return this.convert(mode, type, value, this._columns.get(name));
+  format(mode, name, data) {
+    if (mode === 'cast') {
+      throw new Error("Use `Schema::cast()` to perform casting.");
+    }
+    if (!this._columns.has(name)) {
+      // Formatting non defined columns or relations doesn't make sense, bailing out.
+      return data;
+    }
+    var column = this._columns.get(name);
+    var type = data === null ? 'null' : this.type(name);
+
+    if (!column.array) {
+      data = this.convert(mode, type, data, column);
+    } else {
+      data = Collection.format(mode, data);
+    }
+    if (column.format) {
+      data = this.convert(mode, column.format, data, column);
+    }
+    return data;
   }
 
   /**
@@ -1177,18 +1224,19 @@ class Schema {
    *
    * @param   String mode    The format mode (i.e. `'cast'` or `'datasource'`).
    * @param   String type    The format type.
-   * @param   mixed  value   The value to format.
+   * @param   mixed  data    The value to format.
    * @param   mixed  options The options array to pass the the formatter handler.
    * @return  mixed          The formated value.
    */
-  convert(mode, type, value, options) {
+  convert(mode, type, data, options) {
     var formatter;
+    type = data === null ? 'null' : type;
     if (this._formatters[mode] && this._formatters[mode][type]) {
       formatter = this._formatters[mode][type];
     } else if (this._formatters[mode] && this._formatters[mode]._default_) {
       formatter = this._formatters[mode]._default_;
     }
-    return formatter ? formatter(value, options) : value;
+    return formatter ? formatter(data, options) : data;
   }
 
   /**

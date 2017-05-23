@@ -714,7 +714,7 @@ class Collection {
    * @return Array          Returns the array value of the data in this `Collection`.
    */
   data(options) {
-    return this.to('array', options);
+    return Collection.format('array', this, options);
   }
 
   /**
@@ -842,25 +842,25 @@ class Collection {
    * collection.to('xml'); // returns an XML string
    * ```
    *
-   * @param  String format  By default the only supported value is `'array'`. However, additional
-   *                        format handlers can be registered using the `formats()` method.
+   * @param  String format  By default the only supported value is `'array'`.
    * @param  Array  options Options for converting the collection.
    * @return mixed          The converted collection.
    */
   to(format, options) {
-    var defaults = {cast: true};
+    var defaults = {
+      embed: true,
+      basePath: this.basePath()
+    };
     options = extend({}, defaults, options);
 
-    var formatter;
+    var data = Collection.format('array', this, options);
 
-    var data = options.cast ? Collection.toArray(this, options) : this;
-
-    if (typeof format === 'function') {
-      return format(data, options);
-    } else if (this.constructor.formats(format)) {
-      return this.constructor.formats(format)(data, options);
+    var path = options.basePath;
+    var schema = this.schema();
+    if (!schema) {
+      return data;
     }
-    return data;
+    return schema.format(format, path, data);
   }
 
   /**
@@ -876,50 +876,9 @@ class Collection {
   }
 
   /**
-   * Accessor method for adding format handlers to `Collection` instances.
-   *
-   * The values assigned are used by `Collection.to()` to convert `Collection` instances into
-   * different formats, i.e. JSON.
-   *
-   * This can be accomplished in two ways. First, format handlers may be registered on a
-   * case-by-case basis, as in the following:
-   *
-   * ```php
-   * Collection.formats('json', function(collection, options) {
-   *  return json_encode($collection.to('array'));
-   * });
-   *
-   * // You can also implement the above as a static class method, and register it as follows:
-   * Collection.formats('json', toJson);
-   * ```
-   *
-   * @param  String format  A string representing the name of the format that a `Collection`
-   *                        can be converted to. If `false`, reset the `_formats` attribute.
-   *                        If `null` return the content of the `_formats` attribute.
-   * @param  mixed  handler The function that handles the conversion, either an anonymous function,
-   *                        a fully namespaced class method or `false` to remove the `$format` handler.
-   * @return mixed
-   */
-  static formats(format, handler) {
-    if (arguments.length === 0) {
-      return this._formats;
-    }
-    if (arguments.length === 1) {
-      return this._formats[format];
-    }
-    if (format === false) {
-      return this._formats = {};
-    }
-    if (handler === false) {
-      delete this._formats[format];
-      return;
-    }
-    return this._formats[format] = handler;
-  }
-
-  /**
    * Exports a `Collection` instance to an array. Used by `Collection.to()`.
    *
+   * @param  String format  The format.
    * @param  mixed  data    Either a `Collection` instance, or an array representing a
    *                        `Collection`'s internal state.
    * @param  Object options Options used when converting `$data` to an array:
@@ -930,7 +889,7 @@ class Collection {
    * @return Array          Returns the value of `data` as a pure array, recursively converting all
    *                        sub-objects and other values to their closest array or scalar equivalents.
    */
-  static toArray(data, options) {
+  static format(format, data, options) {
     var defaults = {
       handlers: {}
     };
@@ -941,7 +900,7 @@ class Collection {
     data.forEach((item, key) => {
       switch (true) {
         case Array.isArray(item):
-          result.push(this.toArray(item, options));
+          result.push(this.format('array', item, options));
         break;
         case (typeof item !== 'object' || item == null):
           if (item !== undefined) {
@@ -952,10 +911,10 @@ class Collection {
           result.push(options.handlers[item.constructor.name](item));
         break;
         case item.to instanceof Function:
-          result.push(item.to('array', options));
+          result.push(item.to(format, options));
         break;
         case item.forEach instanceof Function:
-          result.push(this.toArray(item, options));
+          result.push(this.format('array', item, options));
         break;
         case item.toString instanceof Function:
           result.push(item.toString());
@@ -975,13 +934,6 @@ class Collection {
  * @var Object
  */
 Collection._classes = {};
-
-/**
- * Contains all exportable formats and their handler
- *
- * @var Object
- */
-Collection._formats = {};
 
 Emitter(Collection.prototype);
 

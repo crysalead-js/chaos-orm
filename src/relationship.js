@@ -387,8 +387,10 @@ class Relationship {
 
     var ids = Array.isArray(id) ? id : [id];
     var key = schema.key();
+    var column = schema.column(key);
+
     for (var i = 0, len = ids.length; i < len; i++) {
-      ids[i] = schema.format('cast', key, ids[i]);
+      ids[i] = schema.convert('cast', column.type, ids[i], column);
     }
 
     if (ids.length === 1) {

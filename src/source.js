@@ -29,6 +29,7 @@ class Source {
 
     var handlers = this._handlers;
 
+    this.formatter('array', 'object',    handlers.array['object']);
     this.formatter('array', 'integer',   handlers.array['integer']);
     this.formatter('array', 'float',     handlers.array['float']);
     this.formatter('array', 'decimal',   handlers.array['string']);
@@ -46,6 +47,7 @@ class Source {
     this.formatter('cast', 'datetime',  handlers.cast['datetime']);
     this.formatter('cast', 'boolean',   handlers.cast['boolean']);
     this.formatter('cast', 'null',      handlers.cast['null']);
+    this.formatter('cast', 'json',      handlers.cast['json']);
     this.formatter('cast', 'string',    handlers.cast['string']);
 
     this.formatter('datasource', 'object',    handlers.datasource['object']);
@@ -53,6 +55,7 @@ class Source {
     this.formatter('datasource', 'datetime',  handlers.datasource['datetime']);
     this.formatter('datasource', 'boolean',   handlers.datasource['boolean']);
     this.formatter('datasource', 'null',      handlers.datasource['null']);
+    this.formatter('datasource', 'json',      handlers.datasource['json']);
     this.formatter('datasource', '_default_', handlers.datasource['string']);
   }
 
@@ -64,6 +67,9 @@ class Source {
   _handlers() {
     return {
       array: {
+        'object': function(value, options) {
+          return value.to('array', options);
+        },
         'string': function(value, options) {
           return String(value);
         },
@@ -91,6 +97,9 @@ class Source {
         },
         'null': function(value, options) {
           return null;
+        },
+        'json': function(value, options) {
+          return !value || !value.to ? value : value.to('array', options);
         }
       },
       cast: {
@@ -126,6 +135,9 @@ class Source {
         },
         'null': function(value, options) {
           return null;
+        },
+        'json': function(value, options) {
+          return typeof value === 'string' ? JSON.parse(value) : value;
         }
       },
       datasource: {
@@ -157,6 +169,12 @@ class Source {
         },
         'null': function(value, options) {
           return '';
+        },
+        'json': function(value, options) {
+          if (value && value.data) {
+            value = value.data();
+          }
+          return JSON.stringify(value);
         }
       }
     };
@@ -205,7 +223,7 @@ class Source {
    * @return  mixed          The formated value.
    */
   convert(mode, type, value, options) {
-    var type = value == null ? 'null' : type;
+    var type = value === null ? 'null' : type;
     var formatter = null;
     if (this._formatters[mode]) {
       if (this._formatters[mode][type] !== undefined) {

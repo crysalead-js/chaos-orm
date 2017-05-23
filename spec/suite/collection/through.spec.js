@@ -496,14 +496,14 @@ describe("Through", function() {
 
   describe(".data()", function() {
 
-    it("calls `to()`", function() {
+    it("calls `format()`", function() {
 
-      var spy = spyOn(this.through, 'to');
+      var spy = spyOn(Collection, 'format');
 
       var options = {};
       this.through.data(options);
 
-      expect(spy).toHaveBeenCalledWith('array', options);
+      expect(spy).toHaveBeenCalledWith('array', this.through, options);
 
     });
 
