@@ -1119,6 +1119,18 @@ describe("Schema", function() {
 
     });
 
+    it("formats udefined fields using the `'_default_'` formatter when present", function() {
+
+      expect(this.schema.format('array', 'unexisting', 123)).toBe(123);
+
+      this.schema.formatter('array', '_default_', function(value) {
+        return String(value);
+      });
+
+      expect(this.schema.format('array', 'unexisting', 123)).toBe('123');
+
+    });
+
     it("throws an InvalidArgumentException for `'cast'` handlers", function() {
 
       var closure = function() {
@@ -1131,7 +1143,7 @@ describe("Schema", function() {
 
   });
 
-  describe("->convert()", function() {
+  describe(".convert()", function() {
 
     it("formats according default `'cast'` handlers", function() {
 

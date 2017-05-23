@@ -37,7 +37,6 @@ class Source {
     this.formatter('array', 'datetime',  handlers.array['datetime']);
     this.formatter('array', 'boolean',   handlers.array['boolean']);
     this.formatter('array', 'null',      handlers.array['null']);
-    this.formatter('array', '_default_', handlers.array['string']);
 
     this.formatter('cast', 'object',    handlers.cast['object']);
     this.formatter('cast', 'integer',   handlers.cast['integer']);
@@ -214,25 +213,23 @@ class Source {
   }
 
   /**
-   * Formats a value according to its definition.
+   * Formats a value according to its type.
    *
-   * @param   String mode    The formatting mode (i.e. `'cast'` or `'datasource'`).
-   * @param   String type    The type name.
-   * @param   mixed  value   The value to format.
-   * @param   Object options The options the pass to the casting handler.
+   * @param   String mode    The format mode (i.e. `'cast'` or `'datasource'`).
+   * @param   String type    The format type.
+   * @param   mixed  data    The value to format.
+   * @param   mixed  options The options array to pass the the formatter handler.
    * @return  mixed          The formated value.
    */
-  convert(mode, type, value, options) {
-    var type = value === null ? 'null' : type;
-    var formatter = null;
-    if (this._formatters[mode]) {
-      if (this._formatters[mode][type] !== undefined) {
-        formatter = this._formatters[mode][type];
-      } else if (this._formatters[mode]._default_ !== undefined) {
-        formatter = this._formatters[mode]._default_;
-      }
+  convert(mode, type, data, options) {
+    var formatter;
+    type = data === null ? 'null' : type;
+    if (this._formatters[mode] && this._formatters[mode][type]) {
+      formatter = this._formatters[mode][type];
+    } else if (this._formatters[mode] && this._formatters[mode]._default_) {
+      formatter = this._formatters[mode]._default_;
     }
-    return formatter ? formatter(value, options) : value;
+    return formatter ? formatter(data, options) : data;
   }
 
   /**
