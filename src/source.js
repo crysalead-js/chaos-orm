@@ -125,7 +125,7 @@ class Source {
         'datetime': function(value, options) {
           var date = value instanceof Date ? value : new Date(value);
           if (Number.isNaN(date.getTime())) {
-            date = new Date(Date.UTC(70, 0, 1, 0, 0, 0));
+            return null;
           }
           return date;
         },
