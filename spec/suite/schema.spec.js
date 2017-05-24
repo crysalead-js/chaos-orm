@@ -701,7 +701,7 @@ describe("Schema", function() {
 
   describe(".bind()", function() {
 
-    it("binds a relation", function() {
+    it("binds a `belongsTo` relation", function() {
 
       expect(this.schema.hasRelation('parent')).toBe(false);
 
@@ -712,6 +712,15 @@ describe("Schema", function() {
       });
 
       expect(this.schema.hasRelation('parent')).toBe(true);
+
+      var foreignKey = this.schema.conventions().apply('reference', 'parent');
+
+      var column = this.schema.column(foreignKey);
+      expect(column).toEqual({
+        type: 'id',
+        array: false,
+        null: false
+      });
 
     });
 

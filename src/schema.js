@@ -723,10 +723,10 @@ class Schema {
       this._relations[config.through].junction = true;
     } else if (config.relation === 'belongsTo' && config.link === relationship.LINK_KEY) {
       var fieldName = this.conventions().apply('reference', name);
-      this.column(fieldName, { type: 'id', array: false, null: true });
+      this.column(fieldName, { type: 'id', array: false, null: !!config.null });
     } else if (config.relation === 'hasMany' && config.link === relationship.LINK_KEY_LIST) {
       var fieldName = this.conventions().apply('references', name);
-      this.column(fieldName, { type: 'id', array: true, null: true });
+      this.column(fieldName, { type: 'id', array: true });
     }
 
     this._relations[name] = config;
