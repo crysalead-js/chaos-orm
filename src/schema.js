@@ -970,11 +970,14 @@ class Schema {
     if (this.locked()) {
       throw new Error("Missing schema definition for field: `" + name + "`.");
     }
+
+    options.class = Document;
+    options.basePath = name;
+
     if (Array.isArray(data)) {
       return this._castArray(name, data, options);
     }
 
-    options.class = Document;
     if (data != null && typeof data === 'object' && data.constructor === Object) {
       return this._cast(name, data, options);
     }

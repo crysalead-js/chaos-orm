@@ -864,99 +864,138 @@ describe("Entity", function() {
 
     });
 
-    it("autoboxes object columns", function() {
+    describe("when a model is defined", function() {
 
-      MyModel.definition().column('child', {
-        type: 'object'
+      it("autoboxes object columns", function() {
+
+        MyModel.definition().column('child', {
+          type: 'object'
+        });
+
+        var entity = MyModel.create();
+
+        entity.set('child', {
+          id: 1,
+          title: 'child record',
+          enabled: true
+        });
+
+        var child = entity.get('child');
+        expect(child.constructor === Document).toBe(true);
+        expect(child.parents().get(entity)).toBe('child');
+        expect(child.basePath()).toBe('child');
+
       });
 
-      var entity = MyModel.create();
+      it("autoboxes object columns with a custom model name", function() {
 
-      entity.set('child', {
-        id: 1,
-        title: 'child record',
-        enabled: true
+        class MyModelChild extends MyModel {
+          static _define(schema) {
+            schema.lock(false);
+          }
+        };
+
+        MyModel.definition().column('child', {
+          type: 'object',
+          class: MyModelChild
+        });
+
+        var entity = MyModel.create();
+
+        entity.set('child', {
+          id: 1,
+          title: 'child record',
+          enabled: true
+        });
+
+        var child = entity.get('child');
+        expect(child.constructor === MyModelChild).toBe(true);
+        expect(child.parents().get(entity)).toBe('child');
+        expect(child.basePath()).toBe(undefined);
+
       });
 
-      var child = entity.get('child');
-      expect(child.constructor === Document).toBe(true);
-      expect(child.parents().get(entity)).toBe('child');
-      expect(child.basePath()).toBe('child');
+      it("lazy applies object columns schema to support single table inheritance", function() {
 
-    });
+        class MyModelChild extends MyModel {
+          static _define(schema) {
+            schema.column('id', { type: 'serial' });
+          }
+          static create(data, options) {
+            options.class = Document;
+            return super.create(data, options);
+          }
+        };
 
-    it("autoboxes object columns with a custom model name", function() {
+        MyModel.definition().column('child', {
+          type: 'object',
+          class: MyModelChild
+        });
 
-      class MyModelChild extends MyModel {
-        static _define(schema) {
-          schema.lock(false);
-        }
-      };
+        var entity = MyModel.create();
 
-      MyModel.definition().column('child', {
-        type: 'object',
-        class: MyModelChild
+        entity.set('child', {
+          id: 1,
+          title: 'child record'
+        });
+
+        var child = entity.get('child');
+        expect(child.constructor === Document).toBe(true);
+        expect(child.schema()).not.toBe(MyModelChild.definition());
+        expect(child.parents().get(entity)).toBe('child');
+        expect(child.basePath()).toBe('child');
+
       });
 
-      var entity = MyModel.create();
+      it("casts object columns", function() {
 
-      entity.set('child', {
-        id: 1,
-        title: 'child record',
-        enabled: true
+        MyModel.definition().column('child', {
+          type: 'object'
+        });
+
+        var entity = MyModel.create({ child: {} });
+
+        var child = entity.get('child');
+        expect(child.constructor === Document).toBe(true);
+        expect(child.parents().get(entity)).toBe('child');
+        expect(child.basePath()).toBe('child');
+
       });
 
-      var child = entity.get('child');
-      expect(child.constructor === MyModelChild).toBe(true);
-      expect(child.parents().get(entity)).toBe('child');
-      expect(child.basePath()).toBe(undefined);
+      it("casts undefined object columns", function() {
 
-    });
+        var entity = MyModel.create({ child: {} });
 
-    it("lazy applies object columns schema to support single table inheritance", function() {
+        var child = entity.get('child');
+        expect(child.constructor === Document).toBe(true);
+        expect(child.parents().get(entity)).toBe('child');
+        expect(child.basePath()).toBe('child');
 
-      class MyModelChild extends MyModel {
-        static _define(schema) {
-          schema.column('id', { type: 'serial' });
-        }
-        static create(data, options) {
-          options.class = Document;
-          return super.create(data, options);
-        }
-      };
-
-      MyModel.definition().column('child', {
-        type: 'object',
-        class: MyModelChild
       });
 
-      var entity = MyModel.create();
+      it("casts undefined arrays of objects columns", function() {
 
-      entity.set('child', {
-        id: 1,
-        title: 'child record'
+        var entity = MyModel.create({ childs: [
+          { child1: {} },
+          { child2: {} }
+        ] });
+
+        var childs = entity.get('childs');
+        expect(childs.constructor === Collection).toBe(true);
+        expect(childs.parents().get(entity)).toBe('childs');
+        expect(childs.basePath()).toBe('childs');
+
+        var child1 = childs.get(0);
+        expect(child1.constructor === Document).toBe(true);
+        expect(child1.parents().get(childs)).toBe('*');
+        expect(child1.basePath()).toBe('childs');
+
+        var child2 = childs.get(1);
+        expect(child2.constructor === Document).toBe(true);
+        expect(child2.parents().get(childs)).toBe('*');
+        expect(child2.basePath()).toBe('childs');
+
       });
-
-      var child = entity.get('child');
-      expect(child.constructor === Document).toBe(true);
-      expect(child.schema()).not.toBe(MyModelChild.definition());
-      expect(child.parents().get(entity)).toBe('child');
-      expect(child.basePath()).toBe('child');
-
-    });
-
-    it("casts object columns", function() {
-
-      MyModel.definition().column('child', {
-        type: 'object'
-      });
-
-      var entity = MyModel.create({ child: {} });
-
-      var child = entity.get('child');
-      expect(child.constructor === Document).toBe(true);
-      expect(child.parents().get(entity)).toBe('child');
-      expect(child.basePath()).toBe('child');
 
     });
 
