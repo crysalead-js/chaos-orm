@@ -122,13 +122,7 @@ describe("Source", function() {
       var datetime = new Date('2014-11-21 10:20:45');
       expect(this.source.convert('cast', 'datetime', datetime)).toEqual(datetime);
 
-      var offset = new Date('2014-11-21 10:20:45').getTimezoneOffset();
-      var timezone = ('0' + Math.floor(Math.abs(offset)/60)).slice(-2) + ':' + ('0' + offset%60).slice(-2);
-      timezone = offset > 0 ? '-' + timezone : '+' + timezone;
-      var local = new Date('2014-11-21T10:20:45' + timezone);
-      expect(this.source.convert('cast', 'datetime', '2014-11-21 10:20:45')).toEqual(local);
-
-      expect(this.source.convert('cast', 'datetime', 1416565245 * 1000)).toEqual(new Date('2014-11-21T10:20:45.000Z'));
+      expect(this.source.convert('cast', 'datetime', 1416565245)).toEqual(new Date('2014-11-21T10:20:45.000Z'));
       expect(this.source.convert('cast', 'boolean', 1)).toBe(true);
       expect(this.source.convert('cast', 'boolean', 0)).toBe(false);
       expect(this.source.convert('cast', 'null', '')).toBe(null);

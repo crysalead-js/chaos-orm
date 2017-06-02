@@ -1169,10 +1169,34 @@ class Schema {
           return Number(value).toFixed(options.precision);
         },
         'date':function(value, options) {
+          options = options || {};
+          options.midnight = true;
           return this.convert('cast', 'datetime', value, options);
         }.bind(this),
         'datetime': function(value, options) {
-          var date = value instanceof Date ? value : new Date(value);
+          if (!(value instanceof Date)) {
+            var timestamp;
+            if (typeof value === 'number' || (!isNaN(parseFloat(value)) && isFinite(value))) {
+              timestamp = Number(value);
+            } else if (typeof value === 'string') {
+              var check = new Date(value);
+              if (Number.isNaN(check.getTime())) {
+                return null;
+              }
+              var a = /^(\d{4})-(\d{2})-(\d{2})(?:(?:T| )(\d{2}):(\d{2}):(\d{2}(?:\.\d*)?)Z?)?$/.exec(value);
+              if (!a) {
+                return null;
+              }
+              timestamp = Date.UTC(+a[1], +a[2] - 1, +a[3], +a[4] || 0, +a[5] || 0, +a[6] || 0) / 1000;
+            } else {
+              timestamp = value.getTime() / 1000;
+            }
+            if (options && options.midnight) {
+              timestamp = (timestamp - (timestamp % 86400));
+            }
+            value = new Date(timestamp * 1000);
+          }
+          var date = value;
           if (Number.isNaN(date.getTime())) {
             return null;
           }

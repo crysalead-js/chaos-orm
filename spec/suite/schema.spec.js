@@ -390,7 +390,7 @@ describe("Schema", function() {
         this.schema.column('datetime', {
           type: 'datetime',
           getter: function(entity, data, name) {
-            return entity.get('date') + ' ' + entity.get('time') + ' UTC';
+            return entity.get('date') + ' ' + entity.get('time');
           }
         });
 
@@ -1162,7 +1162,8 @@ describe("Schema", function() {
       var date = new Date('2014-11-21');
       expect(this.schema.convert('cast', 'date', date)).toEqual(date);
       expect(this.schema.convert('cast', 'date', '2014-11-21')).toEqual(date);
-      var datetime = new Date('2014-11-21 10:20:45');
+
+      var datetime = new Date('2014-11-21T10:20:45.000Z');
       expect(this.schema.convert('cast', 'datetime', datetime)).toEqual(datetime);
       expect(this.schema.convert('cast', 'datetime', '2014-11-21 10:20:45')).toEqual(datetime);
       expect(this.schema.convert('cast', 'datetime', 'abcd')).toBe(null);
