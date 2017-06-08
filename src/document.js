@@ -875,6 +875,27 @@ class Document {
   }
 
   /**
+   * Restore a codument to its original values.
+   *
+   * @return self
+   */
+  restore() {
+    var names = [];
+    var fields = Object.keys(extend({}, this._original, this._data));
+    for (var field of fields) {
+      if (this.modified(field)) {
+        names.push(field);
+      }
+    }
+    this._data = extend({}, this._original);
+    for (var name of names) {
+      this._applyWatch(name);
+    }
+    this.trigger('modified');
+    return this;
+  }
+
+  /**
    * Returns all included relations accessible through this entity.
    *
    * @param  String      prefix The parent relation path.

@@ -893,6 +893,30 @@ describe("Document", function() {
 
       document.amend();
       expect(document.modified('title')).toBe(false);
+      expect(document.get('title')).toBe('modified');
+
+    });
+
+  });
+
+  describe(".restore()", function() {
+
+    it("restores a document to its original values", function() {
+
+      var document = new Document({
+        data: {
+          title: 'original'
+        }
+      });
+
+      expect(document.modified('title')).toBe(false);
+
+      document.set('title', 'modified');
+      expect(document.modified('title')).toBe(true);
+
+      document.restore();
+      expect(document.modified('title')).toBe(false);
+      expect(document.get('title')).toBe('original');
 
     });
 
