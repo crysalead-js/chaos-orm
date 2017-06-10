@@ -449,14 +449,12 @@ class Document {
     } else if(schema.hasRelation(fieldName, false)) {
       var relation = schema.relation(fieldName);
       var hasManyThrough = relation.type() === 'hasManyThrough';
-      if (this.id() != null) {
-        if (!hasManyThrough || !this.has(relation.through())) {
-          if ((this._exists !== false && relation.type() !== 'belongsTo') || this.get(relation.keys('from')) !== null) {
-            if (fetchHandler) {
-              return fetchHandler(this, name);
-            }
-            throw new Error("The relation `'" + name + "'` is an external relation, use `fetch()` to lazy load its data.");
+      if (!hasManyThrough || (this.id() != null && !this.has(relation.through()))) {
+        if ((this._exists !== false && relation.type() !== 'belongsTo') || this.get(relation.keys('from')) !== null) {
+          if (fetchHandler) {
+            return fetchHandler(this, name);
           }
+          throw new Error("The relation `'" + name + "'` is an external relation, use `fetch()` to lazy load its data.");
         }
       }
       autoCreate = relation.isMany();
