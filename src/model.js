@@ -630,7 +630,7 @@ class Model extends Document {
       if (!this.has(field)) {
         continue;
       }
-      var value = embed[field];
+      var value = embed[field] || { embed: false };
       var err = this.get(field).errors(extend({}, options, value));
       if (Object.keys(err).length) {
         errors[field] = err;

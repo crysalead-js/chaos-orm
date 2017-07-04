@@ -793,8 +793,8 @@ class Collection {
     var errors = [];
     var errored = false;
     for (var entity of this) {
-      var result = entity.errors();
-      errors.push(entity.errors());
+      var result = entity.errors(options);
+      errors.push(result);
       if (Object.keys(result).length) {
         errored = true;
       }
