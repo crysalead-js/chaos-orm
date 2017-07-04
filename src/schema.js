@@ -1414,7 +1414,7 @@ class Schema {
           updates.push(entity);
         }
       }
-      yield Promise.all([this.bulkInsert(inserts, filter), this.bulkUpdate(updates, filter)]);
+      yield Promise.all([this.bulkInsert(inserts, filter, options), this.bulkUpdate(updates, filter, options)]);
     }.bind(this));
   }
 
@@ -1502,9 +1502,10 @@ class Schema {
    *
    * @param  Array    inserts An array of entities to insert.
    * @param  Function filter  The filter handler for which extract entities values for the insertion.
+   * @param  Object   options The save option.
    * @return Promise          Returns `true` if insert operations succeeded, `false` otherwise.
    */
-  bulkInsert($inserts, $filter) {
+  bulkInsert(inserts, filter, options) {
     throw new Error("Missing `bulkInsert()` implementation for `" + this.reference().name + "`'s schema.");
   }
 
@@ -1513,9 +1514,10 @@ class Schema {
    *
    * @param  Array    updates An array of entities to update.
    * @param  Function filter  The filter handler for which extract entities values to update.
+   * @param  Object   options The save option.
    * @return Promise          Returns `true` if update operations succeeded, `false` otherwise.
    */
-  bulkUpdate($updates, $filter) {
+  bulkUpdate(updates, filter, options) {
     throw new Error("Missing `bulkUpdate()` implementation for `" + this.reference().name + "`'s schema.");
   }
 
@@ -1535,7 +1537,6 @@ class Schema {
   truncate(conditions, options) {
     throw new Error("Missing `truncate()` implementation for `" + this.reference().name + "`'s schema.");
   }
-
 }
 
 /**
