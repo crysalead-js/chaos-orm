@@ -445,11 +445,15 @@ class Collection {
    */
   amend(data, options) {
     if (data && data.length) {
-      if (data.length !== this.length) {
-        throw new Error("Amending a collection requires passed data to have the same length of the collection.");
-      }
+      var count = this.length;
       for (var i = 0, len = data.length; i < len; i++) {
+        if (!this.has(i)) {
+          this.set(i, data[i]);
+        }
         this.get(i).amend(data[i], options);
+      }
+      for (var j = data.length; j < count; j++) {
+        this.unset(j);
       }
     }
     this._original = this._data.slice();

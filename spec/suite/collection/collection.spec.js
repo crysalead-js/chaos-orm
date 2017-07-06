@@ -3,6 +3,7 @@ var Collection = require('../../../src/index').Collection;
 var Model = require('../../../src/index').Model;
 var Document = require('../../../src/index').Document;
 var Image = require('../../fixture/model/image');
+var Tag = require('../../fixture/model/tag');
 
 class MyModel extends Model {
   static _define(schema) {
@@ -608,6 +609,46 @@ describe("Collection", function() {
       collection.unset(0);
       expect(collection.data()).toEqual([]);
       expect(collection.original()).toEqual([1]);
+
+    });
+
+  });
+
+  describe(".amend()", function() {
+
+    it("amends a collection with new values", function() {
+
+      var collection = Tag.create([], { type: 'set' });
+
+      collection.amend([
+        { name: 'news' },
+        { name: 'sport' }
+      ]);
+
+      expect(collection.data()).toEqual([
+        { name: 'news' },
+        { name: 'sport' }
+      ]);
+
+    });
+
+    it("amends an existing collection", function() {
+
+      var collection = Tag.create([
+        { name: 'music' },
+        { name: 'book' },
+        { name: 'travel' }
+      ], { type: 'set' });
+
+      collection.amend([
+        { name: 'news' },
+        { name: 'sport' }
+      ]);
+
+      expect(collection.data()).toEqual([
+        { name: 'news' },
+        { name: 'sport' }
+      ]);
 
     });
 
