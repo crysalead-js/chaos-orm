@@ -528,7 +528,7 @@ class Model extends Document {
       };
       options = extend({}, defaults, options);
       var validator = this.constructor.validator();
-      var valid = yield this._validates(options);
+      var valid = yield this._validates({ embed: options.embed });
 
       var success = yield validator.validates(this.get(), options);
       this._errors = {};
@@ -578,9 +578,15 @@ class Model extends Document {
    */
   invalidate(field, errors) {
     errors = errors || {};
+    var schema = this.schema();
+
     if (arguments.length === 1) {
       for (var name in field) {
-        this.invalidate(name, field[name]);
+        if (schema.hasRelation(name) && this.has(name)) {
+          this.get(name).invalidate(field[name]);
+        } else {
+          this.invalidate(name, field[name]);
+        }
       }
       return this;
     }
