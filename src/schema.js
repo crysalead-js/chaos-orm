@@ -1097,11 +1097,11 @@ class Schema {
    */
   _columnCast(field, name, data, options) {
     var column = this._columns.get(name);
-    options = extend({}, options, column);
-    if (typeof options.setter === 'function') {
-      data = options.setter(options.parent, data, name);
+    if (typeof column.setter === 'function') {
+      data = column.setter(options.parent, data, name);
     }
-    if (options.array && field) {
+    if (column.array && field) {
+      options = extend({}, options, column);
       return this._castArray(name, data, options);
     }
     return this.convert('cast', column.type, data, column);
