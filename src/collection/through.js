@@ -367,13 +367,13 @@ class Through {
   }
 
   /**
-   * Merges another collection to this collection.
+   * Append another collection to this collection.
    *
    * @param  mixed   collection   A collection.
    *
    * @return Object               Return the merged collection.
    */
-  merge(collection) {
+  append(collection) {
 
     collection.forEach(function(value) {
       this.push(value);

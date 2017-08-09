@@ -551,13 +551,13 @@ describe("Collection", function() {
 
   });
 
-  describe(".merge()", function() {
+  describe(".append()", function() {
 
-    it("merges two collection", function() {
+    it("appends two collection", function() {
 
       var collection = new Collection({ data: [1, 2, 3] });
       var collection2 = new Collection({ data: [4, 5, 6, 7] });
-      collection.merge(collection2);
+      collection.append(collection2);
 
       expect(collection.data()).toEqual([1, 2, 3, 4, 5, 6, 7]);
 

@@ -434,16 +434,16 @@ describe("Through", function() {
 
   });
 
-  describe(".merge()", function() {
+  describe(".append()", function() {
 
-    it("merges two collection", function() {
+    it("appends two collection", function() {
 
       var collection = new Collection({ data: [
         { name: '5' },
         { name: '6' }
       ]});
 
-      this.through.merge(collection);
+      this.through.append(collection);
 
       expect(this.through.data()).toEqual([
         { name: '0' },
@@ -457,14 +457,14 @@ describe("Through", function() {
 
     });
 
-    it("merges two collection with key preservation", function() {
+    it("appends two collection with key preservation", function() {
 
       var collection = new Collection({ data: [
         { name: '5' },
         { name: '6' }
       ]});
 
-      this.through.merge(collection);
+      this.through.append(collection);
 
       expect(this.through.data()).toEqual([
         { name: '0' },
