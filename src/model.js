@@ -185,7 +185,7 @@ class Model extends Document {
       var schema = classname.definition();
       var shard = classname.shard();
       var key = classname.definition().key();
-      var id = data[key];
+      var id = schema.cast(key, data[key]);
       if (id != null && shard.has(id)) {
         var instance = shard.get(id);
         instance.amend(data, { exists: options.exists, rebuild: true });
