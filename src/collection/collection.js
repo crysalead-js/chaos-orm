@@ -42,7 +42,7 @@ class Collection {
       index: undefined
     };
 
-    config = extend({}, defaults, config);
+    config = Object.assign(defaults, config);
 
     /**
      * Loaded data on construct.

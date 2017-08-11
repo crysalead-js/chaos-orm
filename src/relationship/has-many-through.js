@@ -45,7 +45,7 @@ class HasManyThrough extends Relationship {
       conventions: undefined
     };
 
-    config = extend({}, defaults, config);
+    config = Object.assign(defaults, config);
 
     if (!config.from) {
       throw new Error("The relationship `'from'` option can't be empty.");

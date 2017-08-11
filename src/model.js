@@ -175,7 +175,7 @@ class Model extends Document {
       exists: false
     };
 
-    options = extend({}, defaults, options);
+    options = Object.assign(defaults, options);
 
     var type = options.type;
     var classname = options.class;

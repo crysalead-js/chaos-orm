@@ -26,7 +26,7 @@ class HasMany extends Relationship {
       junction: false
     };
 
-    config = extend({}, defaults, config);
+    config = Object.assign(defaults, config);
     super(config);
 
     /**

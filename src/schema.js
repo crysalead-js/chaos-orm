@@ -939,7 +939,7 @@ class Schema {
       defaults: true
     };
 
-    options = extend({}, defaults, options);
+    options = Object.assign(defaults, options);
     options.class = this.reference();
 
     if (arguments.length < 2) {
@@ -999,7 +999,7 @@ class Schema {
     if (data instanceof Document) {
       return data;
     }
-    var config = extend({
+    var config = Object.assign({
       schema: options.class === Document ? this : undefined,
       basePath: options.basePath,
       exists: options.exists,
@@ -1032,7 +1032,7 @@ class Schema {
     var isThrough = options.type === 'through';
 
     var isDocument = options.class === Document;
-    var config = extend({
+    var config = Object.assign({
       schema: isDocument ? this : options.class.definition(),
       basePath: isDocument ? name : undefined,
       meta: options.meta,
@@ -1067,7 +1067,7 @@ class Schema {
    * @return mixed             The casted data.
    */
   _relationCast(field, name, data, options) {
-    options = extend({}, this._relations[name], options);
+    options = Object.assign({}, this._relations[name], options);
     options.basePath = options.embedded ? name : undefined;
 
     if (options.relation !== 'hasManyThrough') {
@@ -1101,7 +1101,7 @@ class Schema {
       data = column.setter(options.parent, data, name);
     }
     if (column.array && field) {
-      options = extend({}, options, column);
+      options = Object.assign({}, options, column);
       return this._castArray(name, data, options);
     }
     return this.convert('cast', column.type, data, column);
@@ -1165,7 +1165,7 @@ class Schema {
         },
         'decimal': function(value, options) {
           var defaults = { precision: 2 };
-          options = extend({}, defaults, options);
+          options = Object.assign(defaults, options);
           return Number(value).toFixed(options.precision);
         },
         'date':function(value, options) {

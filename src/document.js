@@ -176,7 +176,7 @@ class Document {
       class: this
     };
 
-    options = extend({}, defaults, options);
+    options = Object.assign(defaults, options);
 
     var type = options.type;
     var classname;
@@ -188,7 +188,7 @@ class Document {
       classname = this._classes[type];
     }
 
-    options = extend({}, options, { data: data });
+    options.data = data;
     return new classname(options);
   }
 
@@ -214,7 +214,7 @@ class Document {
       defaults: true,
       data: {}
     };
-    config = extend({}, defaults, config);
+    config = Object.assign(defaults, config);
 
     /**
      * Contains the values of updated fields.
@@ -266,7 +266,7 @@ class Document {
     this.schema(config.schema);
 
     if (config.defaults) {
-      config.data = extend(this.schema().defaults(config.basePath), config.data);
+      config.data = Object.assign(this.schema().defaults(config.basePath), config.data);
     }
 
     var data = config.data;
@@ -286,7 +286,7 @@ class Document {
 
     this._exists = this._exists === 'all' ? true : this._exists;
 
-    this._original = extend({}, this._data);
+    this._original = Object.assign({}, this._data);
   }
 
   /**

@@ -26,7 +26,7 @@ class Through {
       exists: false
     };
 
-    config = extend({}, defaults, config);
+    config = Object.assign(defaults, config);
 
     /**
      * A reference to this object's parent `Document` object.
