@@ -450,9 +450,16 @@ class Document {
       var relation = schema.relation(fieldName);
       var hasManyThrough = relation.type() === 'hasManyThrough';
       if (!hasManyThrough || (this.id() != null && !this.has(relation.through()))) {
-        if ((this._exists !== false && relation.type() !== 'belongsTo') || this.get(relation.keys('from')) !== null) {
+        var foreignKey = this.get(relation.keys('from'));
+        if ((this._exists !== false && relation.type() !== 'belongsTo') || foreignKey !== null) {
           if (fetchHandler) {
             return fetchHandler(this, name);
+          } else if (this.constructor.unicity() && relation.type() === 'belongsTo' && foreignKey !== null) {
+            var model = relation.to();
+            if (model.shard().has(foreignKey)) {
+              this._data[name] = model.shard().get(foreignKey);
+              return this._data[name];
+            }
           }
           throw new Error("The relation `'" + name + "'` is an external relation, use `fetch()` to lazy load its data.");
         }
