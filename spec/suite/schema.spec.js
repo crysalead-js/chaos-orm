@@ -1114,10 +1114,10 @@ describe("Schema", function() {
       expect(this.schema.format('array', 'value', 123)).toBe(123);
       expect(this.schema.format('array', 'double', 12.3)).toBe(12.3);
       expect(this.schema.format('array', 'revenue', 12.3)).toBe('12.3');
-      var date = new Date('2014-11-21');
+      var date = new Date(Date.UTC(2014, 10, 21));
       expect(this.schema.format('array', 'registered', date)).toBe('2014-11-21');
       expect(this.schema.format('array', 'registered', '2014-11-21')).toBe('2014-11-21');
-      var datetime = new Date('2014-11-21 10:20:45');
+      var datetime = new Date(Date.UTC(2014, 10, 21, 10, 20, 45));
       expect(this.schema.format('array', 'created', datetime)).toBe('2014-11-21 10:20:45');
       expect(this.schema.format('array', 'created', '2014-11-21 10:20:45')).toBe('2014-11-21 10:20:45');
       expect(this.schema.format('array', 'active', true)).toBe(true);

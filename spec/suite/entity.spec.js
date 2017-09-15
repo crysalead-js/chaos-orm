@@ -1452,7 +1452,7 @@ describe("Entity", function() {
       var entity = MyModel.create({
         title: 'Hello',
         body: 'World',
-        created: new Date('2014-10-26 00:25:15')
+        created: new Date(Date.UTC(2014, 9, 26, 00, 25, 15))
       });
 
       expect(entity.data()).toEqual({

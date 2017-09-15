@@ -1,4 +1,5 @@
 var dateFormat = require('dateformat');
+var dateParse = require('dateparse');
 var extend = require('extend-merge').extend;
 var merge = require('extend-merge').merge;
 var Document = require('./document');
@@ -86,10 +87,14 @@ class Source {
         'datetime': function(value, options) {
           options = options || {};
           options.format = options.format ? options.format : 'yyyy-mm-dd HH:MM:ss';
-          if (!(value instanceof Date)) {
-            value = new Date(value);
+          if (Number(Number.parseInt(value)) === value) {
+            value = Number.parseInt(value) * 1000;
           }
-          return dateFormat(value, options.format);
+          var date = dateParse(value, true);
+          if (Number.isNaN(date.getTime())) {
+            throw new Error("Invalid date `" + value + "`, can't be parsed.");
+          }
+          return dateFormat(date, options.format, true);
         },
         'boolean': function(value, options) {
           return !!value;
@@ -125,31 +130,13 @@ class Source {
           return this.convert('cast', 'datetime', value, options);
         }.bind(this),
         'datetime': function(value, options) {
-          if (!(value instanceof Date)) {
-            var timestamp;
-            if (typeof value === 'number' || (!isNaN(parseFloat(value)) && isFinite(value))) {
-              timestamp = Number(value);
-            } else if (typeof value === 'string') {
-              var check = new Date(value);
-              if (Number.isNaN(check.getTime())) {
-                return null;
-              }
-              var a = /^(\d{4})-(\d{2})-(\d{2})(?:(?:T| )(\d{2}):(\d{2}):(\d{2}(?:\.\d*)?)Z?)?$/.exec(value);
-              if (!a) {
-                return null;
-              }
-              timestamp = Date.UTC(+a[1], +a[2] - 1, +a[3], +a[4] || 0, +a[5] || 0, +a[6] || 0) / 1000;
-            } else {
-              timestamp = value.getTime() / 1000;
-            }
-            if (options && options.midnight) {
-              timestamp = (timestamp - (timestamp % 86400));
-            }
-            value = new Date(timestamp * 1000);
-          }
-          var date = value;
+          var date = dateParse(value, true);
           if (Number.isNaN(date.getTime())) {
             return null;
+          }
+          if (options && options.midnight) {
+            var time = date.getTime();
+            date = new Date(time - (time % 86400000));
           }
           return date;
         },
@@ -181,7 +168,7 @@ class Source {
           if (Number(Number.parseInt(value)) === value) {
             value = Number.parseInt(value) * 1000;
           }
-          var date = !(value instanceof Date) ? new Date(value) : value;
+          var date = dateParse(value, true);
           if (Number.isNaN(date.getTime())) {
             throw new Error("Invalid date `" + value + "`, can't be parsed.");
           }
