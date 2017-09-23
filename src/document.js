@@ -779,13 +779,14 @@ class Document {
    *
    * @param  String|Object field The field name to check or an options object.
    * @return Array               Returns `true` if a field is given and was updated, `false` otherwise.
-   *                             If no field is given returns an array of all modified fields and their
-   *                             original values.
+   *                             If the `'return'` options is set to true, returns an array of all modified fields.
    */
   modified(field) {
     var schema = this.schema();
     var options = {
-      embed: false
+      embed: false,
+      return: false,
+      ignore: []
     };
 
     if (field && typeof field === 'object') {
@@ -847,11 +848,14 @@ class Document {
         updated[key] = original;
       }
     }
-    if (field) {
-      return !!Object.keys(updated).length;
+    if (options.ignore) {
+      options.ignore = Array.isArray(options.ignore) ? options.ignore : [options.ignore];
+      for (var name of options.ignore) {
+        delete updated[name];
+      }
     }
     var result = Object.keys(updated);
-    return field ? result : result.length !== 0;
+    return options.return ? result : result.length !== 0;
   }
 
   /**

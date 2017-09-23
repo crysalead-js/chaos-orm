@@ -789,6 +789,22 @@ describe("Document", function() {
 
     });
 
+    it("returns the list of modified fields", function() {
+
+      document = new Document();
+      document.set('modified', 'modified');
+      expect(document.modified({ return: true })).toEqual(['modified']);
+
+    });
+
+    it("ignores ignored fields", function() {
+
+      document = new Document();
+      document.set('modified', 'modified');
+      expect(document.modified({ ignore: ['modified'] })).toBe(false);
+
+    });
+
   });
 
   describe(".to('array')", function() {
