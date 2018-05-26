@@ -123,6 +123,8 @@ describe("Source", function() {
       expect(this.source.convert('cast', 'datetime', datetime)).toEqual(datetime);
 
       expect(this.source.convert('cast', 'datetime', 1416565245)).toEqual(new Date('2014-11-21T10:20:45.000Z'));
+      expect(this.source.convert('json', 'boolean', '1')).toBe(true);
+      expect(this.source.convert('json', 'boolean', '0')).toBe(false);
       expect(this.source.convert('cast', 'boolean', 1)).toBe(true);
       expect(this.source.convert('cast', 'boolean', 0)).toBe(false);
       expect(this.source.convert('cast', 'null', '')).toBe(null);

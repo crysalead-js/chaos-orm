@@ -141,6 +141,7 @@ class Source {
           return date;
         },
         'boolean': function(value, options) {
+          value = Number.isNaN(Number.parseInt(value, 10)) ? value : Number.parseInt(value, 10);
           return !!value;
         },
         'null': function(value, options) {
