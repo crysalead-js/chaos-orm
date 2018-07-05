@@ -969,7 +969,7 @@ class Schema {
     }
 
     if (this.locked()) {
-      throw new Error("Missing schema definition for field: `" + name + "`.");
+      return data;
     }
 
     options.class = Document;

@@ -156,6 +156,19 @@ describe("Document", function() {
 
       });
 
+      it("throws an error for undefined field with locked schema", function() {
+
+        var closure = function() {
+          var schema = new Schema();
+          var document = new Document({ schema: schema });
+          document.set('value', 'something');
+          document.get('value');
+        };
+
+        expect(closure).toThrow(new Error("Missing schema definition for field: `value`."));
+
+      });
+
       it("throws an error when the path is invalid", function() {
 
         var closure = function() {
@@ -882,6 +895,13 @@ describe("Document", function() {
       });
 
       it("casts according some custom format", function() {
+
+        this.schema.column('timeSheet', {
+          type: 'object',
+          default: '{"1":null,"2":null,"3":null,"4":null,"5":null,"6":null,"7":null}',
+          format: 'json'
+        });
+        this.schema.column('timeSheet.*', { type: 'integer' });
 
         var document = new Document({schema: this.schema});
         expect(document.get('timeSheet.1')).toEqual(null);

@@ -421,7 +421,7 @@ class Document {
     var fieldName = this.basePath() ? this.basePath() + '.' + name : String(name);
     var schema = this.schema();
 
-    var field;
+    var field = {};
 
     if (schema.has(fieldName)) {
       field = schema.column(fieldName);
@@ -430,8 +430,8 @@ class Document {
       if (schema.has(genericFieldName)) {
         field = schema.column(genericFieldName);
         fieldName = genericFieldName;
-      } else {
-        field = {};
+      } else if (schema.locked() && !schema.hasRelation(fieldName, false)) {
+        throw new Error("Missing schema definition for field: `" + fieldName + "`.");
       }
     }
 
@@ -450,11 +450,12 @@ class Document {
       var relation = schema.relation(fieldName);
       var hasManyThrough = relation.type() === 'hasManyThrough';
       if (!hasManyThrough || (this.id() != null && !this.has(relation.through()))) {
-        var foreignKey = this.get(relation.keys('from'));
-        if ((this._exists !== false && relation.type() !== 'belongsTo') || foreignKey !== null) {
+        var belongsTo = relation.type() === 'belongsTo';
+        var foreignKey = belongsTo ? this.get(relation.keys('from')) : null;
+        if ((this._exists !== false && !belongsTo) || foreignKey !== null) {
           if (fetchHandler) {
             return fetchHandler(this, name);
-          } else if (this.constructor.unicity() && relation.type() === 'belongsTo' && foreignKey !== null) {
+          } else if (this.constructor.unicity() && foreignKey !== null) {
             var model = relation.to();
             if (model.shard().has(foreignKey)) {
               this._data[name] = model.shard().get(foreignKey);

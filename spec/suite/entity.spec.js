@@ -824,17 +824,6 @@ describe("Entity", function() {
 
     });
 
-    it("throws an exception when trying to set nested arbitraty value in cascade when locked is `true`", function() {
-
-      var closure = function() {
-        var image = Image.create();
-        image.set('a.nested.value', 'hello');
-      };
-
-      expect(closure).toThrow(new Error('Missing schema definition for field: `a`.'));
-
-    });
-
     it("sets a value using a virtual field", function() {
 
       var schema = MyModel.definition();
@@ -1541,15 +1530,10 @@ describe("Entity", function() {
 
   describe(".toString()", function() {
 
-    it("returns the title field", function() {
+    it("returns the key as string", function() {
 
-      var data = {
-        id: 1,
-        title: 'test record'
-      };
-
-      var entity = MyModel.create(data);
-      expect(entity.toString()).toBe('test record');
+      var entity = MyModel.create({ id: 1 });
+      expect(entity.toString()).toBe('1');
 
     });
 

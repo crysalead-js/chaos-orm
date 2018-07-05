@@ -303,15 +303,6 @@ class Model extends Document {
   }
 
   /**
-   * Returns a string representation of the instance.
-   *
-   * @return String
-   */
-  title() {
-    return this._data.title ? this._data.title : this._data.name;
-  }
-
-  /**
    * Returns the primary key value.
    *
    * @return mixed     The primary key value.
@@ -664,7 +655,7 @@ class Model extends Document {
    * @return String Returns the generated title of the object.
    */
   toString() {
-    return String(this.title());
+    return String(this.id());
   }
 }
 
