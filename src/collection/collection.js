@@ -104,8 +104,8 @@ class Collection {
      */
     this._parents = new Map();
 
-    this._emit = throttle(function(type) {
-      this.emit(type);
+    this._emit = throttle(function(type, value, mode) {
+      this.emit(type, value, mode);
     }, 10);
 
     this.basePath(config.basePath);
@@ -339,17 +339,19 @@ class Collection {
       data.setParent(this, name);
     }
     this._modified = true;
-    this.trigger('modified');
+    this.trigger('modified', data, true);
     return this;
   }
 
   /**
    * Trigger an event through the graph.
    *
-   * @param String type The type of event.
-   * @param String name The field name.
+   * @param String type   The type of event.
+   * @param mixed  value  The modified data.
+   * @param String mode   The modification type.
+   * @param Map    ignore The ignore Map.
    */
-  trigger(type, ignore) {
+  trigger(type, value, mode, ignore) {
     if (!this._triggerEnabled) {
       return;
     }
@@ -361,11 +363,11 @@ class Collection {
     ignore.set(this, true);
 
     for (var [parent, field] of this.parents()) {
-      parent.trigger(type, ignore);
+      parent.trigger(type, value, mode, ignore);
     }
 
     if (Collection._classes.document.emitEnabled) {
-      this._emit('modified');
+      this._emit('modified', value, mode);
     }
   }
 
@@ -426,7 +428,7 @@ class Collection {
       value.unsetParent(this);
     }
     this._modified = true;
-    this.trigger('modified');
+    this.trigger('modified', value, false);
   }
 
   /**

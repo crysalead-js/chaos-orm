@@ -252,8 +252,8 @@ class Document {
      */
     this._watches = new Map();
 
-    this._emit = throttle(function(type) {
-      this.emit(type);
+    this._emit = throttle(function(type, value, mode) {
+      this.emit(type, value, mode);
     }, 10);
 
     /**
@@ -592,16 +592,18 @@ class Document {
       previous.unsetParent(this);
     }
     this._applyWatch(name);
-    this.trigger('modified');
+    this.trigger('modified', value, true);
   }
 
   /**
    * Trigger an event through the graph.
    *
-   * @param String type The type of event.
-   * @param String name The field name.
+   * @param String type   The type of event.
+   * @param mixed  value  The modified data.
+   * @param String mode   The modification type.
+   * @param Map    ignore The ignore Map.
    */
-  trigger(type, ignore) {
+  trigger(type, value, mode, ignore) {
     if (!this._triggerEnabled) {
       return;
     }
@@ -613,10 +615,10 @@ class Document {
     ignore.set(this, true);
 
     for (var [parent, field] of this._parents) {
-      parent.trigger(type, ignore);
+      parent.trigger(type, value, mode, ignore);
     }
     if (Document.emitEnabled) {
-      this._emit('modified');
+      this._emit('modified', value, mode);
     }
   }
 
@@ -746,7 +748,7 @@ class Document {
     this._applyWatch(name);
     if (this._data[name] !== undefined) {
       delete this._data[name];
-      this.trigger('modified');
+      this.trigger('modified', value, false);
     }
     return this;
   }
@@ -885,7 +887,7 @@ class Document {
   }
 
   /**
-   * Restore a codument to its original values.
+   * Restore a document to its original values.
    *
    * @return self
    */
