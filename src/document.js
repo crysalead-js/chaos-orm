@@ -592,7 +592,7 @@ class Document {
       previous.unsetParent(this);
     }
     this._applyWatch(name);
-    this.trigger('modified', value, true);
+    this.trigger('modified', this, true);
   }
 
   /**
