@@ -16,14 +16,14 @@
     "chaos-validator": "^3.0",
     "co": "^4.6.0",
     "component-emitter": "^1.2.1",
-    "dateformat": "^2.0.0",
+    "dateformat": "^3.0.3",
     "dateparse": "0.0.1",
     "dotpath-parser": "0.0.2",
     "expand-flatten": "^1.0.2",
     "extend-merge": "^1.0.5",
     "intersect": "^1.0.1",
     "pascal-case": "^2.0.1",
-    "pluralize": "^5.0.0",
+    "pluralize": "^7.0.0",
     "snake-case": "^2.1.0",
     "throttleit": "^1.0.0",
     "uuid": "^3.0.1"
@@ -31,10 +31,10 @@
   "devDependencies": {
     "bluebird": "^3.5.0",
     "chai-kahlan": "^1.0.4",
-    "coveralls": "^2.13.1",
+    "coveralls": "^3.0.2",
     "jasmine-kahlan": "^1.0.2",
-    "mocha": "^3.4.2",
-    "nyc": "^10.3.2"
+    "mocha": "^5.2.0",
+    "nyc": "^13.0.1"
   },
   "scripts": {
     "coverage-report": "nyc --reporter=lcov mocha",
