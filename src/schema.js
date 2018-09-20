@@ -1464,7 +1464,7 @@ class Schema {
         return true;
       }
 
-      yield this.truncate({ [key]: keys.length === 1 ? keys[0] : keys });
+      yield this.remove({ [key]: keys.length === 1 ? keys[0] : keys });
 
       for (var entity of collection) {
         entity.amend({}, { exists: false });
@@ -1521,7 +1521,16 @@ class Schema {
    *                             options.
    * @return Promise             Returns `true` if the remove operation succeeded, otherwise `false`.
    */
-  truncate(conditions, options) {
+  remove(conditions, options) {
+    throw new Error("Missing `remove()` implementation for `" + this.reference().name + "`'s schema.");
+  }
+
+  /**
+   * Truncate a table.
+   *
+   * @return Promise Returns `true` if the remove operation succeeded, otherwise `false`.
+   */
+  truncate() {
     throw new Error("Missing `truncate()` implementation for `" + this.reference().name + "`'s schema.");
   }
 }

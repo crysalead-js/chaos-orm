@@ -1258,4 +1258,74 @@ describe("Schema", function() {
 
   });
 
+  describe(".query()", function() {
+
+    it("throws an Error", function() {
+
+      var closure = function() {
+        this.schema.query();
+      }.bind(this);
+
+      expect(closure).toThrow(new Error("Missing `query()` implementation for `" + this.schema.reference().name + "`'s schema."));
+
+    });
+
+  });
+
+  describe(".bulkInsert()", function() {
+
+    it("throws an Error", function() {
+
+      var closure = function() {
+        this.schema.bulkInsert();
+      }.bind(this);
+
+      expect(closure).toThrow(new Error("Missing `bulkInsert()` implementation for `" + this.schema.reference().name + "`'s schema."));
+
+    });
+
+  });
+
+  describe(".bulkUpdate()", function() {
+
+    it("throws an Error", function() {
+
+      var closure = function() {
+        this.schema.bulkUpdate();
+      }.bind(this);
+
+      expect(closure).toThrow(new Error("Missing `bulkUpdate()` implementation for `" + this.schema.reference().name + "`'s schema."));
+
+    });
+
+  });
+
+  describe(".remove()", function() {
+
+    it("throws an Error", function() {
+
+      var closure = function() {
+        this.schema.remove();
+      }.bind(this);
+
+      expect(closure).toThrow(new Error("Missing `remove()` implementation for `" + this.schema.reference().name + "`'s schema."));
+
+    });
+
+  });
+
+  describe(".truncate()", function() {
+
+    it("throws an Error", function() {
+
+      var closure = function() {
+        this.schema.truncate();
+      }.bind(this);
+
+      expect(closure).toThrow(new Error("Missing `truncate()` implementation for `" + this.schema.reference().name + "`'s schema."));
+
+    });
+
+  });
+
 });
