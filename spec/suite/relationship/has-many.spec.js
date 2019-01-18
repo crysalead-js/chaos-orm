@@ -42,6 +42,7 @@ describe("HasMany", function() {
       expect(relation.to()).toBe(Image);
       expect(relation.link()).toBe(Relationship.LINK_KEY);
       expect(relation.fields()).toBe(true);
+      expect(relation.conditions()).toEqual(undefined);
       expect(relation.conventions() instanceof Conventions).toBe(true);
 
     });

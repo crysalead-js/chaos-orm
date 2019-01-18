@@ -28,6 +28,11 @@ class Relationship {
    *                      - `'fields'`      _mixed_  : An array of the subset of fields that should be selected
    *                                                   from the related object(s) by default. If set to `true` (the default), all
    *                                                   fields are selected.
+   *                      - `'conditions'`  _mixed_  : A string or array containing additional conditions
+   *                                                   on the relationship association. If a string, can contain a literal SQL fragment or
+   *                                                   other database-native value. If an array, maps fields from the related object
+   *                                                   either to fields elsewhere, or to arbitrary expressions. In either case, _the
+   *                                                   values specified here will be literally interpreted by the database_.
    *                      - `'embedded'`    _boolean_: Indicates if the relation is embedded or not.
    *                      - `'conventions'` _object_ : The naming conventions instance to use.
    */
@@ -39,6 +44,7 @@ class Relationship {
       to: undefined,
       link: this.constructor.LINK_KEY,
       fields: true,
+      conditions: undefined,
       embedded: false,
       conventions: undefined
     };
@@ -111,6 +117,13 @@ class Relationship {
      * @var mixed
      */
     this._fields = config.fields;
+
+    /**
+     * The conditions to filter on.
+     *
+     * @var Object
+     */
+    this._conditions = config.conditions;
 
     /**
      * The embedded mode.
@@ -238,6 +251,15 @@ class Relationship {
    */
   fields() {
     return typeof this._fields === 'boolean' ? this._fields : this._fields.splice();
+  }
+
+  /**
+   * Returns the conditions.
+   *
+   * @return mixed
+   */
+  conditions() {
+    return this._conditions;
   }
 
   /**
@@ -398,7 +420,17 @@ class Relationship {
     }
     var query, defaultQuery = { conditions: {} };
 
-    defaultQuery.conditions[this.keys('to')] = ids;
+    if (this.conditions()) {
+      defaultQuery.conditions = {
+        ':and()': [
+          {[this.keys('to')]: ids },
+          this.conditions()
+        ]
+      };
+    } else {
+      defaultQuery.conditions = { [this.keys('to')]: ids };
+    }
+
     query = extend({}, defaultQuery, options.query);
     return to.all(query, fetchOptions);
   }
