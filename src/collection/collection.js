@@ -120,11 +120,7 @@ class Collection {
     }
 
     this._triggerEnabled = false;
-    for (var entity of config.data) {
-      this.push(entity, config.exists);
-    }
-
-    this.amend();
+    this.amend(config.data, { exists : config.exists});
     this._triggerEnabled = true;
   }
 
@@ -436,8 +432,24 @@ class Collection {
    *
    * @return Boolean
    */
-  modified() {
-    return this._modified;
+  modified(options) {
+    options = extend({ embed: false }, options);
+
+    if (this._modified) {
+      return true;
+    }
+
+    var index = 0;
+    var len = this._data.length;
+
+    while (index < len) {
+      var entity = this._data[index];
+      if (typeof entity.modified === 'function' && entity.modified(options)) {
+        return true;
+      }
+      index++;
+    }
+    return false;
   }
 
   /**
@@ -447,12 +459,14 @@ class Collection {
    */
   amend(data, options) {
     if (data && data.length) {
+      var options = options || {};
       var count = this.length;
       for (var i = 0, len = data.length; i < len; i++) {
-        if (!this.has(i)) {
-          this.set(i, data[i]);
+        if (!this.has(i) || !this.get(i).amend) {
+          this.set(i, data[i], options.exists !== undefined ? options.exists : false);
+        } else {
+          this.get(i).amend(data[i], options);
         }
-        this.get(i).amend(data[i], options);
       }
       for (var j = data.length; j < count; j++) {
         this.unset(j);

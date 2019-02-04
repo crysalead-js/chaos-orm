@@ -369,6 +369,8 @@ class Model extends Document {
     var previousId = this.id();
     var schema = this.schema();
 
+    data = data instanceof Document ? data.get() : data;
+
     for (var key in data) {
       if (options.rebuild || !this.has(key) || !schema.hasRelation(key, false)) {
         this.set(key, data[key]);

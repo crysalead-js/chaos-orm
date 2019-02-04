@@ -843,7 +843,7 @@ class Document {
       var modified = false;
 
       if (value && typeof value.modified === 'function') {
-        modified = original !== value || value.modified();
+        modified = original !== value || value.modified(options);
       } else {
         modified = original !== value;
       }

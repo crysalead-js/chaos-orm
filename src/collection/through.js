@@ -75,10 +75,7 @@ class Through {
     }
 
     this._parent.set(this._through, []);
-    for (var entity of config.data) {
-      this.push(entity, config.exists);
-    }
-    this._parent.get(this._through).amend();
+    this.amend(config.data, { exists : config.exists});
   }
 
   /**
@@ -364,6 +361,24 @@ class Through {
    */
   unset(offset) {
     this._parent.get(this._through).unset(offset);
+  }
+
+  /**
+   * Amend the collection modifications.
+   *
+   * @return self
+   */
+  amend(data, options) {
+    options = options || {};
+    var name = this._through;
+    var exists = options.exists !== undefined ? options.exists : false;
+    for (var value of data) {
+      var item = this._item(value, exists);
+      this._parent.get(name).push(item, exists);
+      item.amend();
+    }
+    this._parent.get(name).amend();
+    return this;
   }
 
   /**

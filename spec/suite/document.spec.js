@@ -818,6 +818,24 @@ describe("Document", function() {
 
     });
 
+    it("returns `true` when embedded relations data are modified", function() {
+
+      var schema = new Schema();
+      schema.column('list',       { type: 'object', array: true });
+      schema.column('list.value', { type: 'integer' });
+
+      var document = new Document({
+        schema: schema,
+        data: { list: [{ value: 50 }] }
+      });
+
+      expect(document.modified()).toBe(false);
+
+      document.set('list.0.value', 60);
+      expect(document.modified()).toBe(true);
+
+    });
+
   });
 
   describe(".to('array')", function() {
