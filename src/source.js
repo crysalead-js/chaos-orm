@@ -67,26 +67,26 @@ class Source {
   _handlers() {
     return {
       array: {
-        'object': function(value, options) {
-          return value.to('array', options);
+        'object': function(value, column) {
+          return value.to('array', column);
         },
-        'string': function(value, options) {
+        'string': function(value, column) {
           return String(value);
         },
-        'integer': function(value, options) {
+        'integer': function(value, column) {
           return Number.parseInt(value, 10);
         },
-        'float': function(value, options) {
+        'float': function(value, column) {
           return Number.parseFloat(value);
         },
-        'date': function(value, options) {
-          options = options || {};
-          options.format = options.format ? options.format : 'yyyy-mm-dd';
-          return this.convert('array', 'datetime', value, options);
+        'date': function(value, column) {
+          column = column || {};
+          column.format = column.format ? column.format : 'yyyy-mm-dd';
+          return this.convert('array', 'datetime', value, column);
         }.bind(this),
-        'datetime': function(value, options) {
-          options = options || {};
-          options.format = options.format ? options.format : 'yyyy-mm-dd HH:MM:ss';
+        'datetime': function(value, column) {
+          column = column || {};
+          column.format = column.format ? column.format : 'yyyy-mm-dd HH:MM:ss';
           if (Number(Number.parseInt(value)) === value) {
             value = Number.parseInt(value) * 1000;
           }
@@ -94,78 +94,83 @@ class Source {
           if (Number.isNaN(date.getTime())) {
             throw new Error("Invalid date `" + value + "`, can't be parsed.");
           }
-          return dateFormat(date, options.format, true);
+          return dateFormat(date, column.format, true);
         },
-        'boolean': function(value, options) {
+        'boolean': function(value, column) {
           return !!value;
         },
-        'null': function(value, options) {
+        'null': function(value, column) {
           return null;
         },
-        'json': function(value, options) {
-          return !value || !value.to ? value : value.to('array', options);
+        'json': function(value, column) {
+          return !value || !value.to ? value : value.to('array', column);
         }
       },
       cast: {
-        'object': function(value, options) {
-          return value !== null && typeof value === 'object' && value.constructor === Object ? new Document({ data: value }) : value;
+        'object': function(value, column, options) {
+          options = options || {};
+          return value !== null && typeof value === 'object' && value.constructor === Object ? new Document({
+            schema: options.schema,
+            basePath: options.basePath,
+            data: value
+          }) : value;
         },
-        'string': function(value, options) {
+        'string': function(value, column, options) {
           return String(value);
         },
-        'integer': function(value, options) {
+        'integer': function(value, column, options) {
           return Number.parseInt(value, 10);
         },
-        'float': function(value, options) {
+        'float': function(value, column, options) {
           return Number.parseFloat(value);
         },
-        'decimal': function(value, options) {
+        'decimal': function(value, column, options) {
           var defaults = { precision: 2 };
-          options = extend({}, defaults, options);
-          return Number(value).toFixed(options.precision);
+          column = extend({}, defaults, column);
+          return Number(value).toFixed(column.precision);
         },
-        'date':function(value, options) {
-          options = options || {};
-          options.midnight = true;
-          return this.convert('cast', 'datetime', value, options);
+        'date':function(value, column, options) {
+          column = column || {};
+          column.midnight = true;
+          return this.convert('cast', 'datetime', value, column, options);
         }.bind(this),
-        'datetime': function(value, options) {
+        'datetime': function(value, column, options) {
           var date = dateParse(value, true);
           if (Number.isNaN(date.getTime())) {
             return null;
           }
-          if (options && options.midnight) {
+          if (column && column.midnight) {
             var time = date.getTime();
             date = new Date(time - (time % 86400000));
           }
           return date;
         },
-        'boolean': function(value, options) {
+        'boolean': function(value, column, options) {
           value = Number.isNaN(Number.parseInt(value, 10)) ? value : Number.parseInt(value, 10);
           return !!value;
         },
-        'null': function(value, options) {
+        'null': function(value, column, options) {
           return null;
         },
-        'json': function(value, options) {
+        'json': function(value, column, options) {
           return typeof value === 'string' ? JSON.parse(value) : value;
         }
       },
       datasource: {
-        'object': function(value, options) {
+        'object': function(value, column) {
           return value.to('plain'); // Unexisting handlers will simply return raw data
         },
-        'string': function(value, options) {
+        'string': function(value, column) {
           return String(value);
         },
-        'date': function(value, options) {
-          options = options || {};
-          options.format = options.format ? options.format : 'yyyy-mm-dd';
-          return this.convert('datasource', 'datetime', value, options);
+        'date': function(value, column) {
+          column = column || {};
+          column.format = column.format ? column.format : 'yyyy-mm-dd';
+          return this.convert('datasource', 'datetime', value, column);
         }.bind(this),
-        'datetime': function(value, options) {
-          options = options || {};
-          options.format = options.format ? options.format : 'yyyy-mm-dd HH:MM:ss';
+        'datetime': function(value, column) {
+          column = column || {};
+          column.format = column.format ? column.format : 'yyyy-mm-dd HH:MM:ss';
           if (Number(Number.parseInt(value)) === value) {
             value = Number.parseInt(value) * 1000;
           }
@@ -173,15 +178,15 @@ class Source {
           if (Number.isNaN(date.getTime())) {
             throw new Error("Invalid date `" + value + "`, can't be parsed.");
           }
-          return dateFormat(date, options.format, true);
+          return dateFormat(date, column.format, true);
         },
-        'boolean': function(value, options) {
+        'boolean': function(value, column) {
           return !!value ? '1' : '0';
         },
-        'null': function(value, options) {
+        'null': function(value, column) {
           return '';
         },
-        'json': function(value, options) {
+        'json': function(value, column) {
           if (value && value.data) {
             value = value.data();
           }
@@ -227,13 +232,14 @@ class Source {
   /**
    * Formats a value according to its type.
    *
-   * @param   String mode    The format mode (i.e. `'cast'` or `'datasource'`).
-   * @param   String type    The format type.
-   * @param   mixed  data    The value to format.
-   * @param   mixed  options The options array to pass the the formatter handler.
-   * @return  mixed          The formated value.
+   * @param  String mode   The format mode (i.e. `'cast'` or `'datasource'`).
+   * @param  String type   The format type.
+   * @param  mixed  data   The value to format.
+   * @param  mixed  column The column options to pass the the formatter handler.
+   * @param  Object options The options to pass the the formatter handler (for `'cast'` mode only).
+   * @return mixed          The formated value.
    */
-  convert(mode, type, data, options) {
+  convert(mode, type, data, column, options) {
     var formatter;
     type = data === null ? 'null' : type;
     if (this._formatters[mode] && this._formatters[mode][type]) {
@@ -241,7 +247,7 @@ class Source {
     } else if (this._formatters[mode] && this._formatters[mode]._default_) {
       formatter = this._formatters[mode]._default_;
     }
-    return formatter ? formatter(data, options) : data;
+    return formatter ? formatter(data, column, options) : data;
   }
 
   /**

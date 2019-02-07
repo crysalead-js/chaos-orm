@@ -1,6 +1,7 @@
 var dateFormat = require('dateformat');
 var Source = require('../../src/source');
 var Document = require('../../src/').Document;
+var Schema = require('../../src/').Schema;
 var Collection = require('../../src/collection/collection');
 
 describe("Source", function() {
@@ -133,6 +134,10 @@ describe("Source", function() {
       expect(this.source.convert('cast', '_undefined_', 123)).toBe(123);
       expect(this.source.convert('cast', 'json', '[1,2]')).toEqual([1,2]);
 
+      var schema = new Schema();
+      var value = this.source.convert('cast', 'object', {a: 'b'}, {}, { basePath: 'test', schema: schema });
+      expect(value.basePath()).toEqual('test');
+      expect(value.schema()).toEqual(schema);
       expect(this.source.convert('cast', 'object', {a: 'b'}).data()).toEqual({a: 'b'});
 
       var document = new Document();
