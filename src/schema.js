@@ -413,10 +413,12 @@ class Schema {
   defaults(basePath) {
     var defaults = {};
     for (var [name, value] of this._columns) {
-      if (basePath && name.indexOf(basePath) !== 0) {
-        continue;
+      var fieldName;
+      if (basePath) {
+          fieldName = name.indexOf(basePath + '.') === 0 ? name.substr(basePath.length + 1) : null;
+      } else {
+          fieldName = name;
       }
-      var fieldName = basePath ? name.substr(basePath.length + 1) : name;
       if (!fieldName || fieldName === '*' || fieldName.indexOf('.') !== -1) {
         continue;
       }
