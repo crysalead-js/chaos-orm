@@ -70,41 +70,6 @@ class Model extends Document {
   }
 
   /**
-   * Gets/sets the schema definition of the model.
-   *
-   * @param  Object schema The schema instance to set or none to get it.
-   * @return Object        The schema instance.
-   */
-  static definition(schema) {
-    if (arguments.length) {
-      if (typeof schema === 'function') {
-        this._definition = schema;
-      } else if (schema) {
-        Model._definitions.set(this, schema);
-      } else {
-        Model._definitions.delete(this);
-      }
-      return this;
-    }
-    if (Model._definitions.has(this)) {
-      return Model._definitions.get(this);
-    }
-
-    var config = {
-      conventions: this.conventions(),
-      connection: this._connection,
-      class: this
-    };
-
-    config.source = this.conventions().apply('source', this.name);
-
-    var schema = new this._definition(config);
-    Model._definitions.set(this, schema);
-    this._define(schema);
-    return schema;
-  }
-
-  /**
    * Get/set the unicity value.
    *
    * @param  Boolean      $enable The unicity value or none to get it.
@@ -291,15 +256,6 @@ class Model extends Document {
     if (!id) {
       throw new Error("Existing entities must have a valid ID.");
     }
-    if (!this.constructor.unicity()) {
-      return;
-    }
-    var shard = this.constructor.shard();
-    if (shard.has(id)) {
-      var source = this.constructor.definition().source();
-      throw new Error("Trying to create a duplicate of `" + source + "` ID `" + String(id) + "` which is not allowed when unicity is enabled.");
-    }
-    shard.set(id, this);
   }
 
   /**
@@ -360,25 +316,11 @@ class Model extends Document {
    * @param Object options Method options:
    *                      - `'exists'` _boolean_: Determines whether or not this entity exists
    *                        in data store.
+   * @return self
    */
   amend(data, options) {
-    data = data || {};
-    options = options || {};
-    this._exists = options.exists !== undefined ? options.exists : this._exists;
-
     var previousId = this.id();
-    var schema = this.schema();
-
-    data = data instanceof Document ? data.get() : data;
-
-    for (var key in data) {
-      if (options.rebuild || !this.has(key) || !schema.hasRelation(key, false)) {
-        this.set(key, data[key]);
-      } else {
-        this.get(key).amend(data[key], options);
-      }
-    }
-    super.amend();
+    super.amend(data, options);
 
     this._exists = this._exists === 'all' ? true : this._exists;
 
@@ -387,15 +329,22 @@ class Model extends Document {
     }
 
     var id = this.id();
+    var shard = this.constructor.shard();
     if (previousId != null && previousId !== id) {
-      this.constructor.shard().delete(previousId);
+      shard.delete(previousId);
     }
-    if (id != null) {
-      if (this._exists) {
-        this.constructor.shard().set(id, this);
-      } else {
-        this.constructor.shard().delete(id);
+    if (id == null) {
+      return this;
+    }
+    if (this._exists) {
+      if (!shard.has(id)) {
+        shard.set(id, this);
+      } else if (shard.get(id) !== this) {
+        var source = this.constructor.definition().source();
+        throw new Error("Trying to create a duplicate of `" + source + "` ID `" + String(id) + "` which is not allowed when unicity is enabled.");
       }
+    } else {
+      shard.delete(id);
     }
     return this;
   }
@@ -681,13 +630,6 @@ Model._classes = {
 Model._validators = {};
 
 /**
- * Stores model's schema.
- *
- * @var Map
- */
-Model._definitions = new Map();
-
-/**
  * Enable entities unicity
  *
  * @var Boolean
@@ -735,5 +677,12 @@ Model._connection = undefined;
  * @var Function
  */
 Model._definition = undefined;
+
+/**
+ * Stores model's schema.
+ *
+ * @var Map
+ */
+Model._definitions = new Map();
 
 module.exports = Model;

@@ -1002,11 +1002,24 @@ describe("Entity", function() {
 
       var image = Image.create();
       image.set('a.nested.value', 'hello');
+      expect(image.modified()).toBe(true);
+      expect(image.get('a').modified()).toBe(false);
+      expect(image.get('a.nested').modified()).toBe(false);
+
       image.amend();
       expect(image.modified()).toBe(false);
+      expect(image.get('a').modified()).toBe(false);
+      expect(image.get('a.nested').modified()).toBe(false);
 
       image.set('a.nested.value', 'world');
       expect(image.modified()).toBe(true);
+      expect(image.get('a').modified()).toBe(true);
+      expect(image.get('a.nested').modified()).toBe(true);
+
+      image.amend();
+      expect(image.modified()).toBe(false);
+      expect(image.get('a').modified()).toBe(false);
+      expect(image.get('a.nested').modified()).toBe(false);
 
     });
 

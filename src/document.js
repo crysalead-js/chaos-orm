@@ -80,17 +80,37 @@ class Document {
   }
 
   /**
-   * Gets the Document schema definition.
+   * Gets/sets the schema definition of the model.
    *
-   * @return Object The schema instance.
+   * @param  Object schema The schema instance to set or none to get it.
+   * @return Object        The schema instance.
    */
-  static definition() {
-    var schema = new this._definition({
-      classes: extend({}, this.classes(), { entity: Document }),
+  static definition(schema) {
+    if (arguments.length) {
+      if (typeof schema === 'function') {
+        this._definition = schema;
+      } else if (schema) {
+        this._definitions.set(this, schema);
+      } else {
+        this._definitions.delete(this);
+      }
+      return this;
+    }
+    if (this._definitions.has(this)) {
+      return this._definitions.get(this);
+    }
+
+    var config = {
       conventions: this.conventions(),
-      class: Document
-    });
-    schema.lock(false);
+      connection: this._connection,
+      class: this,
+      locked: Document !== this
+    };
+
+    config.source = this.conventions().apply('source', this.name);
+
+    var schema = new this._definition(config);
+    this._definitions.set(this, schema);
     this._define(schema);
     return schema;
   }
@@ -192,6 +212,13 @@ class Document {
     return new classname(options);
   }
 
+  /**
+   * Reset the Document class.
+   */
+  static reset() {
+    Document._definitions.delete(this)
+  }
+
   /***************************
    *
    *  Document related methods
@@ -212,6 +239,7 @@ class Document {
       schema: undefined,
       basePath: undefined,
       defaults: true,
+      exists: false,
       data: {}
     };
     config = Object.assign(defaults, config);
@@ -273,20 +301,9 @@ class Document {
     if (typeof data !== 'object' || data.constructor !== Object) {
       throw new Error("The `'data'` option need to be a valid plain object.");
     }
-
-    /**
-     * Related to the Model constructor.
-     * However `this` is not available before super(), so leave this definition here.
-     */
-    this._exists = config.exists;
-
     this._triggerEnabled = false;
-    this.set(data);
+    this.amend(data, { exists : config.exists });
     this._triggerEnabled = true;
-
-    this._exists = this._exists === 'all' ? true : this._exists;
-
-    this._original = Object.assign({}, this._data);
   }
 
   /**
@@ -473,7 +490,7 @@ class Document {
     }
 
     if (autoCreate) {
-      this._set(name, value);
+      this.setAt(name, value);
       return this._data[name];
     }
     return null;
@@ -488,7 +505,7 @@ class Document {
    */
   set(name, data) {
     if (typeof name === 'string' || Array.isArray(name)) {
-      this._set(name, data);
+      this.setAt(name, data);
       return this;
     }
     data = name || {};
@@ -496,7 +513,7 @@ class Document {
       throw new Error('A plain object is required to set data in bulk.');
     }
     for (var name in data) {
-      this._set(name, data[name]);
+      this.setAt(name, data[name]);
     }
     return this;
   }
@@ -532,8 +549,11 @@ class Document {
    *
    * @param mixed   name   A dotted field name or an array of field names.
    * @param Array   data   An associative array of fields and values or an options array.
+   * @param  Object options Method options:
+   *                        - `'exists'` _boolean_: Determines whether or not this entity exists
+   * @return self           Returns `this`.
    */
-  _set(name, data) {
+  setAt(name, data, options) {
     var keys = Array.isArray(name) ? name.slice() : dotpath(name);
     var name = keys[0];
 
@@ -545,15 +565,16 @@ class Document {
       var path = keys.slice();
       path.shift();
       if (this.get(name) == undefined) {
-        this._set(name, { [path.join('.')]: data });
+        this.setAt(name, { [path.join('.')]: data }, options);
+      } else {
+        var value = this._data[name];
+        if (!value || value.setAt === undefined) {
+          throw new Error("The field: `" + name + "` is not a valid document or entity.");
+        }
+        value.setAt(path, data, options);
       }
-      var value = this._data[name];
-      if (!value || value.set === undefined) {
-        throw new Error("The field: `" + name + "` is not a valid document or entity.");
-      }
-      value.set(path, data);
       this._applyWatch(keys);
-      return;
+      return this;
     }
 
     var schema = this.schema();
@@ -567,20 +588,20 @@ class Document {
     });
     if (previous === value) {
       this._applyWatch(name);
-      return;
+      return this;
     }
     var fieldName = this.basePath() ? this.basePath() + '.' + name : name;
 
     this._data[name] = value;
 
     if (schema.isVirtual(fieldName)) {
-      return;
+      return this;
     }
 
     if (schema.hasRelation(fieldName, false)) {
       var relation = schema.relation(fieldName);
       if (relation.type() === 'belongsTo') {
-        this._set(relation.keys('from'), value ? value.id() : null);
+        this.setAt(relation.keys('from'), value ? value.id() : null);
       }
     }
 
@@ -592,7 +613,11 @@ class Document {
       previous.unsetParent(this);
     }
     this._applyWatch(name);
-    this.trigger('modified', this, true);
+
+    if (!options || !options.init) {
+      this.trigger('modified', this, true);
+    }
+    return this;
   }
 
   /**
@@ -864,14 +889,37 @@ class Document {
   /**
    * Amend the document modifications.
    *
+   * @param Object data    Any additional generated data assigned to the object by the database.
+   * @param Object options Method options:
+   *                      - `'exists'` _boolean_: Determines whether or not this entity exists
+   *                        in data store.
    * @return self
    */
-  amend() {
-    this._original = extend({}, this._data);
+  amend(data, options) {
+    data = data || {};
+    options = options || {};
+    this._exists = options.exists !== undefined ? options.exists : this._exists;
 
+    var key;
     var schema = this.schema();
-    var fields = Object.keys(this._original);
 
+    data = data instanceof Document ? data.get() : data;
+
+    if (options.rebuild) {
+      this._data = {};
+    }
+
+    for (key in data) {
+      if (this.has(key) && schema.hasRelation(key, false)) {
+        this.get(key).amend(data[key], options);
+      } else {
+        this.setAt(key, data[key], options);
+      }
+      delete this._original[key];
+    }
+
+    // Populate amending to children
+    var fields = Object.keys(this._original);
     var len = fields.length;
     for (var i = 0; i < len; i++) {
       var key = fields[i];
@@ -883,6 +931,8 @@ class Document {
         value.amend();
       }
     }
+
+    this._original = extend({}, this._data);
     return this;
   }
 
@@ -1081,11 +1131,25 @@ Document.emitEnabled = true;
 Document._conventions = undefined;
 
 /**
+ * Connection.
+ *
+ * @var Object The connection instance.
+ */
+Document._connection = undefined;
+
+/**
  * Document schema.
  *
  * @var Function
  */
 Document._definition = undefined;
+
+/**
+ * Stores document's schema.
+ *
+ * @var Map
+ */
+Document._definitions = new Map();
 
 Emitter(Document.prototype);
 

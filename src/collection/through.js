@@ -75,7 +75,7 @@ class Through {
     }
 
     this._parent.set(this._through, []);
-    this.amend(config.data, { exists : config.exists});
+    this.amend(config.data, { exists : config.exists });
   }
 
   /**
@@ -317,9 +317,25 @@ class Through {
    * @param  Boolean exists Define existence mode of added data.
    * @return self           Return `this`.
    */
-  set(offset, data, exists) {
+  set(offset, data) {
     var name = this._through;
-    this._parent.get(name).set(offset, this._item(data, exists), exists);
+    this._parent.get(name).set(offset, this._item(data));
+    return this;
+  }
+
+  /**
+   * Adds the specified object to the `Collection` instance, and assigns associated metadata to
+   * the added object.
+   *
+   * @param  Integer offset The offset to assign the value to.
+   * @param  mixed   data   The entity object to add.
+   * @param  Object options Method options:
+   *                        - `'exists'` _boolean_: Determines whether or not this entity exists
+   * @return self           Return `this`.
+   */
+  setAt(offset, data, options) {
+    var name = this._through;
+    this._parent.get(name).setAt(offset, this._item(data, options), options);
     return this;
   }
 
@@ -330,9 +346,9 @@ class Through {
    * @param  Boolean exists Define existence mode of added data.
    * @return self           Return `this`.
    */
-  push(data, exists) {
+  push(data) {
     var name = this._through;
-    this._parent.get(name).push(this._item(data, exists), exists);
+    this._parent.get(name).push(this._item(data));
     return this;
   }
 
@@ -343,14 +359,14 @@ class Through {
    * @param  boolean exists The exists value.
    * @return mixed          The pivot instance.
    */
-  _item(data, exists) {
+  _item(data, options) {
     var name = this._through;
     var parent = this._parent;
     var relThrough = this._parent.schema().relation(name);
     var through = relThrough.to();
     var id = this._parent.id();
-    var item = through.create(id != null ? relThrough.match(this._parent) : {}, { exists: exists });
-    item.set(this._using, data, exists);
+    var item = through.create(id != null ? relThrough.match(this._parent) : {}, options);
+    item.setAt(this._using, data, options);
     return item;
   }
 
@@ -369,13 +385,14 @@ class Through {
    * @return self
    */
   amend(data, options) {
-    options = options || {};
     var name = this._through;
-    var exists = options.exists !== undefined ? options.exists : false;
-    for (var value of data) {
-      var item = this._item(value, exists);
-      this._parent.get(name).push(item, exists);
-      item.amend();
+    if (data && data.length) {
+      options = options || {};
+      for (var value of data) {
+        var item = this._item(value, options);
+        this._parent.get(name).setAt(undefined, item, options);
+        item.amend();
+      }
     }
     this._parent.get(name).amend();
     return this;

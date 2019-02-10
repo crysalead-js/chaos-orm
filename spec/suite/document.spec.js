@@ -374,7 +374,7 @@ describe("Document", function() {
 
     it("casts array of custom objects according JSON casting handlers", function() {
 
-      class Event extends Model {
+      class Event extends Document {
         static _define(schema) {
           schema.column('from', { type: 'string' });
           schema.column('to', { type: 'string' });
@@ -981,6 +981,32 @@ describe("Document", function() {
       document.amend();
       expect(document.modified('title')).toBe(false);
       expect(document.get('title')).toBe('modified');
+
+    });
+
+    it("amends passed data", function() {
+
+      var schema = new Schema();
+      schema.column('data', { type: 'object' });
+      schema.column('data.*', { type: 'object' });
+      schema.column('data.*.count', { type: 'integer' });
+      schema.column('data.*.value', { type: 'integer' });
+
+      var document = new Document({ schema: schema });
+      document.set('data', {
+        'test': { count: 5, value: 5 }
+      });
+      expect(document.get('data.test.count')).toBe(5);
+
+      document.amend({
+        data: {
+          'test': {
+            count: 10, value: 10
+          }
+        }
+      });
+
+      expect(document.get('data.test.count')).toBe(10);
 
     });
 

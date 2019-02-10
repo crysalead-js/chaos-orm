@@ -137,6 +137,25 @@ describe("Model", function() {
 
     });
 
+    it("creates an entity of a different class", function() {
+
+      class MyModel extends Model {
+        static _define(schema) {
+          schema.lock(false);
+        }
+      }
+
+      class MySubModel extends MyModel {
+        static _define(schema) {
+          schema.lock(false);
+        }
+      }
+      var entity = MyModel.create({}, { class: MySubModel });
+
+      expect(entity).toBeAnInstanceOf(MySubModel);
+
+    });
+
     it("creates an entity using a custom collection class", function() {
 
       class MyModel extends Model {

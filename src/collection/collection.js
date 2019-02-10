@@ -118,9 +118,8 @@ class Collection {
     if (!config.data || !config.data.length) {
       config.data = [];
     }
-
     this._triggerEnabled = false;
-    this.amend(config.data, { exists : config.exists});
+    this.amend(config.data, { exists : config.exists });
     this._triggerEnabled = true;
   }
 
@@ -295,7 +294,20 @@ class Collection {
    * @param  Boolean exists Define existence mode of related data
    * @return mixed          Returns `this`.
    */
-  set(offset, data, exists) {
+  set(offset, data) {
+    return this.setAt(offset, data);
+  }
+
+  /**
+   * Sets data inside the `Collection` instance.
+   *
+   * @param  mixed  offset  The offset.
+   * @param  mixed  data    The entity object or data to set.
+   * @param  Object options Method options:
+   *                        - `'exists'` _boolean_: Determines whether or not this entity exists
+   * @return mixed          Returns `this`.
+   */
+  setAt(offset, data, options) {
     var keys = Array.isArray(offset) ? offset : (offset !== undefined ? dotpath(offset) : []);
     var name = keys.shift();
 
@@ -303,13 +315,13 @@ class Collection {
       if (this._data[name] === undefined) {
         throw new Error("Missing index `" + name + "` for collection.");
       }
-      this._data[name].set(keys, data);
+      this._data[name].setAt(keys, data, options);
       return this;
     }
 
     if (this.schema()) {
       data = this.schema().cast(undefined, data, {
-        exists: exists,
+        exists: options ? options.exists : undefined,
         parent: this,
         basePath: this.basePath(),
         defaults: true
@@ -371,11 +383,10 @@ class Collection {
    * Adds data into the `Collection` instance.
    *
    * @param  mixed   data   The entity object to add.
-   * @param  Boolean exists Define existence mode of added data.
    * @return mixed          Returns the set `Entity` object.
    */
-  push(data, exists) {
-    this.set(undefined, data, exists);
+  push(data) {
+    this.setAt(undefined, data);
     return this;
   }
 
@@ -462,8 +473,8 @@ class Collection {
       var options = options || {};
       var count = this.length;
       for (var i = 0, len = data.length; i < len; i++) {
-        if (!this.has(i) || !this.get(i).amend) {
-          this.set(i, data[i], options.exists !== undefined ? options.exists : false);
+        if (!this.has(i)) {
+          this.setAt(i, data[i], options);
         } else {
           this.get(i).amend(data[i], options);
         }
