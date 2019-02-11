@@ -1226,14 +1226,15 @@ class Schema {
       return this.convert(mode, '_default_', data, {});
     }
     var column = this._columns.get(name);
-    var type = data === null ? 'null' : this.type(name);
+    var isNull = data === null;
+    var type = isNull ? 'null' : this.type(name);
 
     if (!column.array) {
       data = this.convert(mode, type, data, column);
     } else {
       data = Collection.format(mode, data);
     }
-    if (column.format) {
+    if (!isNull && column.format) {
       data = this.convert(mode, column.format, data, column);
     }
     return data;

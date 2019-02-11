@@ -906,6 +906,9 @@ describe("Document", function() {
 
         this.schema = new Schema();
 
+        this.schema.formatter('datasource', 'null', function(value, options) {
+          return '';
+        });
         this.schema.formatter('datasource', 'json', function(value, options) {
           if (value && value.data) {
             value = value.data();
@@ -924,7 +927,7 @@ describe("Document", function() {
         });
         this.schema.column('timeSheet.*', { type: 'integer' });
 
-        var document = new Document({schema: this.schema});
+        var document = new Document({ schema: this.schema });
         document.set('timeSheet', '{"1":8,"2":8,"3":8,"4":8,"5":8,"6":8,"7":8}');
         expect(document.get('timeSheet').data()).toEqual({ '1': 8, '2': 8, '3': 8, '4': 8, '5': 8, '6': 8, '7': 8 });
         expect(document.to('datasource')).toEqual({ timeSheet: '{"1":8,"2":8,"3":8,"4":8,"5":8,"6":8,"7":8}' });
@@ -932,11 +935,11 @@ describe("Document", function() {
 
       });
 
-      it("casts array according JSON casting handlers", function() {
+      it("formats array according JSON casting handlers", function() {
 
         this.schema.column('weekend', { type: 'integer', array: true, format: 'json', default: '[6,7]' });
 
-        var document = new Document({schema: this.schema});
+        var document = new Document({ schema: this.schema });
         document.set('weekend', '[1,2]');
         expect(document.get('weekend')).toBeAnInstanceOf(Collection);
         expect(document.get('weekend').data()).toEqual([1, 2]);
@@ -945,7 +948,17 @@ describe("Document", function() {
 
       });
 
-      it("casts according some custom format", function() {
+      it("ignores the format option for `null` values", function() {
+
+        this.schema.column('data', { type: 'object', format: 'json' });
+        var document = new Document({ schema: this.schema });
+        document.set('data', null);
+        expect(document.get('data')).toBe(null);
+        expect(document.to('datasource')).toEqual({ data: '' });
+
+      });
+
+      it("formats column default value according casting handlers", function() {
 
         this.schema.column('timeSheet', {
           type: 'object',
@@ -954,7 +967,7 @@ describe("Document", function() {
         });
         this.schema.column('timeSheet.*', { type: 'integer' });
 
-        var document = new Document({schema: this.schema});
+        var document = new Document({ schema: this.schema });
         expect(document.get('timeSheet.1')).toEqual(null);
 
       });
