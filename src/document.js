@@ -280,9 +280,9 @@ class Document {
      */
     this._watches = new Map();
 
-    this._emit = throttle(function(type, value, mode) {
-      this.emit(type, value, mode);
-    }, 10);
+    this._emit = throttle(function(type) {
+      this.emit(type);
+    }, 50);
 
     /**
      * If this instance has a parent, this value indicates the parent field path.
@@ -301,8 +301,7 @@ class Document {
     if (typeof data !== 'object' || data.constructor !== Object) {
       throw new Error("The `'data'` option need to be a valid plain object.");
     }
-    this._triggerEnabled = false;
-    this.amend(data, { exists : config.exists });
+    this.amend(data, { exists : config.exists, noevent: true });
     this._triggerEnabled = true;
   }
 
@@ -613,10 +612,7 @@ class Document {
       previous.unsetParent(this);
     }
     this._applyWatch(name);
-
-    if (!options || !options.init) {
-      this.trigger('modified', this, true);
-    }
+    this.trigger('modified');
     return this;
   }
 
@@ -624,11 +620,9 @@ class Document {
    * Trigger an event through the graph.
    *
    * @param String type   The type of event.
-   * @param mixed  value  The modified data.
-   * @param String mode   The modification type.
    * @param Map    ignore The ignore Map.
    */
-  trigger(type, value, mode, ignore) {
+  trigger(type, ignore) {
     if (!this._triggerEnabled) {
       return;
     }
@@ -640,10 +634,10 @@ class Document {
     ignore.set(this, true);
 
     for (var [parent, field] of this._parents) {
-      parent.trigger(type, value, mode, ignore);
+      parent.trigger(type, ignore);
     }
     if (Document.emitEnabled) {
-      this._emit('modified', value, mode);
+      this._emit('modified');
     }
   }
 
@@ -674,7 +668,7 @@ class Document {
     }
 
     var handler = (path) => {
-      if (keys.every(function(value, i) {
+      if (!keys.length || keys.every(function(value, i) {
         return path[i] !== undefined && value === path[i];
       })) {
         closure(path);
@@ -773,7 +767,7 @@ class Document {
     this._applyWatch(name);
     if (this._data[name] !== undefined) {
       delete this._data[name];
-      this.trigger('modified', value, false);
+      this.trigger('modified');
     }
     return this;
   }
@@ -905,18 +899,22 @@ class Document {
 
     data = data instanceof Document ? data.get() : data;
 
-    if (options.rebuild) {
-      this._data = {};
-    }
+    var isModified = false;
 
+    this._triggerEnabled = false;
     for (key in data) {
-      if (this.has(key) && schema.hasRelation(key, false)) {
+      // Not sure if overwrite is really necessary but keep it now for now
+      if (this.has(key) && schema.hasRelation(key, false) && !options.overwrite) {
         this.get(key).amend(data[key], options);
       } else {
         this.setAt(key, data[key], options);
+        if (this._original[key] !== this._data[key]) {
+          isModified = true;
+        }
       }
       delete this._original[key];
     }
+    this._triggerEnabled = true;
 
     // Populate amending to children
     var fields = Object.keys(this._original);
@@ -928,11 +926,14 @@ class Document {
       }
       var value = this._original[key];
       if (value && typeof value.amend === 'function') {
-        value.amend();
+        value.amend(null, options);
       }
     }
 
     this._original = extend({}, this._data);
+    if (isModified && !options.noevent) {
+      this.trigger('modified');
+    }
     return this;
   }
 

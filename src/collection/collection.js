@@ -104,9 +104,9 @@ class Collection {
      */
     this._parents = new Map();
 
-    this._emit = throttle(function(type, value, mode) {
-      this.emit(type, value, mode);
-    }, 10);
+    this._emit = throttle(function(type) {
+      this.emit(type);
+    }, 50);
 
     this.basePath(config.basePath);
 
@@ -118,8 +118,7 @@ class Collection {
     if (!config.data || !config.data.length) {
       config.data = [];
     }
-    this._triggerEnabled = false;
-    this.amend(config.data, { exists : config.exists });
+    this.amend(config.data, { exists : config.exists, noevent: true });
     this._triggerEnabled = true;
   }
 
@@ -347,7 +346,7 @@ class Collection {
       data.setParent(this, name);
     }
     this._modified = true;
-    this.trigger('modified', data, true);
+    this.trigger('modified');
     return this;
   }
 
@@ -355,11 +354,9 @@ class Collection {
    * Trigger an event through the graph.
    *
    * @param String type   The type of event.
-   * @param mixed  value  The modified data.
-   * @param String mode   The modification type.
    * @param Map    ignore The ignore Map.
    */
-  trigger(type, value, mode, ignore) {
+  trigger(type, ignore) {
     if (!this._triggerEnabled) {
       return;
     }
@@ -371,11 +368,11 @@ class Collection {
     ignore.set(this, true);
 
     for (var [parent, field] of this.parents()) {
-      parent.trigger(type, value, mode, ignore);
+      parent.trigger(type, ignore);
     }
 
     if (Collection._classes.document.emitEnabled) {
-      this._emit('modified', value, mode);
+      this._emit('modified');
     }
   }
 
@@ -435,7 +432,7 @@ class Collection {
       value.unsetParent(this);
     }
     this._modified = true;
-    this.trigger('modified', value, false);
+    this.trigger('modified');
   }
 
   /**
@@ -472,15 +469,25 @@ class Collection {
     if (data && data.length) {
       var options = options || {};
       var count = this.length;
+      var isModified = false;
+
+      this._triggerEnabled = false;
       for (var i = 0, len = data.length; i < len; i++) {
         if (!this.has(i)) {
           this.setAt(i, data[i], options);
+          isModified = true;
         } else {
           this.get(i).amend(data[i], options);
         }
       }
       for (var j = data.length; j < count; j++) {
         this.unset(j);
+        isModified = true;
+      }
+      this._triggerEnabled = true;
+
+      if (isModified && !options.noevent) {
+        this.trigger('modified');
       }
     }
     this._original = this._data.slice();
@@ -495,12 +502,15 @@ class Collection {
    *
    * @return Object               Return the merged collection.
    */
-  append(collection) {
-
+  append(collection, options) {
+    this._triggerEnabled = false;
     collection.forEach((value) => {
       this.push(value);
     });
-
+    this._triggerEnabled = true;
+    if (!options || !options.noevent) {
+      this.trigger('modified');
+    }
     return this;
   }
 
