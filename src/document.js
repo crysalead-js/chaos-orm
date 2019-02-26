@@ -252,6 +252,13 @@ class Document {
     this._data = {};
 
     /**
+     * Contains the getters.
+     *
+     * @var Object
+     */
+    this._getters = {};
+
+    /**
      * Loaded data on construct.
      *
      * @var Object
@@ -302,6 +309,15 @@ class Document {
       throw new Error("The `'data'` option need to be a valid plain object.");
     }
     this.amend(data, { exists : config.exists, noevent: true });
+
+    for (var value of this.schema().columns()) {
+      var key = Object.keys(value)[0];
+      var column = value[key];
+      if (typeof column.getter === 'function' ) {
+        this._getters[key] = column.getter;
+      }
+    }
+
     this._triggerEnabled = true;
   }
 
@@ -417,6 +433,13 @@ class Document {
       }
       return result;
     }
+
+    if (this._data[name] !== undefined) {
+      if (!this._getters[name]) {
+        return this._data[name];
+      }
+    }
+
     var keys = Array.isArray(name) ? name.slice() : dotpath(name);
     name = keys.shift();
     if (name == null || name === '') {

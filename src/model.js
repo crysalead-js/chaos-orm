@@ -249,6 +249,8 @@ class Model extends Document {
 
     super(config);
 
+    this._key = undefined;
+
     if (this._exists !== true) {
       return;
     }
@@ -264,11 +266,11 @@ class Model extends Document {
    * @return mixed     The primary key value.
    */
   id() {
-    var key = this.schema().key();
-    if (!key) {
+    this._key = this._key || this.schema().key();
+    if (!this._key) {
       throw new Error("No primary key has been defined for `" + this.constructor.name + "`'s schema.");
     }
-    return this.get(key);
+    return this.get(this._key);
   }
 
   /**

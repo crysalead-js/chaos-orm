@@ -971,7 +971,7 @@ class Schema {
     }
 
     if (this.locked()) {
-      return data;
+      return undefined;
     }
 
     options.class = Document;
