@@ -900,6 +900,29 @@ describe("Document", function() {
 
     });
 
+    it("exports generic relations", function() {
+
+      schema = new Schema();
+      schema.column('data', { type: 'object', default: {} });
+      schema.column('data.*', { type: 'object', array: true, default: [] });
+      schema.column('data.*.count', { type: 'integer' });
+      schema.column('data.*.value', { type: 'integer' });
+
+      var document = new Document({ schema: schema });
+      var data = {
+        '2': [{ count: '09', value: 5 }]
+      };
+      document.set({ data: data });
+      expect(document.data()).toEqual({
+        data: {
+          '2': [
+            { count: 9, value: 5 }
+          ]
+        }
+      });
+
+    });
+
     context("with JSON formatter", function() {
 
       beforeEach(function() {
