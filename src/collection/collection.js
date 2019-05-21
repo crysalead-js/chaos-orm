@@ -471,9 +471,11 @@ class Collection {
       var count = this.length;
       var isModified = false;
 
+      var data = data instanceof Collection ? data.get() : data;
+
       this._triggerEnabled = false;
       for (var i = 0, len = data.length; i < len; i++) {
-        if (!this.has(i)) {
+        if (!this.has(i) || (data[i] && data[i].amend instanceof Function)) {
           this.setAt(i, data[i], options);
           isModified = true;
         } else {

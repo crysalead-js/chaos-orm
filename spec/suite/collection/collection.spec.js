@@ -652,6 +652,30 @@ describe("Collection", function() {
 
     });
 
+    it("doesn't try to amend an objects", function() {
+
+      var collection = Tag.create([
+        { name: 'music' },
+        { name: 'book' },
+        { name: 'travel' }
+      ], { type: 'set' });
+
+      var music = collection.get(0);
+
+      collection.amend(Tag.create([
+        { name: 'news' },
+        { name: 'sport' }
+      ], { type: 'set' }));
+
+      expect(collection.data()).toEqual([
+        { name: 'news' },
+        { name: 'sport' }
+      ]);
+
+      expect(music.data()).toEqual({ name: 'music' });
+
+    });
+
   });
 
   describe(".save()", function() {
