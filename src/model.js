@@ -153,7 +153,7 @@ class Model extends Document {
       var id = schema.cast(key, data[key]);
       if (id != null && shard.has(id)) {
         var instance = shard.get(id);
-        instance.amend(data, { exists: options.exists, overwrite: true });
+        instance.amend(data, { exists: options.exists });
         return instance;
       }
     }

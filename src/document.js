@@ -926,14 +926,9 @@ class Document {
 
     this._triggerEnabled = false;
     for (key in data) {
-      // Not sure if overwrite is really necessary but keep it now for now
-      if (this.has(key) && schema.hasRelation(key, false) && !options.overwrite) {
-        this.get(key).amend(data[key], options);
-      } else {
-        this.setAt(key, data[key], options);
-        if (this._original[key] !== this._data[key]) {
-          isModified = true;
-        }
+      this.setAt(key, data[key], options);
+      if (this._original[key] !== this._data[key]) {
+        isModified = true;
       }
       delete this._original[key];
     }

@@ -38,7 +38,6 @@ class Collection {
       schema: undefined,
       meta: {},
       data: [],
-      exists: false,
       index: undefined
     };
 
@@ -65,15 +64,6 @@ class Collection {
      * @var Object
      */
     this._schema = undefined;
-
-    /**
-     * Cached value indicating whether or not this instance exists somehow. If this instance has been loaded
-     * from the database, or has been created and subsequently saved this value should be automatically
-     * setted to `true`.
-     *
-     * @var Boolean
-     */
-    this._exists = false;
 
     /**
      * Indicating whether or not this collection has been modified or not after creation.
@@ -118,7 +108,7 @@ class Collection {
     if (!config.data || !config.data.length) {
       config.data = [];
     }
-    this.amend(config.data, { exists : config.exists, noevent: true });
+    this.amend(config.data, { exists: config.exists, noevent: true });
     this._triggerEnabled = true;
   }
 
@@ -475,12 +465,8 @@ class Collection {
 
       this._triggerEnabled = false;
       for (var i = 0, len = data.length; i < len; i++) {
-        if (!this.has(i) || (data[i] && data[i].amend instanceof Function)) {
-          this.setAt(i, data[i], options);
-          isModified = true;
-        } else {
-          this.get(i).amend(data[i], options);
-        }
+        this.setAt(i, data[i], options);
+        isModified = true;
       }
       for (var j = data.length; j < count; j++) {
         this.unset(j);
