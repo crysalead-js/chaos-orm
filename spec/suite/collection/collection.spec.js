@@ -401,6 +401,17 @@ describe("Collection", function() {
 
     });
 
+    it("unsets undefined values", function() {
+
+      var collection = new Collection({ data: [undefined, null] });
+      collection.unset(0);
+      collection.unset(0);
+
+      expect(collection.count()).toBe(0);
+      expect(collection.data()).toEqual([]);
+
+    });
+
     it("unsets items using a dotted notation", function() {
 
       var collection = MyModel.create([
@@ -411,6 +422,20 @@ describe("Collection", function() {
       collection.unset('1.name');
 
       expect(collection.has('0.name')).toBe(true);
+      expect(collection.has('1.name')).toBe(false);
+
+    });
+
+    it("unsets undefined items using a dotted notation", function() {
+
+      var collection = MyModel.create([
+        { name: undefined },
+        { name: null }
+      ], {type: 'set'});
+
+      collection.unset('1.name');
+
+      expect(collection.has('0.name')).toBe(false);
       expect(collection.has('1.name')).toBe(false);
 
     });

@@ -392,7 +392,7 @@ class Collection {
     var name = keys.shift();
     if (keys.length) {
       var value = this._data[name];
-      return typeof value.has === 'function' ? value.has(keys) : false;
+      return value && typeof value.has === 'function' ? value.has(keys) : false;
     }
     return this._data[name] !== undefined;
   }
@@ -411,14 +411,14 @@ class Collection {
     var name = keys.shift();
     if (keys.length) {
       var value = this._data[name];
-      if (typeof value.unset === 'function') {
+      if (value && typeof value.unset === 'function') {
         value.unset(keys);
       }
       return;
     }
     var value = this._data[name];
     this._data.splice(name, 1);
-    if (typeof value.unsetParent === 'function') {
+    if (value && typeof value.unsetParent === 'function') {
       value.unsetParent(this);
     }
     this._modified = true;
@@ -442,7 +442,7 @@ class Collection {
 
     while (index < len) {
       var entity = this._data[index];
-      if (typeof entity.modified === 'function' && entity.modified(options)) {
+      if (entity && typeof entity.modified === 'function' && entity.modified(options)) {
         return true;
       }
       index++;
