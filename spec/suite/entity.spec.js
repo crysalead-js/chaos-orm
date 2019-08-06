@@ -1212,6 +1212,42 @@ describe("Entity", function() {
 
     });
 
+    it("invalidates a belongsTo nested entity", function() {
+
+      var image = Image.create();
+      image.set('gallery', Gallery.create());
+
+      image.invalidate({
+        name: ['is required'],
+        gallery: {
+          name: ['is required']
+        }
+      });
+
+      expect(image.get('gallery').errors()).toEqual({
+        name: ['is required']
+      });
+
+    });
+
+    it("doesn't invalidate embedded document", function() {
+
+      var schema = MyModel.definition();
+      schema.column('id', { type: 'serial' });
+      schema.column('timeSheet', { type: 'object', default: {} });
+
+      var entity = MyModel.create();
+
+      entity.invalidate({
+        timeSheet: ['is invalid']
+      });
+
+      expect(entity.errors()).toEqual({
+        timeSheet: ['is invalid']
+      });
+
+    });
+
   });
 
   describe(".save()", function() {

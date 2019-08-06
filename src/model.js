@@ -526,7 +526,7 @@ class Model extends Document {
 
     if (arguments.length === 1) {
       for (var name in field) {
-        if (schema.hasRelation(name) && this.has(name)) {
+        if (schema.hasRelation(name) && this.has(name) && this.get(name) instanceof Model) {
           this.get(name).invalidate(field[name]);
         } else {
           this.invalidate(name, field[name]);
