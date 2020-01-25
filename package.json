@@ -1,6 +1,6 @@
 {
   "name": "chaos-orm",
-  "version": "16.0.1",
+  "version": "16.0.2",
   "description": "Datastore Agnostic Model Layer",
   "license": "MIT",
   "repository": {
@@ -14,27 +14,27 @@
   "dependencies": {
     "camel-case": "^3.0.0",
     "chaos-validator": "^4.0",
-    "co": "^4.6.0",
-    "component-emitter": "^1.3.0",
-    "dateformat": "^3.0.3",
+    "co": "4.6.0",
+    "component-emitter": "1.3.0",
+    "dateformat": "3.0.3",
     "dateparse": "0.0.1",
     "dotpath-parser": "0.0.2",
-    "expand-flatten": "^1.0.2",
-    "extend-merge": "^1.0.5",
-    "intersect": "^1.0.1",
-    "pascal-case": "^2.0.1",
-    "pluralize": "^8.0.0",
-    "snake-case": "^2.1.0",
-    "throttleit": "^1.0.0",
-    "uuid": "^3.3.2"
+    "expand-flatten": "1.0.2",
+    "extend-merge": "1.0.5",
+    "intersect": "1.0.1",
+    "pascal-case": "2.0.1",
+    "pluralize": "8.0.0",
+    "snake-case": "2.1.0",
+    "throttleit": "1.0.0",
+    "uuid": "3.3.2"
   },
   "devDependencies": {
     "bluebird": "^3.5.5",
     "chai-kahlan": "^2.0.0",
     "coveralls": "^3.0.5",
     "jasmine-kahlan": "^1.0.2",
-    "mocha": "^6.2.0",
-    "nyc": "^14.1.1"
+    "mocha": "^7.0.0",
+    "nyc": "^15.0.0"
   },
   "scripts": {
     "coverage-report": "nyc --reporter=lcov mocha",
