@@ -51,6 +51,8 @@ class Source {
     this.formatter('cast', 'string',    handlers.cast['string']);
 
     this.formatter('datasource', 'object',    handlers.datasource['object']);
+    this.formatter('datasource', 'integer',   handlers.datasource['integer']);
+    this.formatter('datasource', 'float',     handlers.datasource['float']);
     this.formatter('datasource', 'date',      handlers.datasource['date']);
     this.formatter('datasource', 'datetime',  handlers.datasource['datetime']);
     this.formatter('datasource', 'boolean',   handlers.datasource['boolean']);
@@ -162,6 +164,12 @@ class Source {
         },
         'string': function(value, column) {
           return String(value);
+        },
+        'integer': function(value, column) {
+          return Number.parseInt(value, 10);
+        },
+        'float': function(value, column) {
+          return Number.parseFloat(value);
         },
         'date': function(value, column) {
           column = column || {};

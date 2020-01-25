@@ -51,8 +51,8 @@ describe("Source", function() {
 
     it("formats according default `'datasource'` handlers", function() {
 
-      expect(this.source.convert('datasource', 'integer', 123)).toBe('123');
-      expect(this.source.convert('datasource', 'float', 12.3)).toBe('12.3');
+      expect(this.source.convert('datasource', 'integer', 123)).toBe(123);
+      expect(this.source.convert('datasource', 'float', 12.3)).toBe(12.3);
       expect(this.source.convert('datasource', 'decimal', 12.3)).toBe('12.3');
       var date = new Date('2014-11-21');
       expect(this.source.convert('datasource', 'date', date)).toBe('2014-11-21');

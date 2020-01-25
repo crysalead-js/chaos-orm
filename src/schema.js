@@ -1458,7 +1458,7 @@ class Schema {
       var collection = instance.forEach instanceof Function ? instance : [instance];
       var key = this.key();
       if (!key) {
-        throw new Error("No primary key has been defined for `" + instance.self().name + "`'s schema.");
+        throw new Error("No primary key has been defined for `" + (instance.self().name) + "`'s schema.");
       }
       var keys = [];
 
