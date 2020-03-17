@@ -7,6 +7,7 @@ var HasMany = require('../../../src/relationship/has-many');
 var Gallery = require('../../fixture/model/gallery');
 var Image = require('../../fixture/model/image');
 var ImageTag = require('../../fixture/model/image-tag');
+var Tag = require('../../fixture/model/tag');
 
 describe("HasMany", function() {
 
@@ -92,6 +93,22 @@ describe("HasMany", function() {
         return Promise.resolve(images);
       });
 
+      spyOn(Tag, 'all').and.callFake(function(options, fetchOptions) {
+        fetchOptions = fetchOptions || {};
+        var tags =  Tag.create([
+          { id: 4, title: 'Computer' },
+          { id: 5, title: 'Science' },
+          { id: 6, title: 'Landscape' },
+          { id: 7, title: 'Sport' }
+        ], {
+          type: 'set', exists: true
+        });
+        if (fetchOptions['return'] && fetchOptions['return'] === 'object') {
+          return Promise.resolve(tags.data());
+        }
+        return Promise.resolve(tags);
+      });
+
     });
 
     it("embeds a hasMany relationship", function(done) {
@@ -109,6 +126,7 @@ describe("HasMany", function() {
         }, {});
 
         galleries.forEach(function(gallery) {
+          expect(gallery.get('images').length).not.toBe(0);
           gallery.get('images').forEach(function(image) {
             expect(image.get('gallery_id')).toBe(gallery.get('id'));
           });
@@ -137,9 +155,65 @@ describe("HasMany", function() {
         });
 
         galleries.forEach(function(gallery) {
+          expect(gallery.images.length).not.toBe(0);
           gallery.images.forEach(function(image) {
             expect(gallery.id).toBe(image.gallery_id);
             expect(image instanceof Model).toBe(false);
+          });
+        });
+        done();
+      });
+
+    });
+
+    it("embeds a hasMany LINK_KEY_LIST relationship", function(done) {
+
+      var hasMany = Gallery.definition().relation('images');
+
+      var galleries = Gallery.create([
+        { id: 1, name: 'Foo Gallery', tag_ids: [4, 5] },
+        { id: 2, name: 'Bar Gallery', tag_ids: [6, 7] }
+      ], { type: 'set', exists: true });
+
+      galleries.embed(['tags']).then(function() {
+        expect(Tag.all).toHaveBeenCalledWith({
+          conditions: { id: [4, 5, 6, 7] }
+        }, {});
+
+        galleries.forEach(function(gallery) {
+          expect(gallery.get('tags').length).not.toBe(0);
+          gallery.get('tags').forEach(function(tag) {
+            expect(gallery.get('tag_ids').get()).toContain(tag.id());
+          });
+        });
+        done();
+      });
+
+    });
+
+    it("embeds a hasMany LINK_KEY_LIST relationship using object hydration", function(done) {
+
+      var hasMany = Gallery.definition().relation('tags');
+
+      var galleries = Gallery.create([
+        { id: 1, name: 'Foo Gallery', tag_ids: [4, 5] },
+        { id: 2, name: 'Bar Gallery', tag_ids: [6, 7] }
+      ], { type: 'set', exists: true });
+
+      galleries = galleries.data();
+
+      hasMany.embed(galleries, { fetchOptions: { 'return': 'object' } }).then(function() {
+        expect(Tag.all).toHaveBeenCalledWith({
+          conditions: { id: [4, 5, 6, 7] }
+        }, {
+          'return': 'object'
+        });
+
+        galleries.forEach(function(gallery) {
+          expect(gallery.tags.length).not.toBe(0);
+          gallery.tags.forEach(function(tag) {
+            expect(gallery.tag_ids).toContain(tag.id);
+            expect(tag instanceof Model).toBe(false);
           });
         });
         done();

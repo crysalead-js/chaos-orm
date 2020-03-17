@@ -397,7 +397,7 @@ class Relationship {
     var fetchOptions = options.fetchOptions;
     delete options.fetchOptions;
 
-    if (this.link() !== this.constructor.LINK_KEY) {
+    if (this.link().substring(0, 3) !== 'key') {
       throw new Error("This relation is not based on a foreign key.");
     }
     var to = this.to();
@@ -445,12 +445,25 @@ class Relationship {
    */
   _index(collection, name) {
     var indexes = {}, value;
-    collection.forEach(function(entity, i) {
-      value = entity instanceof Model ? entity.get(name) : entity[name];
-      if (value != null) {
-        indexes[String(value)] = i;
-      }
-    });
+    if (this.link() === Relationship.LINK_KEY) {
+      collection.forEach(function(entity, i) {
+        value = entity instanceof Model ? entity.get(name) : entity[name];
+        if (value != null) {
+          indexes[String(value)] = i;
+        }
+      });
+    } else if(this.link() === Relationship.LINK_KEY_LIST) {
+      collection.forEach(function(entity, i) {
+        value = entity instanceof Model ? entity.get(name) : entity[name];
+        if (value != null) {
+          for (var v of value) {
+            indexes[String(v)] = i;
+          }
+        }
+      });
+    } else {
+      throw new Error("This relation is not based on a foreign key.");
+    }
     return indexes;
   }
 
