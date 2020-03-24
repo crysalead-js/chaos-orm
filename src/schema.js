@@ -725,11 +725,15 @@ class Schema {
       config.type = 'through';
       this._relations[config.through].junction = true;
     } else if (config.relation === 'belongsTo' && config.link === relationship.LINK_KEY) {
-      var fieldName = this.conventions().apply('reference', name);
-      this.column(fieldName, { type: 'id', array: false, null: !!config.null });
+      var fieldName = config.keys && Object.keys(config.keys)[0] ? Object.keys(config.keys)[0] : this.conventions().apply('reference', name);
+      if (!this._columns.has(fieldName)) {
+        this.column(fieldName, { type: 'id', array: false, null: !!config.null });
+      }
     } else if (config.relation === 'hasMany' && config.link === relationship.LINK_KEY_LIST) {
-      var fieldName = this.conventions().apply('references', name);
-      this.column(fieldName, { type: 'id', array: true });
+      var fieldName = config.keys && Object.keys(config.keys)[0] ? Object.keys(config.keys)[0] : this.conventions().apply('references', name);
+      if (!this._columns.has(fieldName)) {
+        this.column(fieldName, { type: 'id', array: true });
+      }
     }
 
     this._relations[name] = config;

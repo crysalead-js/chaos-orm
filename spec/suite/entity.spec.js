@@ -355,7 +355,7 @@ describe("Entity", function() {
 
       expect(image.get('gallery_id')).toBe(1);
       expect(image.get('gallery') instanceof Gallery).toBe(true);
-      expect(image.get('gallery').data()).toEqual({ id: 1, name: 'MyGallery' });
+      expect(image.get('gallery').data()).toEqual({ id: 1, name: 'MyGallery', tag_ids: [] });
 
     });
 
@@ -1447,13 +1447,13 @@ describe("Entity", function() {
           { tag_id: null, tag: { name: 'Science' } }
         ],
         gallery_id: null,
-        gallery: { name: 'Gallery 1' }
+        gallery: { name: 'Gallery 1', tag_ids: [] }
       });
 
       expect(image.to('array', { embed: ['gallery'] })).toEqual({
         title: 'Amiga 1200',
         gallery_id: null,
-        gallery: { name: 'Gallery 1' }
+        gallery: { name: 'Gallery 1', tag_ids: [] }
       });
 
       expect(image.to('array', { embed: false })).toEqual({

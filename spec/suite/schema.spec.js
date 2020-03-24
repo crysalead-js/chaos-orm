@@ -717,7 +717,29 @@ describe("Schema", function() {
 
   describe(".bind()", function() {
 
-    it("binds a `belongsTo` relation", function() {
+    it("binds a `belongsTo` relation with default foreign key naming", function() {
+
+      expect(this.schema.hasRelation('parent')).toBe(false);
+
+      this.schema.bind('parent', {
+        relation: 'belongsTo',
+        to: Image
+      });
+
+      expect(this.schema.hasRelation('parent')).toBe(true);
+
+      var foreignKey = this.schema.conventions().apply('reference', 'parent');
+
+      var column = this.schema.column(foreignKey);
+      expect(column).toEqual({
+        type: 'id',
+        array: false,
+        null: false
+      });
+
+    });
+
+    it("binds a `belongsTo` relation with custom foreign key naming", function() {
 
       expect(this.schema.hasRelation('parent')).toBe(false);
 
@@ -729,9 +751,7 @@ describe("Schema", function() {
 
       expect(this.schema.hasRelation('parent')).toBe(true);
 
-      var foreignKey = this.schema.conventions().apply('reference', 'parent');
-
-      var column = this.schema.column(foreignKey);
+      var column = this.schema.column('image_id');
       expect(column).toEqual({
         type: 'id',
         array: false,
