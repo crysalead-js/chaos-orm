@@ -1,8 +1,6 @@
 var extend = require('extend-merge').extend;
 var merge = require('extend-merge').merge;
-var camelize = require('camel-case');
-var pascalize = require('pascal-case');
-var underscore = require('snake-case');
+var underscore = require('snake-case').snakeCase;
 var inflector = require('pluralize');
 
 class Conventions {
