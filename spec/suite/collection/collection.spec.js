@@ -701,6 +701,20 @@ describe("Collection", function() {
 
     });
 
+    it("amends a collection with an empty array", function() {
+
+      var collection = Tag.create([
+        { name: 'music' },
+        { name: 'book' },
+        { name: 'travel' }
+      ], { type: 'set' });
+
+      collection.amend([]);
+
+      expect(collection.data()).toEqual([]);
+
+    });
+
   });
 
   describe(".save()", function() {

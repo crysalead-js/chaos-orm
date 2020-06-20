@@ -456,7 +456,7 @@ class Collection {
    * @return self
    */
   amend(data, options) {
-    if (data && data.length) {
+    if (data && data.length !== undefined) {
       var options = options || {};
       var count = this.length;
       var isModified = false;
@@ -464,12 +464,13 @@ class Collection {
       var data = data instanceof Collection ? data.get() : data;
 
       this._triggerEnabled = false;
-      for (var i = 0, len = data.length; i < len; i++) {
+      var len = data.length
+      for (var i = 0; i < len; i++) {
         this.setAt(i, data[i], options);
         isModified = true;
       }
-      for (var j = data.length; j < count; j++) {
-        this.unset(j);
+      for (var j = len; j < count; j++) {
+        this.unset(len);
         isModified = true;
       }
       this._triggerEnabled = true;
