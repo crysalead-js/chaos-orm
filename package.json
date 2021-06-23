@@ -1,6 +1,6 @@
 {
   "name": "chaos-orm",
-  "version": "17.0.1",
+  "version": "18.0.0",
   "description": "Datastore Agnostic Model Layer",
   "license": "MIT",
   "repository": {
@@ -15,23 +15,23 @@
     "chaos-validator": "^4.0",
     "co": "4.6.0",
     "component-emitter": "1.3.0",
-    "dateformat": "3.0.3",
+    "dateformat": "4.5.1",
     "dateparse": "0.0.1",
     "dotpath-parser": "0.0.2",
     "expand-flatten": "1.0.2",
-    "extend-merge": "1.0.5",
+    "extend-merge": "1.0.6",
     "intersect": "1.0.1",
     "pluralize": "8.0.0",
-    "snake-case": "3.0.3",
+    "snake-case": "3.0.4",
     "throttleit": "1.0.0"
   },
   "devDependencies": {
     "bluebird": "^3.7.2",
     "chai-kahlan": "^2.0.0",
-    "coveralls": "^3.0.11",
+    "coveralls": "^3.1.0",
     "jasmine-kahlan": "^1.0.2",
-    "mocha": "^7.1.1",
-    "nyc": "^15.0.0"
+    "mocha": "^9.0.1",
+    "nyc": "^15.1.0"
   },
   "scripts": {
     "coverage-report": "nyc --reporter=lcov mocha",
