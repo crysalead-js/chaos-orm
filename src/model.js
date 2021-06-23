@@ -146,7 +146,7 @@ class Model extends Document {
     var classname = options.class;
 
     if (type === 'entity' && options.exists !== false && classname.unicity()) {
-      data = data || {};
+      data = data || {};
       var schema = classname.definition();
       var shard = classname.shard();
       var key = classname.definition().key();
@@ -399,12 +399,20 @@ class Model extends Document {
       };
       options = extend({}, defaults, options);
       if (options.validate) {
-        var valid = yield this.validates(options);
+        var valid = yield this.validates(extend({}, options, { embed: false }));
         if (!valid) {
+          yield this._validates({ embed: options.embed });
           return false;
         }
+      } else {
+        this.sync();
+        this._errors = {};
       }
-      return yield this.schema().save(this, options);
+      if (!(yield this.schema().save(this, options))) {
+        yield this._validates({ embed: options.embed });
+        return false;
+      }
+      return true;
     }.bind(this));
   }
 
@@ -468,13 +476,14 @@ class Model extends Document {
         events: exists ? 'update' : 'create',
         required: exists ? false : true,
         entity: this,
-        embed: true
+        embed: false
       };
       options = extend({}, defaults, options);
       var validator = this.constructor.validator();
-      var valid = yield this._validates({ embed: options.embed });
 
       var success = yield validator.validates(this.get(), options);
+      var valid = yield this._validates({ embed: options.embed });
+
       this._errors = {};
       this.invalidate(validator.errors());
       return success && valid;
@@ -521,7 +530,7 @@ class Model extends Document {
    * @return self
    */
   invalidate(field, errors) {
-    errors = errors || {};
+    errors = errors || {};
     var schema = this.schema();
 
     if (arguments.length === 1) {

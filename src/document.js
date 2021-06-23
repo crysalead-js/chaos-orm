@@ -1102,7 +1102,7 @@ class Document {
 
       var value = this.get(field);
 
-      if (value instanceof Document || (value && value.forEach instanceof Function)) {
+      if (value instanceof Document || (value && value.forEach instanceof Function)) {
         options.basePath = value.basePath();
         if (schema.has(path)) {
           result[field] = schema.format(format, path, value);

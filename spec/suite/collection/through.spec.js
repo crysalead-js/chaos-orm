@@ -568,7 +568,7 @@ describe("Through", function() {
         image.get('tags').push(Tag.create());
         image.get('tags').push(Tag.create());
 
-        expect(yield image.validates()).toBe(false);
+        expect(yield image.validates({ embed:true })).toBe(false);
 
         expect(image.get('tags').errors()).toEqual([
           {

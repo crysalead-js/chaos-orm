@@ -1,6 +1,6 @@
 # chaos-orm
 
-[![Build Status](https://travis-ci.org/crysalead-js/chaos-orm.png?branch=master)](https://travis-ci.org/crysalead-js/chaos-orm)
+[![Build Status](https://travis-ci.com/crysalead-js/chaos-orm.png?branch=master)](https://travis-ci.com/crysalead-js/chaos-orm)
 [![Coverage Status](https://coveralls.io/repos/crysalead-js/chaos-orm/badge.svg)](https://coveralls.io/r/crysalead-js/chaos-orm)
 
 Chaos is an independent, persistence-agnostic layer responsible for defining entities' business logic and relationships. It allows to describe a [Domain Model](https://en.wikipedia.org/wiki/Domain_model) without any assumption about the persistence layer.

@@ -123,7 +123,6 @@ class HasMany extends Relationship {
       var indexes = this._index(previous, this.keys('from'));
       var result = true;
       var collection = entity.get(name);
-      var success = true;
 
       for (var item of collection) {
         yield item.sync();
@@ -131,8 +130,7 @@ class HasMany extends Relationship {
           existing[indexes[item.id()]] = true;
         }
         item.set(conditions);
-        var ok = yield item.save(options);
-        success = success && ok;
+        result = result && (yield item.save(options));
       }
 
       var junction = this.junction(), promises = [];
@@ -153,7 +151,7 @@ class HasMany extends Relationship {
         });
       }
       yield Promise.all(promises);
-
+      return result;
     }.bind(this));
   }
 }

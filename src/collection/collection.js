@@ -105,7 +105,7 @@ class Collection {
     this.meta(config.meta);
 
     // Ignore objects
-    if (!config.data || !config.data.length) {
+    if (!config.data || !config.data.length) {
       config.data = [];
     }
     this.amend(config.data, { exists: config.exists, noevent: true });
@@ -296,7 +296,7 @@ class Collection {
    *                        - `'exists'` _boolean_: Determines whether or not this entity exists
    * @return mixed          Returns `this`.
    */
-  setAt(offset, data, options) {
+  setAt(offset, data, options) {
     var keys = Array.isArray(offset) ? offset : (offset !== undefined ? dotpath(offset) : []);
     var name = keys.shift();
 
@@ -457,7 +457,7 @@ class Collection {
    */
   amend(data, options) {
     if (data && data.length !== undefined) {
-      var options = options || {};
+      var options = options || {};
       var count = this.length;
       var isModified = false;
 

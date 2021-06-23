@@ -475,7 +475,7 @@ class Schema {
       relation: column.array ? 'hasMany' : 'hasOne',
       to: column.class ? column.class : Document,
       link: relationship.LINK_EMBEDDED,
-      config: column.config || {}
+      config: column.config || {}
     });
     this._columns.set(name, column);
 
@@ -1333,28 +1333,18 @@ class Schema {
 
       options = extend({}, defaults, options);
 
-      options.validate = false;
-
       if (options.embed === true) {
         options.embed = instance.hierarchy();
       }
 
       options.embed = this.treeify(options.embed);
 
-      try {
-        yield this.saveRelation(instance, 'belongsTo', options);
-      } catch (e) {
-        throw e;
+      if (!(yield this.saveRelation(instance, 'belongsTo', options))) {
+        return false;
       }
 
-      try {
-        yield this.persist(instance, options);
-      } catch (e) {
-        throw e;
-      }
-
-      yield this.saveRelation(instance, ['hasMany', 'hasOne'], options);
-      return true;
+      var success = yield this.persist(instance, options);
+      return success && (yield this.saveRelation(instance, ['hasMany', 'hasOne'], options));
     }.bind(this));
   }
 
@@ -1414,7 +1404,7 @@ class Schema {
           updates.push(entity);
         }
       }
-      yield Promise.all([this.bulkInsert(inserts, filter, options), this.bulkUpdate(updates, filter, options)]);
+      return (yield Promise.all([this.bulkInsert(inserts, filter, options), this.bulkUpdate(updates, filter, options)])).every(Boolean);
     }.bind(this));
   }
 
@@ -1436,6 +1426,7 @@ class Schema {
       var collection = instance instanceof Model ? [instance] : instance;
       var type, value, relName, rel;
 
+      var success = true;
       for (var entity of collection) {
         for (var type of types) {
           for (relName in options.embed) {
@@ -1444,10 +1435,14 @@ class Schema {
             if (!rel || rel.type() !== type) {
                 continue;
             }
-            yield rel.save(entity, extend({}, options, value ));
+            success = (
+              success &&
+              (yield rel.save(entity, extend({}, options, value )))
+            );
           }
         }
       }
+      return success;
     }.bind(this));
   }
 

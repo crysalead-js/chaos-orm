@@ -1001,7 +1001,7 @@ describe("Entity", function() {
       co(function*() {
         var image = Image.create();
         image.set('gallery', Gallery.create());
-        expect(yield image.validates()).toBe(false);
+        expect(yield image.validates({ embed: true })).toBe(false);
         expect(image.errors()).toEqual({
             name: ['is required'],
             gallery: {
@@ -1010,7 +1010,7 @@ describe("Entity", function() {
         });
 
         image.set('name', 'new image');
-        expect(yield image.validates()).toBe(false);
+        expect(yield image.validates({ embed: true })).toBe(false);
         expect(image.errors()).toEqual({
             gallery: {
               name: ['is required']
@@ -1018,7 +1018,7 @@ describe("Entity", function() {
         });
 
         image.set('gallery.name', 'new gallery');
-        expect(yield image.validates()).toBe(true);
+        expect(yield image.validates({ embed: true })).toBe(true);
         expect(image.errors()).toEqual({});
         done();
       });
@@ -1032,7 +1032,7 @@ describe("Entity", function() {
         gallery.get('images').push(Image.create());
         gallery.get('images').push(Image.create());
 
-        expect(yield gallery.validates()).toBe(false);
+        expect(yield gallery.validates({ embed: true })).toBe(false);
         expect(gallery.errors()).toEqual({
           name: ['is required'],
           images: [
@@ -1044,7 +1044,7 @@ describe("Entity", function() {
         gallery.set('name', '');
         gallery.get('images.0').set('name', '');
         gallery.get('images.1').set('name', '');
-        expect(yield gallery.validates()).toBe(false);
+        expect(yield gallery.validates({ embed: true })).toBe(false);
         expect(gallery.errors()).toEqual({
           name: ['must not be a empty'],
           images: [
@@ -1056,7 +1056,7 @@ describe("Entity", function() {
         gallery.set('name', 'new gallery');
         gallery.get('images.0').set('name', 'image1');
         gallery.get('images.1').set('name', '');
-        expect(yield gallery.validates()).toBe(false);
+        expect(yield gallery.validates({ embed: true })).toBe(false);
         expect(gallery.errors()).toEqual({
             images: [
               {},
@@ -1067,7 +1067,7 @@ describe("Entity", function() {
         gallery.set('name', 'new gallery');
         gallery.get('images.0').set('name', 'image1');
         gallery.get('images.1').set('name', 'image2');
-        expect(yield gallery.validates()).toBe(true);
+        expect(yield gallery.validates({ embed: true })).toBe(true);
         expect(gallery.errors()).toEqual({});
         done();
       });
@@ -1081,7 +1081,7 @@ describe("Entity", function() {
         image.get('tags').push(Tag.create());
         image.get('tags').push(Tag.create());
 
-        expect(yield image.validates()).toBe(false);
+        expect(yield image.validates({ embed: true })).toBe(false);
         expect(image.errors()).toEqual({
           name: ['is required'],
           images_tags: [
@@ -1097,7 +1097,7 @@ describe("Entity", function() {
         image.set('name', '');
         image.get('tags.0').set('name', '');
         image.get('tags.1').set('name', '');
-        expect(yield image.validates()).toBe(false);
+        expect(yield image.validates({ embed: true })).toBe(false);
         expect(image.errors()).toEqual({
           name: ['must not be a empty'],
           images_tags: [
@@ -1113,7 +1113,7 @@ describe("Entity", function() {
         image.set('name', 'new gallery');
         image.get('tags.0').set('name', 'image1');
         image.get('tags.1').set('name', '');
-        expect(yield image.validates()).toBe(false);
+        expect(yield image.validates({ embed: true })).toBe(false);
         expect(image.errors()).toEqual({
             images_tags: [
                {},
@@ -1128,7 +1128,7 @@ describe("Entity", function() {
         image.set('name', 'new gallery');
         image.get('tags.0').set('name', 'image1');
         image.get('tags.1').set('name', 'image2');
-        expect(yield image.validates()).toBe(true);
+        expect(yield image.validates({ embed: true })).toBe(true);
         expect(image.errors()).toEqual({});
         done();
       });
@@ -1308,7 +1308,16 @@ describe("Entity", function() {
           gallery: {}
         });
 
+        var schema = image.schema();
+        var spy = spyOn(schema, 'save').and.callThrough();
+        spyOn(schema, 'bulkInsert').and.returnValue(Promise.resolve(true));
+        spyOn(schema, 'bulkUpdate').and.returnValue(Promise.resolve(true));
+
+        spyOn(image.get('gallery'), 'has').and.returnValue(true);
+
+        yield image.save({ embed: 'gallery' });
         expect(yield image.save({ embed: 'gallery' })).toBe(false);
+
         done();
       }.bind(this));
 

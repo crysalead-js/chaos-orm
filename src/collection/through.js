@@ -70,7 +70,7 @@ class Through {
     }
 
     // Ignore objects
-    if (!config.data || !Array.isArray(config.data)) {
+    if (!config.data || !Array.isArray(config.data)) {
       config.data = [];
     }
 
@@ -333,7 +333,7 @@ class Through {
    *                        - `'exists'` _boolean_: Determines whether or not this entity exists
    * @return self           Return `this`.
    */
-  setAt(offset, data, options) {
+  setAt(offset, data, options) {
     var name = this._through;
     this._parent.get(name).setAt(offset, this._item(data, options), options);
     return this;
@@ -387,7 +387,7 @@ class Through {
   amend(data, options) {
     var name = this._through;
     if (data && data.length) {
-      options = options || {};
+      options = options || {};
       for (var value of data) {
         var item = this._item(value, options);
         this._parent.get(name).setAt(undefined, item, options);

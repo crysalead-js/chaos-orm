@@ -80,7 +80,7 @@ class BelongsTo extends Relationship {
 
       var related = entity.get(name);
 
-      yield related.save(options);
+      var result = yield related.save(options);
 
       var keys = this.keys();
       var from = this.keys('from');
@@ -93,6 +93,8 @@ class BelongsTo extends Relationship {
       conditions[from] = related.get(to);
 
       entity.set(conditions);
+
+      return result;
     }.bind(this));
   }
 }

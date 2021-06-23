@@ -69,7 +69,7 @@ class HasOne extends Relationship {
 
       var conditions = this.match(entity);
       var related = entity.get(name);
-      yield related.set(conditions).save(options);
+      return (yield related.set(conditions).save(options));
     }.bind(this));
   }
 }
