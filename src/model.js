@@ -398,16 +398,10 @@ class Model extends Document {
         embed: false
       };
       options = extend({}, defaults, options);
-      if (options.validate) {
-        var valid = yield this.validates(extend({}, options, { embed: false }));
-        if (!valid) {
-          yield this._validates({ embed: options.embed });
-          return false;
-        }
-      } else {
-        this.sync();
-        this._errors = {};
-      }
+
+      this.sync();
+      this._errors = {};
+
       if (!(yield this.schema().save(this, options))) {
         yield this._validates({ embed: options.embed });
         return false;

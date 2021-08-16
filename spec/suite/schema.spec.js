@@ -239,6 +239,7 @@ describe("Schema", function() {
       this.schema.column('title', { type: 'string', default: 'Enter The Title Here', length: 50 });
 
       expect(this.schema.defaults()).toEqual({
+        gallery_id: null,
         name: 'Enter The Name Here',
         title: 'Enter The Title Here'
       });

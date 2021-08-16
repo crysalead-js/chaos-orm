@@ -426,6 +426,18 @@ class Schema {
         defaults[fieldName] = value['default'];
       }
     }
+    if (!basePath) {
+      for (name in this._relations) {
+        value = this._relations[name];
+        var rel = this.relation(name);
+        if (rel.type() !== 'belongsTo') {
+          continue;
+        }
+        if (value['null'] && !value['array']) {
+          defaults[rel.keys('from')] = null;
+        }
+      }
+    }
     return defaults;
   }
 
@@ -1341,6 +1353,13 @@ class Schema {
 
       if (!(yield this.saveRelation(instance, 'belongsTo', options))) {
         return false;
+      }
+
+      if (options.validate) {
+        var valid = yield instance.validates(extend({}, options, { embed: false }));
+        if (!valid) {
+          return false;
+        }
       }
 
       var success = yield this.persist(instance, options);
