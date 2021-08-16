@@ -954,6 +954,7 @@ class Schema {
     var defaults = {
       parent: undefined,
       basePath: undefined,
+      dottedPath: true,
       exists: null,
       defaults: true
     };
@@ -1021,6 +1022,7 @@ class Schema {
     var config = Object.assign({
       schema: options.class === Document ? this : undefined,
       basePath: options.basePath,
+      dottedPath: options.dottedPath,
       exists: options.exists,
       defaults: options.defaults,
     }, options.config);
@@ -1054,6 +1056,7 @@ class Schema {
     var config = Object.assign({
       schema: isDocument ? this : options.class.definition(),
       basePath: isDocument ? name : undefined,
+      dottedPath: options.dottedPath,
       meta: options.meta,
       exists: options.exists,
       defaults: options.defaults

@@ -238,10 +238,12 @@ class Document {
     var defaults = {
       schema: undefined,
       basePath: undefined,
+      dottedPath: true,
       defaults: true,
       exists: false,
       data: {}
     };
+
     config = Object.assign(defaults, config);
 
     /**
@@ -297,6 +299,8 @@ class Document {
      * @var String
      */
     this.basePath(config.basePath);
+
+    this.dottedPath(config.dottedPath);
 
     this.schema(config.schema);
 
@@ -406,7 +410,7 @@ class Document {
   /**
    * Gets/sets the basePath (embedded entities).
    *
-   * @param  String basePath The basePath value to set or `null` to get the current one.
+   * @param  String basePath The basePath value to set or no arguments to get the current one.
    * @return mixed           Returns the basePath value on get or `this` otherwise.
    */
   basePath(basePath) {
@@ -415,6 +419,20 @@ class Document {
       return this;
     }
     return this._basePath;
+  }
+
+  /**
+   * Gets/sets the dottedPath (embedded entities).
+   *
+   * @param  Boolean dottedPath The dottedPath value to set or no arguments to get the current one.
+   * @return mixed              Returns the dottedPath value.
+   */
+  dottedPath(dottedPath) {
+    if (arguments.length) {
+      this._dottedPath = dottedPath;
+      return this;
+    }
+    return this._dottedPath;
   }
 
   /**
@@ -440,7 +458,7 @@ class Document {
       }
     }
 
-    var keys = Array.isArray(name) ? name.slice() : dotpath(name);
+    var keys = Array.isArray(name) ? name.slice() : (this._dottedPath ? dotpath(name) : [name]);
     name = keys.shift();
     if (name == null || name === '') {
       throw new Error("Field name can't be empty.");
@@ -576,7 +594,7 @@ class Document {
    * @return self           Returns `this`.
    */
   setAt(name, data, options) {
-    var keys = Array.isArray(name) ? name.slice() : dotpath(name);
+    var keys = Array.isArray(name) ? name.slice() : (this._dottedPath ? dotpath(name) : [name]);
     var name = keys[0];
 
     if (name == null || name === '') {
@@ -605,6 +623,7 @@ class Document {
     var value = schema.cast(name, data, {
       parent: this,
       basePath: this.basePath(),
+      dottedPath: this.dottedPath(),
       defaults: true,
       exists: this._exists === 'all' ? 'all' : null
     });
@@ -677,7 +696,7 @@ class Document {
       closure = path;
       path = '';
     } else {
-      keys = Array.isArray(path) ? path : dotpath(path);
+      keys = Array.isArray(path) ? path : (this._dottedPath ? dotpath(path) : [path]);
     }
 
     if (!this._watches.has(path)) {
@@ -748,7 +767,7 @@ class Document {
    * @param String name A field name.
    */
   has(name) {
-    var keys = Array.isArray(name) ? name.slice() : dotpath(name);
+    var keys = Array.isArray(name) ? name.slice() : (this._dottedPath ? dotpath(name) : [name]);
     if (!keys.length) {
       return;
     }
@@ -767,7 +786,7 @@ class Document {
    * @param String name A field name.
    */
   unset(name) {
-    var keys = Array.isArray(name) ? name.slice() : dotpath(name);
+    var keys = Array.isArray(name) ? name.slice() : (this._dottedPath ? dotpath(name) : [name]);
     if (!keys.length) {
       return;
     }

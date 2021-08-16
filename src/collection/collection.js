@@ -13,7 +13,7 @@ class Collection {
   /**
    * Gets/sets classes dependencies.
    *
-   * @param  Object classes The classes dependencies to set or none to get it.
+   * @param  Object classes The classes dependencies to set or no arguments to get it.
    * @return mixed          The classes dependencies.
    */
   static classes(classes) {
@@ -35,6 +35,7 @@ class Collection {
   constructor(config) {
     var defaults = {
       basePath: undefined,
+      dottedPath: true,
       schema: undefined,
       meta: {},
       data: [],
@@ -100,6 +101,8 @@ class Collection {
 
     this.basePath(config.basePath);
 
+    this.dottedPath(config.dottedPath);
+
     this.schema(config.schema);
 
     this.meta(config.meta);
@@ -162,7 +165,7 @@ class Collection {
   /**
    * Gets/sets the schema instance.
    *
-   * @param  Object schema The schema instance to set or none to get it.
+   * @param  Object schema The schema instance to set or no arguments to get it.
    * @return Object        The schema instance or `this` on set.
    */
   schema(schema) {
@@ -176,7 +179,7 @@ class Collection {
   /**
    * Gets/sets the basePath (embedded entities).
    *
-   * @param  String basePath The basePath value to set or none to get the current one.
+   * @param  String basePath The basePath value to set or no arguments to get the current one.
    * @return mixed           Returns the basePath value on get or `this` otherwise.
    */
   basePath(basePath) {
@@ -188,9 +191,23 @@ class Collection {
   }
 
   /**
+   * Gets/sets the dottedPath (embedded entities).
+   *
+   * @param  Boolean dottedPath The dottedPath value to set or no arguments to get the current one.
+   * @return mixed              Returns the dottedPath value.
+   */
+  dottedPath(dottedPath) {
+    if (arguments.length) {
+      this._dottedPath = dottedPath;
+      return this;
+    }
+    return this._dottedPath;
+  }
+
+  /**
    * Gets/sets the meta data.
    *
-   * @param  String meta The meta value to set or none to get the current one.
+   * @param  String meta The meta value to set or no arguments to get the current one.
    * @return mixed       Returns the meta value on get or `this` otherwise.
    */
   meta(meta) {
@@ -313,6 +330,7 @@ class Collection {
         exists: options ? options.exists : undefined,
         parent: this,
         basePath: this.basePath(),
+        dottedPath: this.dottedPath(),
         defaults: true
       });
     } else if (data && data.setParent) {
