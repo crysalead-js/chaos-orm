@@ -761,6 +761,17 @@ describe("Schema", function() {
 
     });
 
+    it("binds a `hasManyThrough` relation with a defined using argument", function() {
+
+      var schema = Image.definition();
+
+      schema.hasManyThrough('myTags', 'images_tags', 'tag');
+
+      var relation = this.schema.relation('myTags');
+      expect(relation.using()).toBe('tag');
+
+    });
+
   });
 
   describe(".unbind()", function() {

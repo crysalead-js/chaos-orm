@@ -733,7 +733,9 @@ class Schema {
         throw new Error("Unexisting through relation `'" + config.through + "'`, needed to be created first.");
       }
       this._relations[config.through].junction = true;
-      config.using = this.conventions().apply('single', name);
+      if (!config.using) {
+        config.using = this.conventions().apply('single', name);
+      }
       config.type = 'through';
       this._relations[config.through].junction = true;
     } else if (config.relation === 'belongsTo' && config.link === relationship.LINK_KEY) {
