@@ -1,6 +1,6 @@
 {
   "name": "chaos-orm",
-  "version": "19.0.0",
+  "version": "19.0.1",
   "description": "Datastore Agnostic Model Layer",
   "license": "MIT",
   "repository": {
@@ -28,9 +28,9 @@
   "devDependencies": {
     "bluebird": "^3.7.2",
     "chai-kahlan": "^2.0.0",
-    "coveralls": "^3.1.0",
+    "coveralls": "^3.1.1",
     "jasmine-kahlan": "^1.0.2",
-    "mocha": "^9.0.1",
+    "mocha": "^9.1.0",
     "nyc": "^15.1.0"
   },
   "scripts": {
