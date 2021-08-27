@@ -115,7 +115,7 @@ class HasMany extends Relationship {
         return true;
       }
 
-      var conditions = this.match(entity);
+      var conditions = extend({}, this.conditions(), this.match(entity));
       var to = this.to();
       var previous = yield to.all({ conditions: conditions });
       var existing = {};

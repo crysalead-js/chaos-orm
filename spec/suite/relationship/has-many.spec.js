@@ -242,7 +242,7 @@ describe("HasMany", function() {
 
       it("returns an empty collection when no hasMany relation exists", function(done) {
 
-        co(function*()  {
+        co(function*() {
           spyOn(Image, 'all').and.callFake(function(options, fetchOptions) {
             var images =  Image.create({}, { type: 'set', exists: true });
             return Promise.resolve(images);
@@ -260,7 +260,7 @@ describe("HasMany", function() {
 
       it("lazy loads a hasMany relation", function(done) {
 
-        co(function*()  {
+        co(function*() {
           spyOn(Image, 'all').and.callFake(function(options, fetchOptions) {
             var images =  Image.create([
               { id: 1, gallery_id: 1, title: 'Amiga 1200' },
@@ -390,6 +390,34 @@ describe("HasMany", function() {
         done();
       });
 
+    });
+
+    it("assures removed associative entity to be deleted according to the defined scope", function(done) {
+
+      co(function*() {
+        var schema = Image.definition();
+        schema.hasMany('images_tags', 'ImageTag', {
+          keys: { id: 'tag_id' },
+          conditions: { scope: 1 }
+        });
+
+        var result = {};
+
+        spyOn(ImageTag, 'all').and.callFake(function(options) {
+          result = options;
+          return Promise.resolve(ImageTag.create([], { type: 'set' }));
+        });
+
+        var relation = schema.relation('images_tags');
+
+        yield relation.save(Image.create({ id: 4, gallery_id: 2, title: 'Silicon Valley', images_tags: [] }, { exists: true }));
+
+        expect(result.conditions).toEqual({
+          tag_id: 4,
+          scope: 1
+        });
+        done();
+      });
     });
 
   });
