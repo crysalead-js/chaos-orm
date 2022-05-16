@@ -564,10 +564,20 @@ describe("Collection", function() {
 
     });
 
+    it("returns -1 when the id doesn't exists", function() {
+
+      var collection = new Collection({ data: [
+        new MyModel({ data: { id: 1, type: 'type1'} })
+      ] });
+
+      expect(collection.indexOfId(2)).toBe(-1);
+
+    });
+
     it("throws an error when collection doesn't contain documents", function() {
 
       closure = function() {
-        var collection = new Collection({ data: ['a', 'b', 'c'] });
+        var collection = new Collection({ data: ['a', 'b', 'c'] });
         collection.indexOfId(1);
       };
       expect(closure).toThrow(new Error("Error, `indexOfId()` is only available on models."));

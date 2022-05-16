@@ -639,6 +639,7 @@ class Collection {
   indexOfId(id) {
     var Model = this.constructor.classes().model;
     var index = 0;
+    var result = -1;
     id = String(id);
 
     while (index < this._data.length) {
@@ -647,10 +648,12 @@ class Collection {
         throw new Error('Error, `indexOfId()` is only available on models.');
       }
       if (String(entity.id()) === id) {
-        return index;
+        result = index;
+        break;
       }
       index++;
     }
+    return result;
   }
 
   /**
