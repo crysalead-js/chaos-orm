@@ -16,7 +16,7 @@
     "co": "4.6.0",
     "component-emitter": "1.3.0",
     "dateformat": "4.5.1",
-    "dateparse": "0.0.1",
+    "dateparse": "0.0.2",
     "dotpath-parser": "0.0.2",
     "expand-flatten": "1.0.2",
     "extend-merge": "1.0.6",
@@ -30,7 +30,7 @@
     "chai-kahlan": "^2.0.0",
     "coveralls": "^3.1.1",
     "jasmine-kahlan": "^1.0.2",
-    "mocha": "^9.1.0",
+    "mocha": "^10.0.0",
     "nyc": "^15.1.0"
   },
   "scripts": {

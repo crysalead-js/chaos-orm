@@ -93,7 +93,7 @@ class Source {
             value = Number.parseInt(value) * 1000;
           }
           var date = dateParse(value, true);
-          if (Number.isNaN(date.getTime())) {
+          if (!date || Number.isNaN(date.getTime())) {
             throw new Error("Invalid date `" + value + "`, can't be parsed.");
           }
           return dateFormat(date, column.format, true);
@@ -138,7 +138,7 @@ class Source {
         }.bind(this),
         'datetime': function(value, column, options) {
           var date = dateParse(value, true);
-          if (Number.isNaN(date.getTime())) {
+          if (!date || Number.isNaN(date.getTime())) {
             return null;
           }
           if (column && column.midnight) {
@@ -183,7 +183,7 @@ class Source {
             value = Number.parseInt(value) * 1000;
           }
           var date = dateParse(value, true);
-          if (Number.isNaN(date.getTime())) {
+          if (!date || Number.isNaN(date.getTime())) {
             throw new Error("Invalid date `" + value + "`, can't be parsed.");
           }
           return dateFormat(date, column.format, true);

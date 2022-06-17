@@ -59,7 +59,7 @@ describe("Source", function() {
       expect(this.source.convert('datasource', 'date', '2014-11-21')).toBe('2014-11-21');
       var datetime = new Date('2014-11-21T10:20:45.000Z');
       expect(this.source.convert('datasource', 'datetime', datetime)).toBe('2014-11-21 10:20:45');
-      expect(this.source.convert('datasource', 'datetime', '2014-11-21T10:20:45+02:00')).toBe('2014-11-21 08:20:45');
+      expect(this.source.convert('datasource', 'datetime', '2014-11-21T10:20:45')).toBe('2014-11-21 10:20:45');
       expect(this.source.convert('datasource', 'boolean', true)).toBe('1');
       expect(this.source.convert('datasource', 'boolean', false)).toBe('0');
       expect(this.source.convert('datasource', 'null', null)).toBe('');
