@@ -1117,7 +1117,7 @@ describe("Document", function() {
       });
 
       var result = [];
-      for (var value of document) {
+      for (var [key, value] of document) {
         result.push(value);
       }
 
@@ -1126,7 +1126,7 @@ describe("Document", function() {
       document.set('archived', false);
 
       var result2 = [];
-      for (var value of document) {
+      for (var [key, value] of document) {
         result2.push(value);
       }
 

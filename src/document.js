@@ -672,7 +672,7 @@ class Document {
     return {
       next: () => ({
         done: i >= keys.length,
-        value: this._data[keys[i++]]
+        value: [keys[i], this._data[keys[i++]]]
       })
     }
   }
