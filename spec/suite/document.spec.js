@@ -1071,4 +1071,69 @@ describe("Document", function() {
 
   });
 
+  describe(".keys()", function() {
+
+    it("extracts keys", function() {
+
+      var document = new Document({
+        data: {
+          title: 'original',
+          body: 'content'
+        }
+      });
+
+      expect(document.keys()).toEqual(['title', 'body']);
+
+    });
+
+  });
+
+  describe(".values()", function() {
+
+    it("extracts values", function() {
+
+      var document = new Document({
+        data: {
+          title: 'original',
+          body: 'content'
+        }
+      });
+
+      expect(document.values()).toEqual(['original', 'content']);
+
+    });
+
+  });
+
+  describe("._iterator", function() {
+
+    it("extracts values", function() {
+
+      var document = new Document({
+        data: {
+          title: 'original',
+          body: 'content'
+        }
+      });
+
+      var result = [];
+      for (var value of document) {
+        result.push(value);
+      }
+
+      expect(result).toEqual(['original', 'content']);
+
+      document.set('archived', false);
+
+      var result2 = [];
+      for (var value of document) {
+        result2.push(value);
+      }
+
+      expect(result2).toEqual(['original', 'content', false]);
+
+    });
+
+  });
+
 });

@@ -658,6 +658,25 @@ class Document {
     return this;
   }
 
+  keys() {
+    return Object.keys(this._data);
+  }
+
+  values() {
+    return Object.values(this._data);
+  }
+
+  [Symbol.iterator]() {
+    var i = 0;
+    const keys = Object.keys(this._data);
+    return {
+      next: () => ({
+        done: i >= keys.length,
+        value: this._data[keys[i++]]
+      })
+    }
+  }
+
   /**
    * Trigger an event through the graph.
    *
